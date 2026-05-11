@@ -43,6 +43,17 @@
       --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
+
+    /* ==================== SCREEN MANAGEMENT ==================== */
+    .screen { display: none !important; }
+    .screen.active {
+      display: flex !important;
+      flex-direction: column;
+      min-height: 100dvh;
+    }
+    #app-loading { display: flex; }
+    #app-loading.hidden { display: none !important; }
+
     /* ==================== RESET ==================== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { font-size: 16px; -webkit-tap-highlight-color: transparent; }
@@ -479,7 +490,7 @@
 </div>
 
 <!-- CONFIG SCREEN -->
-<div id="config-screen" style="display:none; flex-direction:column;">
+<div id="config-screen" class="screen">
   <div class="config-card">
     <h2>⚙️ Supabase Ayarları</h2>
     <p>Uygulamayı kullanmadan önce Supabase proje bilgilerinizi girin. Bu bilgiler tarayıcınızda saklanır.</p>
@@ -496,7 +507,7 @@
 </div>
 
 <!-- LOGIN SCREEN -->
-<div id="login-screen" style="display:none; flex-direction:column;">
+<div id="login-screen" class="screen">
   <div class="login-card">
     <div class="login-logo">
       <div class="icon">📖</div>
@@ -517,7 +528,7 @@
 </div>
 
 <!-- MAIN APP -->
-<div id="main-app" style="display:none;">
+<div id="main-app" class="screen">
 
   <!-- Header -->
   <header class="app-header">
@@ -919,18 +930,13 @@ function resetConfig() {
 // SCREENS
 // ============================================================
 function showScreen(name) {
-  document.getElementById('app-loading').style.display = 'none';
+  document.getElementById('app-loading').classList.add('hidden');
   ['config-screen','login-screen','main-app'].forEach(id => {
-    const el = document.getElementById(id);
-    el.style.display = 'none';
-    el.style.flexDirection = '';
+    document.getElementById(id).classList.remove('active');
   });
   const map = { config: 'config-screen', login: 'login-screen', app: 'main-app' };
   if (map[name]) {
-    const el = document.getElementById(map[name]);
-    el.style.display = 'flex';
-    el.style.flexDirection = 'column';
-    el.style.minHeight = '100dvh';
+    document.getElementById(map[name]).classList.add('active');
   }
 }
 
@@ -1725,7 +1731,6 @@ window.submitLog = submitLog;
 window.switchPage = switchPage;
 window.toggleNotif = toggleNotif;
 window.saveNotifSettings = saveNotifSettings;
-window.showLoadError = showLoadError;
 
 // Service Worker for PWA
 if ('serviceWorker' in navigator) {
