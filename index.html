@@ -17,7 +17,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
   <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
   <style>
     /* ==================== VARIABLES ==================== */
@@ -917,6 +917,25 @@ function resetConfig() {
   location.reload();
 }
 
+// ============================================================
+// SCREENS
+// ============================================================
+function showScreen(name) {
+  document.getElementById('app-loading').style.display = 'none';
+  ['config-screen','login-screen','main-app'].forEach(id => {
+    const el = document.getElementById(id);
+    el.style.display = 'none';
+    el.style.flexDirection = '';
+  });
+  const map = { config: 'config-screen', login: 'login-screen', app: 'main-app' };
+  if (map[name]) {
+    const el = document.getElementById(map[name]);
+    el.style.display = 'flex';
+    el.style.flexDirection = 'column';
+    el.style.minHeight = '100dvh';
+  }
+}
+
 function initSupabase() {
   const { url, key } = getConfig();
   if (!url || !key) {
@@ -925,16 +944,6 @@ function initSupabase() {
   }
   supabase = window.supabase.createClient(url, key);
   checkAuth();
-}
-
-// ============================================================
-// SCREENS
-// ============================================================
-function showScreen(name) {
-  document.getElementById('app-loading').style.display = 'none';
-  document.getElementById('config-screen').style.display = name === 'config' ? 'flex' : 'none';
-  document.getElementById('login-screen').style.display = name === 'login' ? 'flex' : 'none';
-  document.getElementById('main-app').style.display = name === 'app' ? 'flex' : 'none';
 }
 
 // ============================================================
@@ -1690,10 +1699,32 @@ function showToast(msg, type = '') {
 // BOOT
 // ============================================================
 window.addEventListener('DOMContentLoaded', () => {
-  // Small delay for smooth loading screen
-  setTimeout(() => {
-    initSupabase();
-  }, 600);
+  let tries = 0;
+  function tryBoot() {
+    tries++;
+    if (typeof window.supabase !== 'undefined') {
+      initSupabase();
+      return;
+    }
+    if (tries < 10) {
+      setTimeout(tryBoot, 300);
+      return;
+    }
+    // 3 saniye sonra hâlâ yok ise hata göster
+    document.getElementById('app-loading').innerHTML = `
+      <div style="text-align:center;padding:32px;max-width:360px;">
+        <div style="font-size:2rem;margin-bottom:12px;">⚠️</div>
+        <div style="font-family:var(--font-display);font-size:1.2rem;color:var(--accent);margin-bottom:8px;">Bağlantı Hatası</div>
+        <div style="font-size:0.85rem;color:var(--text2);line-height:1.6;margin-bottom:20px;">
+          Supabase kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edin ve sayfayı yenileyin.
+        </div>
+        <button onclick="location.reload()" style="background:var(--accent);color:#1a1000;border:none;padding:12px 24px;border-radius:10px;font-weight:600;cursor:pointer;font-size:0.9rem;">
+          🔄 Yenile
+        </button>
+      </div>
+    `;
+  }
+  setTimeout(tryBoot, 400);
 });
 
 // Service Worker for PWA
