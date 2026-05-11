@@ -95,39 +95,6 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ==================== CONFIG SCREEN ==================== */
-    #config-screen {
-      display: none; min-height: 100dvh;
-      align-items: center; justify-content: center;
-      padding: 24px;
-      background: radial-gradient(ellipse at 60% 20%, rgba(232,184,109,0.08) 0%, transparent 60%);
-    }
-    .config-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 32px;
-      width: 100%; max-width: 420px;
-      box-shadow: var(--shadow);
-    }
-    .config-card h2 { font-family: var(--font-display); font-size: 1.4rem; color: var(--accent); margin-bottom: 8px; }
-    .config-card p { font-size: 0.85rem; color: var(--text2); margin-bottom: 24px; line-height: 1.6; }
-    .config-field { margin-bottom: 16px; }
-    .config-field label { display: block; font-size: 0.8rem; color: var(--text2); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
-    .config-field input {
-      width: 100%; background: var(--bg2);
-      border: 1px solid var(--border); border-radius: var(--radius-sm);
-      padding: 12px 14px; color: var(--text); font-size: 0.9rem;
-      transition: border-color 0.2s;
-    }
-    .config-field input:focus { outline: none; border-color: var(--accent); }
-    .config-save-btn {
-      width: 100%; background: var(--accent); color: #1a1000;
-      font-weight: 600; font-size: 0.95rem; padding: 14px;
-      border-radius: var(--radius-sm); margin-top: 8px;
-      transition: opacity 0.2s, transform 0.15s;
-    }
-    .config-save-btn:active { transform: scale(0.98); }
 
     /* ==================== LOGIN SCREEN ==================== */
     #login-screen {
@@ -390,6 +357,16 @@
     }
     .toggle.on::after { left: 25px; }
 
+
+    /* ==================== MODAL VISIBILITY ==================== */
+    #log-modal, #add-user-modal, #add-book-modal, #manage-group-modal {
+      display: none;
+    }
+    #log-modal.active-modal, #add-user-modal.active-modal,
+    #add-book-modal.active-modal, #manage-group-modal.active-modal {
+      display: block;
+    }
+
     /* ==================== MODAL ==================== */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.6);
@@ -487,23 +464,6 @@
 <div id="app-loading">
   <div class="logo-big">📖 OkuTakip</div>
   <div class="spinner"></div>
-</div>
-
-<!-- CONFIG SCREEN -->
-<div id="config-screen" class="screen">
-  <div class="config-card">
-    <h2>⚙️ Supabase Ayarları</h2>
-    <p>Uygulamayı kullanmadan önce Supabase proje bilgilerinizi girin. Bu bilgiler tarayıcınızda saklanır.</p>
-    <div class="config-field">
-      <label>Supabase URL</label>
-      <input type="url" id="cfg-url" placeholder="https://xxxxx.supabase.co" />
-    </div>
-    <div class="config-field">
-      <label>Supabase Anon Key</label>
-      <input type="text" id="cfg-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." />
-    </div>
-    <button class="config-save-btn" onclick="saveConfig()">Kaydet ve Devam Et</button>
-  </div>
 </div>
 
 <!-- LOGIN SCREEN -->
@@ -714,11 +674,7 @@
         </button>
       </div>
 
-      <!-- Supabase config -->
-      <div class="card" style="margin-bottom:12px;">
-        <div style="font-weight:600;margin-bottom:14px;font-size:0.9rem;">🔧 Bağlantı</div>
-        <button class="btn btn-danger btn-block" onclick="resetConfig()">Supabase Ayarlarını Sıfırla</button>
-      </div>
+
     </div>
 
   </main>
@@ -770,7 +726,7 @@
 <!-- === MODALS === -->
 
 <!-- Log Reading Modal -->
-<div id="log-modal" style="display:none;">
+<div id="log-modal">
   <div class="modal-overlay" onclick="closeModal('log-modal')">
     <div class="modal" onclick="event.stopPropagation()">
       <span class="modal-handle"></span>
@@ -807,7 +763,7 @@
 </div>
 
 <!-- Add User Modal (Admin) -->
-<div id="add-user-modal" style="display:none;">
+<div id="add-user-modal">
   <div class="modal-overlay" onclick="closeModal('add-user-modal')">
     <div class="modal" onclick="event.stopPropagation()">
       <span class="modal-handle"></span>
@@ -842,7 +798,7 @@
 </div>
 
 <!-- Add Book/Group Modal (Admin) -->
-<div id="add-book-modal" style="display:none;">
+<div id="add-book-modal">
   <div class="modal-overlay" onclick="closeModal('add-book-modal')">
     <div class="modal" onclick="event.stopPropagation()">
       <span class="modal-handle"></span>
@@ -877,7 +833,7 @@
 </div>
 
 <!-- Manage Group Modal (Admin) -->
-<div id="manage-group-modal" style="display:none;">
+<div id="manage-group-modal">
   <div class="modal-overlay" onclick="closeModal('manage-group-modal')">
     <div class="modal" onclick="event.stopPropagation()">
       <span class="modal-handle"></span>
@@ -901,52 +857,26 @@ window._sbCreateClient = createClient;
 // ============================================================
 // SUPABASE CONFIG
 // ============================================================
+const SUPABASE_URL = 'https://rrupsidrdgwgagetcojx.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_lQXYDZqUPATZNwM8Cb17kg_F-T1XsOI';
 let supabase = null;
-
-function getConfig() {
-  return {
-    url: localStorage.getItem('sb_url') || '',
-    key: localStorage.getItem('sb_key') || ''
-  };
-}
-
-function saveConfig() {
-  const url = document.getElementById('cfg-url').value.trim();
-  const key = document.getElementById('cfg-key').value.trim();
-  if (!url || !key) return showToast('Lütfen tüm alanları doldurun', 'error');
-  localStorage.setItem('sb_url', url);
-  localStorage.setItem('sb_key', key);
-  initSupabase();
-}
-
-function resetConfig() {
-  if (!confirm('Supabase ayarları sıfırlansın mı?')) return;
-  localStorage.removeItem('sb_url');
-  localStorage.removeItem('sb_key');
-  location.reload();
-}
 
 // ============================================================
 // SCREENS
 // ============================================================
 function showScreen(name) {
   document.getElementById('app-loading').classList.add('hidden');
-  ['config-screen','login-screen','main-app'].forEach(id => {
+  ['login-screen','main-app'].forEach(id => {
     document.getElementById(id).classList.remove('active');
   });
-  const map = { config: 'config-screen', login: 'login-screen', app: 'main-app' };
+  const map = { login: 'login-screen', app: 'main-app' };
   if (map[name]) {
     document.getElementById(map[name]).classList.add('active');
   }
 }
 
 function initSupabase() {
-  const { url, key } = getConfig();
-  if (!url || !key) {
-    showScreen('config');
-    return;
-  }
-  supabase = window._sbCreateClient(url, key);
+  supabase = window._sbCreateClient(SUPABASE_URL, SUPABASE_KEY);
   checkAuth();
 }
 
@@ -1460,7 +1390,7 @@ function openLogModal() {
   document.getElementById('log-current-page').value = '';
   document.getElementById('log-note').value = '';
   document.getElementById('comp-toggle').classList.remove('on');
-  document.getElementById('log-modal').style.display = 'block';
+  document.getElementById('log-modal').classList.add('active-modal');
 }
 
 async function submitLog() {
@@ -1508,7 +1438,7 @@ async function submitLog() {
 // ADMIN MODALS
 // ============================================================
 function openAddUserModal() {
-  document.getElementById('add-user-modal').style.display = 'block';
+  document.getElementById('add-user-modal').classList.add('active-modal');
 }
 
 async function createUser() {
@@ -1519,26 +1449,38 @@ async function createUser() {
   const role = document.getElementById('new-user-role').value;
   if (!email || !password || !username) return showToast('E-posta, kullanıcı adı ve şifre gerekli', 'error');
 
-  // Create user via Supabase admin (only works if using service key, otherwise manual)
-  const { data, error } = await supabase.auth.admin.createUser({
-    email, password, email_confirm: true,
-    user_metadata: { username, full_name: fullname }
+  // signUp ile kullanıcı oluştur
+  const { data, error } = await supabase.auth.signUp({
+    email, password,
+    options: { data: { username, full_name: fullname } }
   });
 
-  if (error) {
-    showToast('Kullanıcı oluşturulamadı. Service key gerekebilir. Supabase Dashboard kullanın.', 'error');
-    return;
-  }
-  // Set role
-  await supabase.from('profiles').update({ role }).eq('id', data.user.id);
+  if (error) { showToast('Hata: ' + error.message, 'error'); return; }
+  if (!data.user) { showToast('Kullanıcı oluşturulamadı', 'error'); return; }
+
+  // Profil trigger ile oluşur ama role güncellemek için biraz bekle
+  await new Promise(r => setTimeout(r, 1500));
+  const { error: profErr } = await supabase
+    .from('profiles')
+    .update({ role, full_name: fullname, username })
+    .eq('id', data.user.id);
+
   closeModal('add-user-modal');
-  showToast('Kullanıcı oluşturuldu!', 'success');
+  if (profErr) {
+    showToast('Kullanici olustu ama rol ayarlanamadi. SQL ile manuel yapin.', 'error');
+  } else {
+    showToast('Kullanici olusturuldu! Email dogrulamasi gerekebilir.', 'success');
+  }
+  // Clear fields
+  ['new-user-email','new-user-fullname','new-user-username','new-user-password'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
 }
 
 function openAddBookModal() {
   const today = todayStr();
   document.getElementById('group-start-date').value = today;
-  document.getElementById('add-book-modal').style.display = 'block';
+  document.getElementById('add-book-modal').classList.add('active-modal');
 }
 
 async function createBookGroup() {
@@ -1568,15 +1510,35 @@ async function createBookGroup() {
 }
 
 async function openManageGroupModal() {
-  const { data: groups } = await supabase.from('reading_groups').select('id, name');
+  // Grupları getir — admin tüm grupları görebilmeli
+  const { data: groups, error: gErr } = await supabase
+    .from('reading_groups')
+    .select('id, name')
+    .order('created_at', { ascending: false });
+
+  if (gErr) { showToast('Gruplar yüklenemedi: ' + gErr.message, 'error'); return; }
+
   const gSel = document.getElementById('manage-group-select');
-  gSel.innerHTML = (groups || []).map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+  if (!groups || groups.length === 0) {
+    gSel.innerHTML = '<option value="">Önce bir grup oluşturun</option>';
+  } else {
+    gSel.innerHTML = groups.map(g => `<option value="${g.id}">${g.name}</option>`).join('');
+  }
 
-  const { data: profiles } = await supabase.from('profiles').select('id, username, full_name');
+  const { data: profiles, error: pErr } = await supabase
+    .from('profiles')
+    .select('id, username, full_name')
+    .order('full_name');
+
+  if (pErr) { showToast('Kullanicilar yuklenemedi: ' + pErr.message, 'error'); return; }
+
   const uSel = document.getElementById('manage-user-select');
-  uSel.innerHTML = (profiles || []).map(p => `<option value="${p.id}">${p.full_name || p.username}</option>`).join('');
+  uSel.innerHTML = (profiles || []).map(p =>
+    `<option value="${p.id}">${p.full_name || p.username}</option>`
+  ).join('');
 
-  document.getElementById('manage-group-modal').style.display = 'block';
+  // class ile aç
+  document.getElementById('manage-group-modal').classList.add('active-modal');
 }
 
 async function addMemberToGroup() {
@@ -1697,7 +1659,7 @@ function switchPage(name, btn) {
 }
 
 function openModal(id) { document.getElementById(id).style.display = 'block'; }
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+function closeModal(id) { document.getElementById(id).classList.remove('active-modal'); }
 
 let toastTimeout;
 function showToast(msg, type = '') {
@@ -1725,8 +1687,6 @@ window.openAddUserModal = openAddUserModal;
 window.openLogModal = openLogModal;
 window.openManageGroupModal = openManageGroupModal;
 window.requestNotifPermission = requestNotifPermission;
-window.resetConfig = resetConfig;
-window.saveConfig = saveConfig;
 window.submitLog = submitLog;
 window.switchPage = switchPage;
 window.toggleNotif = toggleNotif;
