@@ -16,9 +16,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-
   <style>
     /* ==================== VARIABLES ==================== */
     :root {
@@ -521,7 +518,7 @@
 </div>
 
 <!-- MAIN APP -->
-<div id="main-app">
+<div id="main-app" style="display:none;">
 
   <!-- Header -->
   <header class="app-header">
@@ -888,7 +885,9 @@
   </div>
 </div>
 
-<script>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+window._sbCreateClient = createClient;
 // ============================================================
 // SUPABASE CONFIG
 // ============================================================
@@ -942,7 +941,7 @@ function initSupabase() {
     showScreen('config');
     return;
   }
-  supabase = window.supabase.createClient(url, key);
+  supabase = window._sbCreateClient(url, key);
   checkAuth();
 }
 
@@ -958,14 +957,23 @@ let notifTimer = null;
 // AUTH
 // ============================================================
 async function checkAuth() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    currentUser = session.user;
-    await loadProfile();
-    showScreen('app');
-    initApp();
-  } else {
-    showScreen('login');
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    const session = data?.session;
+    if (session) {
+      currentUser = session.user;
+      await loadProfile();
+      showScreen('app');
+      initApp();
+    } else {
+      showScreen('login');
+    }
+  } catch(e) {
+    console.error('Auth error:', e);
+    // Bağlantı hatası - muhtemelen yanlış URL/key
+    showScreen('config');
+    setTimeout(() => showToast("Supabase bağlantısı başarısız. URL ve Key'i kontrol edin.", "error"), 400);
   }
 }
 
@@ -1698,39 +1706,16 @@ function showToast(msg, type = '') {
 // ============================================================
 // BOOT
 // ============================================================
-window.addEventListener('DOMContentLoaded', () => {
-  let tries = 0;
-  function tryBoot() {
-    tries++;
-    if (typeof window.supabase !== 'undefined') {
-      initSupabase();
-      return;
-    }
-    if (tries < 10) {
-      setTimeout(tryBoot, 300);
-      return;
-    }
-    // 3 saniye sonra hâlâ yok ise hata göster
-    document.getElementById('app-loading').innerHTML = `
-      <div style="text-align:center;padding:32px;max-width:360px;">
-        <div style="font-size:2rem;margin-bottom:12px;">⚠️</div>
-        <div style="font-family:var(--font-display);font-size:1.2rem;color:var(--accent);margin-bottom:8px;">Bağlantı Hatası</div>
-        <div style="font-size:0.85rem;color:var(--text2);line-height:1.6;margin-bottom:20px;">
-          Supabase kütüphanesi yüklenemedi. İnternet bağlantınızı kontrol edin ve sayfayı yenileyin.
-        </div>
-        <button onclick="location.reload()" style="background:var(--accent);color:#1a1000;border:none;padding:12px 24px;border-radius:10px;font-weight:600;cursor:pointer;font-size:0.9rem;">
-          🔄 Yenile
-        </button>
-      </div>
-    `;
-  }
-  setTimeout(tryBoot, 400);
-});
+
 
 // Service Worker for PWA
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
+
+// Boot — module scripts run after DOM is parsed, so this is safe
+initSupabase();
 </script>
+
 </body>
 </html>
