@@ -2,7 +2,7 @@
   "name": "OkuTakip - Kitap Okuma Takip",
   "short_name": "OkuTakip",
   "description": "Kitap okuma takip ve grup yönetim uygulaması",
-  "start_url": "/oku/index.html",
+  "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#0f0f1a",
   "theme_color": "#1a1a2e",
