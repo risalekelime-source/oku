@@ -1601,7 +1601,7 @@ async function requestNotifPermission() {
 
 function scheduleNotifCheck() {
   clearInterval(notifTimer);
-  notifTimer = setInterval(checkAndNotify, 100);
+  notifTimer = setInterval(checkAndNotify, 1000);
   checkAndNotify();
 }
 
