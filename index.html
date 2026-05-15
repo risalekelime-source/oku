@@ -599,24 +599,82 @@ window.checkTodayLogStatus = async function() {
   }
 };
 
-// Günlük okuma için hızlı kayıt fonksiyonu
+// ==========================================
+// 1. GÜNLÜK OKUMA DURUM KONTROLÜ (BUTON RENKLENDİRME)
+// ==========================================
+window.checkTodayLogStatus = async function() {
+  // Eğer grup yoksa veya geçerli kullanıcı (me) henüz yüklenmediyse işlemi pas geç
+  if (!myGroup || !window.me || !window.me.id) {
+    console.log("Kullanıcı verisi henüz yüklenmedi, kontrol bekleniyor...");
+    return;
+  }
+  
+  try {
+    // Geçerli kullanıcının (me.id) bugüne ait kaydı var mı sorgula
+    const { data: ex, error } = await sb.from('reading_logs')
+      .select('id')
+      .eq('user_id', window.me.id)
+      .eq('group_id', myGroup.id)
+      .eq('log_date', todayStr())
+      .maybeSingle();
+      
+    if (error) throw error;
+      
+    const btn = document.getElementById('btn-today-log');
+    if (btn) {
+      if (ex) {
+        // Okuma yapılmışsa: Butonu yeşil yap, yazıyı değiştir ve kilitle
+        btn.style.backgroundColor = '#28a745';
+        btn.style.borderColor = '#28a745';
+        btn.style.color = '#ffffff';
+        btn.textContent = '✓ Bugünün Okuması Tamamlandı';
+        btn.disabled = true;
+        btn.style.cursor = 'not-allowed';
+        btn.style.opacity = '0.8';
+      } else {
+        // Okuma yapılmamışsa: Butonu aktif/orijinal mavi halinde tut
+        btn.style.backgroundColor = '#007bff';
+        btn.style.borderColor = '#007bff';
+        btn.style.color = '#ffffff';
+        btn.textContent = '✓ Günlük Okuma Yapıldı';
+        btn.disabled = false;
+        btn.style.cursor = 'pointer';
+        btn.style.opacity = '1';
+      }
+    }
+  } catch (err) {
+    console.error("Durum kontrolü sırasında hata oluştu:", err.message);
+  }
+};
+
+// ==========================================
+// 2. GÜNLÜK OKUMA - HIZLI KAYIT (MODAL AÇMAZ)
+// ==========================================
 window.quickSubmitTodayLog = async function() {
   if (!myGroup) return toast('Aktif grup bulunamadı', 'error');
+  if (!window.me || !window.me.id) return toast('Kullanıcı bilgisi alınamadı, lütfen sayfayı yenileyin', 'error');
   
-  // Çift tıklamayı anlık önlemek için hemen devre dışı bırakalım
+  // Çift tıklamayı ve mükerrer kaydı önlemek için butonu anlık olarak kilitle
   const btn = document.getElementById('btn-today-log');
   if (btn) btn.disabled = true;
 
+  // Not alanını boş geçerek doğrudan bugünün tarihini ve grup hedefini kaydeder
   await saveLog(todayStr(), myGroup.daily_page_goal, '', false);
 };
 
-// Telafi modalını açma fonksiyonu
+// ==========================================
+// 3. TELAFİ OKUMA - MODAL PENCERESİNİ AÇMA
+// ==========================================
 window.openLogModal = function(tab) {
   if (!myGroup) return toast('Aktif grup bulunamadı', 'error');
   
-  const goalDisplay = document.getElementById('log-goal-display');
-  if (goalDisplay) goalDisplay.textContent = myGroup.daily_page_goal + ' sayfa';
+  // Telafi kısmındaki kilitli gri alana otomatik sayfa hedefini yazdırır (Örn: 10 sayfa)
+  const goalDisplayComp = document.getElementById('log-goal-display-comp');
+  if (goalDisplayComp) {
+    goalDisplayComp.textContent = myGroup.daily_page_goal;
+  }
   
+  // Form alanlarını sıfırla
   const dateInput = document.getElementById('log-date-comp');
   const noteInput = document.getElementById('log-note-comp');
   if (dateInput) dateInput.value = todayStr();
@@ -626,6 +684,7 @@ window.openLogModal = function(tab) {
   openM('log-modal');
 };
 
+// Sekme değiştirme mantığı
 window.switchLogTab = function(tab) {
   const isToday = tab === 'today';
   const tabToday = document.getElementById('tab-today');
@@ -639,22 +698,36 @@ window.switchLogTab = function(tab) {
   if (contentComp) contentComp.style.display = isToday ? 'none' : 'block';
 };
 
-// Telafi butonunun fonksiyonu (Müdahale yok, sadece tarih ve otomatik hedef sayfa gidiyor)
+// ==========================================
+// 4. TELAFİ OKUMA - KAYDETME (SAYI KİLİTLİ, SADECE TARİH)
+// ==========================================
 window.submitCompLog = async function() {
   const dateInput = document.getElementById('log-date-comp');
   const noteInput = document.getElementById('log-note-comp');
   
   const date = dateInput ? dateInput.value : '';
-  const pages = myGroup.daily_page_goal; // Sayfa sayısı doğrudan grup hedefi, değiştirilemez.
+  const pages = myGroup.daily_page_goal; // Sayfa sayısı tamamen otomatik ve kilitli, müdahale edilemez
   const note = noteInput ? noteInput.value.trim() : '';
   
   if (!date) return toast('Tarih seçimi gerekli', 'error');
+  if (!window.me || !window.me.id) return toast('Kullanıcı bilgisini doğrulayın', 'error');
+  
   await saveLog(date, pages, note, true);
 };
 
-// Orijinal veritabanı kayıt fonksiyonunuz
+// ==========================================
+// 5. ORİJİNAL VERİTABANI ÖZÜ (UPSERT MANTIĞI)
+// ==========================================
 async function saveLog(date, pages, note, isComp) {
-  const { data: ex } = await sb.from('reading_logs').select('id').eq('user_id', me.id).eq('group_id', myGroup.id).eq('log_date', date).maybeSingle();
+  if (!window.me || !window.me.id) return toast('Geçerli kullanıcı bulunamadı', 'error');
+
+  const { data: ex } = await sb.from('reading_logs')
+    .select('id')
+    .eq('user_id', window.me.id)
+    .eq('group_id', myGroup.id)
+    .eq('log_date', date)
+    .maybeSingle();
+    
   const payload = { pages_read: pages, note: note || null, is_compensatory: isComp };
   let error;
   
@@ -662,27 +735,29 @@ async function saveLog(date, pages, note, isComp) {
     const { error: e } = await sb.from('reading_logs').update(payload).eq('id', ex.id); 
     error = e; 
   } else { 
-    const { error: e } = await sb.from('reading_logs').insert({ user_id: me.id, group_id: myGroup.id, log_date: date, ...payload }); 
+    const { error: e } = await sb.from('reading_logs').insert({ user_id: window.me.id, group_id: myGroup.id, log_date: date, ...payload }); 
     error = e; 
   }
   
   if (error) { 
     toast('Kayıt hatası: ' + error.message, 'error'); 
-    // Hata durumunda günlük okuma butonunu tekrar aktif et
+    // Hata durumunda günlük okuma butonunu eski haline döndürmek için
     if (!isComp) await checkTodayLogStatus();
     return; 
   }
   
+  // Eğer telafi modali açıksa kapatır
   if (typeof closeModal === 'function') closeModal('log-modal');
   
+  // İstediğin yeni bildirim mesajları
   toast(isComp ? 'Telafi okuma yapıldı! ◐' : 'Günlük okuma yapıldı! ✓', 'success');
   
-  // Veriler yenilendikten sonra butonun rengini yeşile döndürmek için durumu tekrar denetle
+  // Sayfa verilerini yenile ve yeşil buton kontrolünü tekrar çalıştır
   await loadHome(); 
-
+  await loadMembers();
   await checkTodayLogStatus(); 
 }
-// ── LOG MODAL ─────────────────────────────────────────────────
+  // ── LOG MODAL ─────────────────────────────────────────────────
 // ── ADMIN: GROUPS ─────────────────────────────────────────────
 async function loadAdminGroups(){
   const {data}=await sb.from('reading_groups').select('*,books(title)').order('created_at',{ascending:false});
