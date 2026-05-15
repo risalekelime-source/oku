@@ -557,44 +557,66 @@ async function loadReport(){
 }
 
 // ── LOG MODAL ─────────────────────────────────────────────────
-window.openLogModal=function(){
-  if(!myGroup) return toast('Aktif grup bulunamadı','error');
-  document.getElementById('log-goal-display').textContent=myGroup.daily_page_goal+' sayfa';
-  document.getElementById('log-note-today').value='';
-  document.getElementById('log-date-comp').value=todayStr();
-  document.getElementById('log-pages-comp').value='';
-  document.getElementById('log-note-comp').value='';
+window.openLogModal = function() {
+  if (!myGroup) return toast('Aktif grup bulunamadı', 'error');
+  
+  // Günlük ve Telafi için varsayılan hedef sayfa gösterimlerini doldur
+  document.getElementById('log-goal-display').textContent = myGroup.daily_page_goal + ' sayfa';
+  
+  // Formları sıfırla ve telafi sayfa sayısını otomatik ata
+  document.getElementById('log-note-today').value = '';
+  document.getElementById('log-date-comp').value = todayStr();
+  document.getElementById('log-note-comp').value = '';
+  
   switchLogTab('today');
   openM('log-modal');
 };
-window.switchLogTab=function(tab){
-  document.getElementById('tab-today').classList.toggle('active',tab==='today');
-  document.getElementById('tab-comp').classList.toggle('active',tab==='comp');
-  document.getElementById('log-today-content').style.display=tab==='today'?'block':'none';
-  document.getElementById('log-comp-content').style.display=tab==='comp'?'block':'none';
-};
-window.submitTodayLog=async function(){
-  await saveLog(todayStr(),myGroup.daily_page_goal,document.getElementById('log-note-today').value.trim(),false);
-};
-window.submitCompLog=async function(){
-  const date=document.getElementById('log-date-comp').value;
-  const pages=parseInt(document.getElementById('log-pages-comp').value);
-  const note=document.getElementById('log-note-comp').value.trim();
-  if(!date||!pages||pages<1) return toast('Tarih ve sayfa sayısı gerekli','error');
-  await saveLog(date,pages,note,true);
-};
-async function saveLog(date,pages,note,isComp){
-  const {data:ex}=await sb.from('reading_logs').select('id').eq('user_id',me.id).eq('group_id',myGroup.id).eq('log_date',date).maybeSingle();
-  const payload={pages_read:pages,note:note||null,is_compensatory:isComp};
-  let error;
-  if(ex){const{error:e}=await sb.from('reading_logs').update(payload).eq('id',ex.id);error=e;}
-  else{const{error:e}=await sb.from('reading_logs').insert({user_id:me.id,group_id:myGroup.id,log_date:date,...payload});error=e;}
-  if(error){toast('Kayıt hatası: '+error.message,'error');return;}
-  closeModal('log-modal');
-  toast(isComp?'Telafi kaydedildi! ◐':'Okuma kaydedildi! ✓','success');
-  await loadHome(); await loadMembers();
-}
 
+window.switchLogTab = function(tab) {
+  document.getElementById('tab-today').classList.toggle('active', tab === 'today');
+  document.getElementById('tab-comp').classList.toggle('active', tab === 'comp');
+  document.getElementById('log-today-content').style.display = tab === 'today' ? 'block' : 'none';
+  document.getElementById('log-comp-content').style.display = tab === 'comp' ? 'block' : 'none';
+};
+
+// 1. Buton: Günlük Okuma Logu
+window.submitTodayLog = async function() {
+  await saveLog(todayStr(), myGroup.daily_page_goal, document.getElementById('log-note-today').value.trim(), false);
+};
+
+// 2. Buton: Telafi Okuma Logu (Sayfa sayısı artık gruptan otomatik geliyor)
+window.submitCompLog = async function() {
+  const date = document.getElementById('log-date-comp').value;
+  const pages = myGroup.daily_page_goal; // Kullanıcıdan almak yerine gruptan otomatik aldık
+  const note = document.getElementById('log-note-comp').value.trim();
+  
+  if (!date) return toast('Tarih seçimi gerekli', 'error');
+  await saveLog(date, pages, note, true);
+};
+
+async function saveLog(date, pages, note, isComp) {
+  const { data: ex } = await sb.from('reading_logs').select('id').eq('user_id', me.id).eq('group_id', myGroup.id).eq('log_date', date).maybeSingle();
+  const payload = { pages_read: pages, note: note || null, is_compensatory: isComp };
+  let error;
+  
+  if (ex) { 
+    const { error: e } = await sb.from('reading_logs').update(payload).eq('id', ex.id); 
+    error = e; 
+  } else { 
+    const { error: e } = await sb.from('reading_logs').insert({ user_id: me.id, group_id: myGroup.id, log_date: date, ...payload }); 
+    error = e; 
+  }
+  
+  if (error) { toast('Kayıt hatası: ' + error.message, 'error'); return; }
+  
+  closeModal('log-modal');
+  
+  // İstediğin yeni bildirim mesajları
+  toast(isComp ? 'Telafi okuma yapıldı! ◐' : 'Günlük okuma yapıldı! ✓', 'success');
+  
+  await loadHome(); 
+  await loadMembers();
+}
 // ── ADMIN: GROUPS ─────────────────────────────────────────────
 async function loadAdminGroups(){
   const {data}=await sb.from('reading_groups').select('*,books(title)').order('created_at',{ascending:false});
