@@ -615,7 +615,6 @@ async function saveLog(date, pages, note, isComp) {
   toast(isComp ? 'Telafi okuma yapıldı! ◐' : 'Günlük okuma yapıldı! ✓', 'success');
   
   await loadHome(); 
-  await loadMembers();
 }
 // ── ADMIN: GROUPS ─────────────────────────────────────────────
 async function loadAdminGroups(){
