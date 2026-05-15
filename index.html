@@ -400,109 +400,125 @@ async function loadMyGroup(){
   else document.getElementById('header-group-name').textContent='Grup yok';
 }
 
+// Tarih kaymasını önleyen yardımcı fonksiyon (Yerel Tarihi YYYY-MM-DD yapar)
+const toLocalISO = (date) => {
+  const d = new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 // ── HOME ──────────────────────────────────────────────────────
-async function loadHome(){
-  const now=new Date(), today=todayStr();
-  document.getElementById('home-greeting').textContent=`Merhaba, ${myProfile?.full_name?.split(' ')[0]||myProfile?.username} 👋`;
-  document.getElementById('home-date').textContent=`${DN[(now.getDay()+6)%7]}, ${now.getDate()} ${MN[now.getMonth()]} ${now.getFullYear()}`;
-  if(!myGroup){
-    document.getElementById('week-body').innerHTML='<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--text2);font-size:.82rem;">Henüz bir gruba atanmadınız</td></tr>';
-    ['stat-week','stat-total','stat-delay','stat-streak'].forEach(id=>document.getElementById(id).textContent='—');
+async function loadHome() {
+  const now = new Date();
+  const today = toLocalISO(now);
+  
+  // Profil ve Karşılama
+  document.getElementById('home-greeting').textContent = `Merhaba, ${myProfile?.full_name?.split(' ')[0] || myProfile?.username} 👋`;
+  document.getElementById('home-date').textContent = `${DN[(now.getDay() + 6) % 7]}, ${now.getDate()} ${MN[now.getMonth()]} ${now.getFullYear()}`;
+
+  if (!myGroup) {
+    document.getElementById('week-body').innerHTML = '<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--text2);font-size:.82rem;">Henüz bir gruba atanmadınız</td></tr>';
+    ['stat-week', 'stat-total', 'stat-delay', 'stat-streak'].forEach(id => document.getElementById(id).textContent = '—');
     return;
   }
-  const goal=myGroup.daily_page_goal;
-  const ws=weekStart(now), we=new Date(ws); we.setDate(we.getDate()+6);
-  const wsStr=ws.toISOString().split('T')[0], weStr=we.toISOString().split('T')[0];
-  document.getElementById('week-range').textContent=`${ws.getDate()} ${MN[ws.getMonth()]} – ${we.getDate()} ${MN[we.getMonth()]}`;
 
-  const {data:members}=await sb.from('group_members').select('user_id,profiles(*)').eq('group_id',myGroup.id);
-  if(!members?.length) return;
+  const goal = myGroup.daily_page_goal;
+  const ws = weekStart(now); 
+  const we = new Date(ws); we.setDate(we.getDate() + 6);
+  
+  const wsStr = toLocalISO(ws);
+  const weStr = toLocalISO(we);
+  
+  document.getElementById('week-range').textContent = `${ws.getDate()} ${MN[ws.getMonth()]} – ${we.getDate()} ${MN[we.getMonth()]}`;
 
-  const mIds=members.map(m=>m.user_id);
-  const {data:wLogs}=await sb.from('reading_logs').select('*').eq('group_id',myGroup.id).gte('log_date',wsStr).lte('log_date',weStr).in('user_id',mIds);
+  // Veri Çekme
+  const { data: members } = await sb.from('group_members').select('user_id,profiles(*)').eq('group_id', myGroup.id);
+  if (!members?.length) return;
 
-  const lMap={};
-  (wLogs||[]).forEach(l=>{ if(!lMap[l.user_id])lMap[l.user_id]={}; lMap[l.user_id][l.log_date]=l; });
+  const mIds = members.map(m => m.user_id);
+  const { data: wLogs } = await sb.from('reading_logs').select('*').eq('group_id', myGroup.id).gte('log_date', wsStr).lte('log_date', weStr).in('user_id', mIds);
 
-  // Header
-  let hHtml='<th class="name-cell">Üye</th>';
-  for(let i=0;i<7;i++){
-    const d=new Date(ws); d.setDate(d.getDate()+i);
-    const ds=d.toISOString().split('T')[0];
-    hHtml+=`<th class="${ds===today?'today-col':''}">${DN[i]}<br><span style="font-size:.65rem;opacity:.7">${d.getDate()}</span></th>`;
+  const lMap = {};
+  (wLogs || []).forEach(l => { 
+    if (!lMap[l.user_id]) lMap[l.user_id] = {}; 
+    lMap[l.user_id][l.log_date] = l; 
+  });
+
+  // Tablo Başlığı (Header)
+  let hHtml = '<th class="name-cell">Üye</th>';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(ws); d.setDate(d.getDate() + i);
+    const ds = toLocalISO(d);
+    // DN dizini Pazartesi'den başlıyorsa (i) kullanın, standart JS günü ise d.getDay()
+    hHtml += `<th class="${ds === today ? 'today-col' : ''}">${DN[(d.getDay() + 6) % 7]}<br><span style="font-size:.65rem;opacity:.7">${d.getDate()}</span></th>`;
   }
-  document.getElementById('week-head').innerHTML=hHtml;
+  document.getElementById('week-head').innerHTML = hHtml;
 
-  // Sort: me first
-  const sorted=members.slice().sort((a,b)=>a.user_id===me.id?-1:b.user_id===me.id?1:(a.profiles?.full_name||'').localeCompare(b.profiles?.full_name||''));
+  // Sıralama (Önce "Ben")
+  const sorted = members.slice().sort((a, b) => a.user_id === me.id ? -1 : b.user_id === me.id ? 1 : (a.profiles?.full_name || '').localeCompare(b.profiles?.full_name || ''));
 
-  let bHtml='';
-  sorted.forEach(m=>{
-    const isMe=m.user_id===me.id;
-    const name=m.profiles?.full_name||m.profiles?.username||'?';
-    let row=`<tr class="${isMe?'me-row':''}"><td class="name-cell">${name.split(' ')[0]}</td>`;
-    for(let i=0;i<7;i++){
-      const d=new Date(ws); d.setDate(d.getDate()+i);
-      const ds=d.toISOString().split('T')[0];
-      const future=d>now, log=lMap[m.user_id]?.[ds];
-      let cls='dot-future',sym='';
-      if(!future){
-        if(log?.is_compensatory){cls='dot-yellow';sym='◐';}
-        else if(log&&log.pages_read>=goal){cls='dot-green';sym='✓';}
-        else if(log&&log.pages_read>0){cls='dot-yellow';sym='~';}
-        else{cls='dot-red';sym='✗';}
+  // Tablo Gövdesi (Body)
+  let bHtml = '';
+  sorted.forEach(m => {
+    const isMe = m.user_id === me.id;
+    const name = m.profiles?.full_name || m.profiles?.username || '?';
+    let row = `<tr class="${isMe ? 'me-row' : ''}"><td class="name-cell">${name.split(' ')[0]}</td>`;
+    
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(ws); d.setDate(d.getDate() + i);
+      const ds = toLocalISO(d);
+      
+      const isFuture = ds > today; // Tarih karşılaştırmasını string üzerinden yapmak kaymayı önler
+      const log = lMap[m.user_id]?.[ds];
+      
+      let cls = 'dot-future', sym = '';
+      if (!isFuture) {
+        if (log?.is_compensatory) { cls = 'dot-yellow'; sym = '◐'; }
+        else if (log && log.pages_read >= goal) { cls = 'dot-green'; sym = '✓'; }
+        else if (log && log.pages_read > 0) { cls = 'dot-yellow'; sym = '~'; }
+        else { cls = 'dot-red'; sym = '✗'; }
       }
-      row+=`<td><div class="dot ${cls}">${sym}</div></td>`;
+      row += `<td><div class="dot ${cls}">${sym}</div></td>`;
     }
-    bHtml+=row+'</tr>';
+    bHtml += row + '</tr>';
   });
-  document.getElementById('week-body').innerHTML=bHtml;
+  document.getElementById('week-body').innerHTML = bHtml;
 
-  // My stats
-  const {data:myLogs}=await sb.from('reading_logs').select('*').eq('user_id',me.id).eq('group_id',myGroup.id).order('log_date',{ascending:false});
-  const myMap={}; (myLogs||[]).forEach(l=>myMap[l.log_date]=l);
-  const start=new Date(myGroup.start_date);
-  const days=Math.max(0,Math.floor((now-start)/86400000));
-  const totalGoal=(days+1)*goal;
-  const totalRead=(myLogs||[]).reduce((s,l)=>s+l.pages_read,0);
-  const wkPages=(myLogs||[]).filter(l=>l.log_date>=wsStr&&l.log_date<=weStr).reduce((s,l)=>s+l.pages_read,0);
-  const diff=totalRead-totalGoal;
-  document.getElementById('stat-week').textContent=wkPages;
-  document.getElementById('stat-total').textContent=totalRead;
-  const de=document.getElementById('stat-delay'), dl=document.getElementById('stat-delay-label');
-  if(diff>=0){de.textContent='+'+diff;de.className='sv green';dl.textContent='sayfa ileride';}
-  else{de.textContent=diff;de.className='sv red';dl.textContent='sayfa geride';}
-  let streak=0; const dc=new Date(now);
-  while(true){ const ds=dc.toISOString().split('T')[0]; if(myMap[ds]&&myMap[ds].pages_read>=goal){streak++;dc.setDate(dc.getDate()-1);}else break; }
-  document.getElementById('stat-streak').textContent=streak;
+  // İstatistiklerim
+  const { data: myLogs } = await sb.from('reading_logs').select('*').eq('user_id', me.id).eq('group_id', myGroup.id).order('log_date', { ascending: false });
+  const myMap = {}; (myLogs || []).forEach(l => myMap[l.log_date] = l);
+  
+  const start = new Date(myGroup.start_date);
+  const days = Math.max(0, Math.floor((now - start) / 86400000));
+  const totalGoal = (days + 1) * goal;
+  const totalRead = (myLogs || []).reduce((s, l) => s + l.pages_read, 0);
+  const wkPages = (myLogs || []).filter(l => l.log_date >= wsStr && l.log_date <= weStr).reduce((s, l) => s + l.pages_read, 0);
+  
+  const diff = totalRead - totalGoal;
+  document.getElementById('stat-week').textContent = wkPages;
+  document.getElementById('stat-total').textContent = totalRead;
+  
+  const de = document.getElementById('stat-delay'), dl = document.getElementById('stat-delay-label');
+  if (diff >= 0) {
+    de.textContent = '+' + diff; de.className = 'sv green'; dl.textContent = 'sayfa ileride';
+  } else {
+    de.textContent = diff; de.className = 'sv red'; dl.textContent = 'sayfa geride';
+  }
+
+  // Streak Hesaplama
+  let streak = 0; 
+  let dc = new Date(now);
+  while (true) {
+    const ds = toLocalISO(dc);
+    if (myMap[ds] && myMap[ds].pages_read >= goal) {
+      streak++;
+      dc.setDate(dc.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  document.getElementById('stat-streak').textContent = streak;
 }
 
-// ── MEMBERS ───────────────────────────────────────────────────
-async function loadMembers(){
-  if(!myGroup){ document.getElementById('members-list').innerHTML='<div class="empty"><div class="eico">👥</div><p>Henüz bir gruba atanmadınız</p></div>'; return; }
-  const today=todayStr();
-  document.getElementById('members-subtitle').textContent=`${myGroup.name} — Bugün`;
-  const {data:members}=await sb.from('group_members').select('user_id,profiles(*)').eq('group_id',myGroup.id);
-  const {data:logs}=await sb.from('reading_logs').select('*').eq('group_id',myGroup.id).eq('log_date',today);
-  const lm={}; (logs||[]).forEach(l=>lm[l.user_id]=l);
-  const goal=myGroup.daily_page_goal;
-  const sorted=(members||[]).slice().sort((a,b)=>{
-    const s=l=>!l?0:l.is_compensatory?2:l.pages_read>=goal?3:1;
-    return s(lm[b.user_id])-s(lm[a.user_id]);
-  });
-  let html='';
-  sorted.forEach(m=>{
-    const log=lm[m.user_id], name=m.profiles?.full_name||m.profiles?.username||'?';
-    const ini=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    let av='',bc='',bt='',meta='';
-    if(!log){av='';bc='b-none';bt='— Girmemiş';meta='Bugün kayıt yok';}
-    else if(log.is_compensatory){av='comp';bc='b-comp';bt='◐ Telafi';meta=`${log.pages_read} sayfa (telafi)`;}
-    else if(log.pages_read>=goal){av='ok';bc='b-ok';bt='✓ Zamanında';meta=`${log.pages_read} sayfa okundu`;}
-    else{av='late';bc='b-late';bt='✗ Gecikmeli';meta=`${log.pages_read}/${goal} sayfa`;}
-    html+=`<div class="mi"><div class="mav ${av}">${ini}</div><div class="minfo"><div class="mname">${name}${m.profiles?.role==='admin'?'<span class="atag">ADMİN</span>':''}</div><div class="mmeta">${meta}</div></div><span class="badge ${bc}">${bt}</span></div>`;
-  });
-  document.getElementById('members-list').innerHTML=html||'<div class="empty"><p>Üye yok</p></div>';
-}
 
 // ── REPORT ────────────────────────────────────────────────────
 async function loadReport(){
