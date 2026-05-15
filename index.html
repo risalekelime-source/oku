@@ -164,11 +164,15 @@
       <div class="sh">
         <div><div class="st" id="home-greeting">Merhaba 👋</div><div class="ss" id="home-date"></div></div>
 
-  <button class="btn btn-primary" onclick="quickSubmitTodayLog()" style="padding:9px 14px;font-size:.82rem;">✓ Günlük Okuma Yapıldı</button>
+ <!-- Günlük okuma butonu (Duruma göre rengi ve aktifliği JavaScript ile değişecek) -->
+  <button id="btn-today-log" class="btn btn-primary" onclick="quickSubmitTodayLog()" style="padding:9px 14px; font-size:.82rem; font-weight:bold; background-color: #007bff; border-color: #007bff; color: white;">
+    ✓ Günlük Okuma Yapıldı
+  </button>
   
-  <!-- Telafi modalını açar -->
-  <button class="btn btn-secondary" onclick="openLogModal('comp')" style="padding:9px 14px;font-size:.82rem;">+ Telafi Okuma</button>
-
+  <!-- Telafi okuma butonu (Daha canlı ve görünür bir renk yapıldı) -->
+  <button class="btn btn-warning" onclick="openLogModal('comp')" style="padding:9px 14px; font-size:.82rem; font-weight:bold; background-color: #ffc107; border-color: #ffc107; color: #212529;">
+    + Telafi Okuma
+  </button>
       </div>
       <div class="sh" style="margin-bottom:10px;">
         <div class="st" style="font-size:1rem;">Bu Hafta</div>
@@ -560,24 +564,59 @@ async function loadReport(){
   });
   document.getElementById('group-weekly-report').innerHTML=gh||'<div class="empty"><p>Veri yok</p></div>';
 }
+// Sayfa yüklendiğinde veya loadHome / loadMembers çalıştıktan sonra bu fonksiyonu çağırmalısın
+window.checkTodayLogStatus = async function() {
+  if (!myGroup || !me) return;
+  
+  // Bugün kayıt yapılmış mı kontrol et
+  const { data: ex } = await sb.from('reading_logs')
+    .select('id')
+    .eq('user_id', me.id)
+    .eq('group_id', myGroup.id)
+    .eq('log_date', todayStr())
+    .maybeSingle();
+    
+  const btn = document.getElementById('btn-today-log');
+  if (btn) {
+    if (ex) {
+      // Eğer bugün kayıt varsa: Yeşil yap, yazıyı değiştir ve tıklanmaz yap
+      btn.style.backgroundColor = '#28a745';
+      btn.style.borderColor = '#28a745';
+      btn.style.color = '#white';
+      btn.textContent = '✓ Bugünün Okuması Tamamlandı';
+      btn.disabled = true;
+      btn.style.cursor = 'not-allowed';
+      btn.style.opacity = '0.8';
+    } else {
+      // Kayıt yoksa: Orijinal mavi haline getir ve aktif et
+      btn.style.backgroundColor = '#007bff';
+      btn.style.borderColor = '#007bff';
+      btn.textContent = '✓ Günlük Okuma Yapıldı';
+      btn.disabled = false;
+      btn.style.cursor = 'pointer';
+      btn.style.opacity = '1';
+    }
+  }
+};
 
-// ── LOG MODAL ─────────────────────────────────────────────────
-// Günlük okuma için modal açmadan doğrudan hızlı kayıt fonksiyonu
+// Günlük okuma için hızlı kayıt fonksiyonu
 window.quickSubmitTodayLog = async function() {
   if (!myGroup) return toast('Aktif grup bulunamadı', 'error');
   
-  // Not alanını boş geçerek doğrudan bugünün tarihini ve grup hedefini kaydeder
+  // Çift tıklamayı anlık önlemek için hemen devre dışı bırakalım
+  const btn = document.getElementById('btn-today-log');
+  if (btn) btn.disabled = true;
+
   await saveLog(todayStr(), myGroup.daily_page_goal, '', false);
 };
 
+// Telafi modalını açma fonksiyonu
 window.openLogModal = function(tab) {
   if (!myGroup) return toast('Aktif grup bulunamadı', 'error');
   
-  // Telafi kısmındaki sabit hedef gösterimini doldur
   const goalDisplay = document.getElementById('log-goal-display');
   if (goalDisplay) goalDisplay.textContent = myGroup.daily_page_goal + ' sayfa';
   
-  // Form alanlarını temizle
   const dateInput = document.getElementById('log-date-comp');
   const noteInput = document.getElementById('log-note-comp');
   if (dateInput) dateInput.value = todayStr();
@@ -589,7 +628,6 @@ window.openLogModal = function(tab) {
 
 window.switchLogTab = function(tab) {
   const isToday = tab === 'today';
-  
   const tabToday = document.getElementById('tab-today');
   const tabComp = document.getElementById('tab-comp');
   const contentToday = document.getElementById('log-today-content');
@@ -601,20 +639,20 @@ window.switchLogTab = function(tab) {
   if (contentComp) contentComp.style.display = isToday ? 'none' : 'block';
 };
 
-// Telafi butonunun tetiklediği fonksiyon (Sayfa sayısı sabit, değiştirilemez)
+// Telafi butonunun fonksiyonu (Müdahale yok, sadece tarih ve otomatik hedef sayfa gidiyor)
 window.submitCompLog = async function() {
   const dateInput = document.getElementById('log-date-comp');
   const noteInput = document.getElementById('log-note-comp');
   
   const date = dateInput ? dateInput.value : '';
-  const pages = myGroup.daily_page_goal; // Sayfa sayısı doğrudan grup hedefi oldu
+  const pages = myGroup.daily_page_goal; // Sayfa sayısı doğrudan grup hedefi, değiştirilemez.
   const note = noteInput ? noteInput.value.trim() : '';
   
   if (!date) return toast('Tarih seçimi gerekli', 'error');
   await saveLog(date, pages, note, true);
 };
 
-// Orijinal veritabanı kayıt fonksiyonunuz (İçeriği tamamen korundu)
+// Orijinal veritabanı kayıt fonksiyonunuz
 async function saveLog(date, pages, note, isComp) {
   const { data: ex } = await sb.from('reading_logs').select('id').eq('user_id', me.id).eq('group_id', myGroup.id).eq('log_date', date).maybeSingle();
   const payload = { pages_read: pages, note: note || null, is_compensatory: isComp };
@@ -628,17 +666,24 @@ async function saveLog(date, pages, note, isComp) {
     error = e; 
   }
   
-  if (error) { toast('Kayıt hatası: ' + error.message, 'error'); return; }
+  if (error) { 
+    toast('Kayıt hatası: ' + error.message, 'error'); 
+    // Hata durumunda günlük okuma butonunu tekrar aktif et
+    if (!isComp) await checkTodayLogStatus();
+    return; 
+  }
   
-  // Eğer modal açıksa kapatır (Günlük okumada modal açılmadığı için hata vermemesi kontrolüyle)
   if (typeof closeModal === 'function') closeModal('log-modal');
   
-  // İstenen yeni bildirim mesajları
   toast(isComp ? 'Telafi okuma yapıldı! ◐' : 'Günlük okuma yapıldı! ✓', 'success');
   
+  // Veriler yenilendikten sonra butonun rengini yeşile döndürmek için durumu tekrar denetle
   await loadHome(); 
 
-}// ── ADMIN: GROUPS ─────────────────────────────────────────────
+  await checkTodayLogStatus(); 
+}
+// ── LOG MODAL ─────────────────────────────────────────────────
+// ── ADMIN: GROUPS ─────────────────────────────────────────────
 async function loadAdminGroups(){
   const {data}=await sb.from('reading_groups').select('*,books(title)').order('created_at',{ascending:false});
   allGroups=data||[];
