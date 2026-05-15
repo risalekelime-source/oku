@@ -560,18 +560,19 @@ async function loadReport(){
 }
 
 // ── LOG MODAL ─────────────────────────────────────────────────
-window.openLogModal = function() {
+window.openLogModal = function(defaultTab) {
   if (!myGroup) return toast('Aktif grup bulunamadı', 'error');
   
   // Günlük ve Telafi için varsayılan hedef sayfa gösterimlerini doldur
   document.getElementById('log-goal-display').textContent = myGroup.daily_page_goal + ' sayfa';
   
-  // Formları sıfırla ve telafi sayfa sayısını otomatik ata
+  // Formları sıfırla
   document.getElementById('log-note-today').value = '';
   document.getElementById('log-date-comp').value = todayStr();
   document.getElementById('log-note-comp').value = '';
   
-  switchLogTab('today');
+  // Hangi butona tıklandıysa modal o sekmede açılsın (varsayılan: today)
+  switchLogTab(defaultTab || 'today');
   openM('log-modal');
 };
 
