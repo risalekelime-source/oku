@@ -3,24 +3,24 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
-  <meta name="theme-color" content="#0d1117"/>
+  <meta name="theme-color" content="#0a0e1a"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <meta name="apple-mobile-web-app-title" content="OkuTakip"/>
+  <meta name="apple-mobile-web-app-title" content="Risale Okuma Takip"/>
   <link rel="manifest" href="manifest.json"/>
   <link rel="apple-touch-icon" href="icon-192.png"/>
-  <title>OkuTakip</title>
+  <title>Risale Okuma Takip</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap');
     :root{
-      --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;
-      --card:#1c2128;--card2:#262d35;
-      --border:rgba(255,255,255,0.09);
-      --accent:#c9a84c;--accent2:#e8c96d;
-      --green:#3fb950;--red:#f85149;--yellow:#d29922;
-      --blue:#388bfd;--purple:#bc8cff;
-      --text:#e6edf3;--text2:#8b949e;
-      --r:14px;--rs:9px;--sh:0 4px 20px rgba(0,0,0,0.5);
+      --bg:#0a0e1a;--bg2:#0f1525;--bg3:#1a2035;
+      --card:#131929;--card2:#1e2640;
+      --border:rgba(255,255,255,0.10);
+      --accent:#f0a500;--accent2:#ffd060;
+      --green:#00d26a;--red:#ff4d4d;--yellow:#ffb800;
+      --blue:#4d9fff;--purple:#c084fc;
+      --text:#f0f4ff;--text2:#8896b3;
+      --r:14px;--rs:9px;--sh:0 4px 24px rgba(0,0,0,0.6);
       --fd:'Playfair Display',Georgia,serif;
       --fb:'DM Sans',-apple-system,sans-serif;
       --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
@@ -39,7 +39,7 @@
     @keyframes spin{to{transform:rotate(360deg)}}
     @keyframes fadeIn{from{opacity:0}to{opacity:1}}
     @keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-    #login-screen{align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 70% 20%,rgba(232,184,109,.08) 0%,transparent 55%)}
+    #login-screen{align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse at 60% 10%,rgba(240,165,0,.12) 0%,transparent 50%),radial-gradient(ellipse at 20% 80%,rgba(77,159,255,.08) 0%,transparent 50%),var(--bg)}
     .login-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:36px 28px;width:100%;max-width:380px;animation:slideUp .4s ease}
     .login-logo{text-align:center;margin-bottom:28px}
     .login-logo .ico{font-size:2.2rem;margin-bottom:6px}
@@ -49,7 +49,7 @@
     .fg label{display:block;font-size:.72rem;font-weight:600;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
     .fg input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;color:var(--text);font-size:.95rem;transition:border-color .2s}
     .fg input:focus{outline:none;border-color:var(--accent)}
-    .login-btn{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#1a1000;font-weight:700;font-size:1rem;padding:14px;border-radius:var(--rs);margin-top:8px;transition:opacity .2s,transform .15s}
+    .login-btn{width:100%;background:linear-gradient(135deg,#f0a500,#ffd060);color:#1a0800;font-weight:700;font-size:1rem;padding:14px;border-radius:var(--rs);margin-top:8px;transition:opacity .2s,transform .15s}
     .login-btn:active{transform:scale(.98)}.login-btn:disabled{opacity:.6}
     .lerr{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);color:var(--red);font-size:.82rem;padding:9px 13px;border-radius:var(--rs);margin-top:10px;display:none}
     .app-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:calc(var(--st) + 12px) 16px 12px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
@@ -61,7 +61,7 @@
     .logout-btn{font-size:.78rem;color:var(--text2);padding:5px 11px;border:1px solid var(--border);border-radius:20px;transition:all .2s}
     .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;padding-bottom:var(--sb);z-index:100;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
     .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:9px 4px;gap:3px;cursor:pointer;color:var(--text2);font-size:.62rem;font-weight:500;transition:color .2s;border:none;background:none;text-transform:uppercase;letter-spacing:.3px}
-    .nav-item.active{color:var(--accent)}.nav-item svg{width:21px;height:21px}
+    .nav-item.active{color:var(--accent);text-shadow:0 0 12px rgba(240,165,0,.4)}.nav-item svg{width:21px;height:21px}
     .ndot{width:4px;height:4px;border-radius:50%;background:var(--accent);margin-top:-1px;opacity:0;transition:opacity .2s}
     .nav-item.active .ndot{opacity:1}
     .content{flex:1;overflow-y:auto;padding:16px 14px calc(86px + var(--sb));max-width:768px;margin:0 auto;width:100%}
@@ -69,16 +69,16 @@
     .sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
     .st{font-family:var(--fd);font-size:1.15rem;font-weight:600}
     .ss{font-size:.78rem;color:var(--text2);margin-top:2px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:11px;box-shadow:var(--sh)}
+    .card{background:linear-gradient(160deg,var(--card),var(--bg2));border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:11px;box-shadow:var(--sh)}
     .week-grid{width:100%;border-collapse:collapse;font-size:.78rem}
     .week-grid th{padding:6px 2px;text-align:center;color:var(--text2);font-weight:600;font-size:.62rem;text-transform:uppercase}
     .week-grid th.today-col{color:var(--accent)}
     .week-grid td{padding:3px 2px;text-align:center;vertical-align:middle}
     .name-cell{text-align:left!important;padding:4px 6px 4px 0!important;font-size:.78rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
     .dot{width:26px;height:26px;border-radius:7px;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700}
-    .dot-green{background:rgba(74,222,128,.2);color:var(--green)}
-    .dot-yellow{background:rgba(251,191,36,.2);color:var(--yellow)}
-    .dot-red{background:rgba(248,113,113,.15);color:var(--red)}
+    .dot-green{background:rgba(0,210,106,.18);color:var(--green);box-shadow:0 0 8px rgba(0,210,106,.2)}
+    .dot-yellow{background:rgba(255,184,0,.18);color:var(--yellow);box-shadow:0 0 8px rgba(255,184,0,.2)}
+    .dot-red{background:rgba(255,77,77,.15);color:var(--red);box-shadow:0 0 8px rgba(255,77,77,.15)}
     .dot-empty{background:var(--bg3);color:var(--text2)}
     .dot-future{background:transparent}
     .me-row .name-cell{color:var(--accent);font-weight:700}
@@ -86,7 +86,7 @@
     .row-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;flex-shrink:0;vertical-align:middle;margin-right:5px}
     .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:16px}
     @media(min-width:400px){.stat-grid{grid-template-columns:repeat(4,1fr)}}
-    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:3px}
+    .stat-card{background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:3px}
     .sl{font-size:.68rem;color:var(--text2);font-weight:500;text-transform:uppercase;letter-spacing:.4px}
     .sv{font-size:1.5rem;font-weight:700;line-height:1}
     .sv.green{color:var(--green)}.sv.red{color:var(--red)}
@@ -105,6 +105,7 @@
     .btn:active{transform:scale(.97)}.btn-primary{background:var(--accent);color:#1a1000}
     .btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
     .btn-danger{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+    .btn-comp{background:rgba(255,184,0,.13);color:var(--yellow);border:1px solid rgba(255,184,0,.35)}
     .btn-block{width:100%;display:flex}.btn:disabled{opacity:.5;cursor:not-allowed}.btn-sm{padding:7px 12px;font-size:.78rem}
     .fr{margin-bottom:13px}
     .fr label{display:block;font-size:.72rem;color:var(--text2);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
@@ -140,11 +141,11 @@
 </head>
 <body>
 
-<div id="app-loading"><div class="logo-big">📖 OkuTakip</div><div class="spinner"></div></div>
+<div id="app-loading"><div class="logo-big">📖 Risale Okuma</div><div class="spinner"></div></div>
 
 <div id="login-screen" class="screen">
   <div class="login-card">
-    <div class="login-logo"><div class="ico">📖</div><h1>OkuTakip</h1><p>Birlikte okuyoruz, birlikte büyüyoruz</p></div>
+    <div class="login-logo"><div class="ico">📖</div><h1>Risale Okuma</h1><p>Risale-i Nur okuma takip programı</p></div>
     <div class="fg"><label>E-posta</label><input type="email" id="login-email" placeholder="ornek@email.com" autocomplete="email"/></div>
     <div class="fg"><label>Şifre</label><input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"/></div>
     <div class="lerr" id="login-error">E-posta veya şifre hatalı.</div>
@@ -155,7 +156,7 @@
 <div id="main-app" class="screen">
   <header class="app-header">
     <div class="hinner">
-      <div class="hlogo">📖 OkuTakip<span id="header-group-name">Yükleniyor...</span></div>
+      <div class="hlogo">📖 Risale<span id="header-group-name">Yükleniyor...</span></div>
       <div class="hright"><div class="avatar" id="user-avatar">?</div><button class="logout-btn" onclick="doLogout()">Çıkış</button></div>
     </div>
   </header>
@@ -167,7 +168,7 @@
         <div><div class="st" id="home-greeting">Merhaba 👋</div><div class="ss" id="home-date"></div></div>
         <div style="display:flex;gap:7px;">
           <button class="btn btn-primary" onclick="logToday()" style="padding:9px 14px;font-size:.82rem;">📖 Okuma</button>
-          <button class="btn btn-secondary" onclick="openCompModal()" style="padding:9px 14px;font-size:.82rem;">◐ Telafi</button>
+          <button class="btn btn-comp" onclick="openCompModal()" style="padding:9px 14px;font-size:.82rem;">◐ Telafi</button>
         </div>
       </div>
       <div class="sh" style="margin-bottom:10px;">
@@ -749,7 +750,7 @@ async function checkNotif(){
   const [h,m]=(s.reminder_time||'20:00').split(':').map(Number);
   if(now.getHours()!==h||now.getMinutes()!==m) return;
   const {data:log}=await sb.from('reading_logs').select('id').eq('user_id',me.id).eq('group_id',myGroup.id).eq('log_date',todayStr()).maybeSingle();
-  if(!log){ try{ new Notification('📖 OkuTakip',{body:`Bugün ${myGroup.daily_page_goal} sayfalık okumanı kaydetmeyi unutma!`,icon:'icon-192.png'}); }catch(e){} }
+  if(!log){ try{ new Notification('📖 Risale Okuma',{body:`Bugün ${myGroup.daily_page_goal} sayfalık okumanı kaydetmeyi unutma!`,icon:'icon-192.png'}); }catch(e){} }
 }
 
 // ── NAV ───────────────────────────────────────────────────────
