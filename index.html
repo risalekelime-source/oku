@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
-  <meta name="theme-color" content="#1a1a2e"/>
+  <meta name="theme-color" content="#0d1117"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="OkuTakip"/>
@@ -13,14 +13,14 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap');
     :root{
-      --bg:#0f0f1a;--bg2:#16162a;--bg3:#1e1e35;
-      --card:#1a1a30;--card2:#22223d;
-      --border:rgba(255,255,255,0.08);
-      --accent:#e8b86d;--accent2:#f0d090;
-      --green:#4ade80;--red:#f87171;--yellow:#fbbf24;
-      --blue:#60a5fa;--purple:#a78bfa;
-      --text:#e8e8f0;--text2:#9898b8;
-      --r:16px;--rs:10px;--sh:0 4px 24px rgba(0,0,0,0.35);
+      --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;
+      --card:#1c2128;--card2:#262d35;
+      --border:rgba(255,255,255,0.09);
+      --accent:#c9a84c;--accent2:#e8c96d;
+      --green:#3fb950;--red:#f85149;--yellow:#d29922;
+      --blue:#388bfd;--purple:#bc8cff;
+      --text:#e6edf3;--text2:#8b949e;
+      --r:14px;--rs:9px;--sh:0 4px 20px rgba(0,0,0,0.5);
       --fd:'Playfair Display',Georgia,serif;
       --fb:'DM Sans',-apple-system,sans-serif;
       --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
@@ -163,16 +163,10 @@
     <div class="page active" id="page-home">
       <div class="sh">
         <div><div class="st" id="home-greeting">Merhaba 👋</div><div class="ss" id="home-date"></div></div>
-
- <!-- Günlük okuma butonu (Duruma göre rengi ve aktifliği JavaScript ile değişecek) -->
-  <button id="btn-today-log" class="btn btn-primary" onclick="quickSubmitTodayLog()" style="padding:9px 14px; font-size:.82rem; font-weight:bold; background-color: #007bff; border-color: #007bff; color: white;">
-    ✓ Günlük Okuma Yapıldı
-  </button>
-  
-  <!-- Telafi okuma butonu (Daha canlı ve görünür bir renk yapıldı) -->
-  <button class="btn btn-warning" onclick="openLogModal('comp')" style="padding:9px 14px; font-size:.82rem; font-weight:bold; background-color: #ffc107; border-color: #ffc107; color: #212529;">
-    + Telafi Okuma
-  </button>
+        <div style="display:flex;gap:7px;">
+          <button class="btn btn-primary" onclick="logToday()" style="padding:9px 14px;font-size:.82rem;">📖 Okuma</button>
+          <button class="btn btn-secondary" onclick="openCompModal()" style="padding:9px 14px;font-size:.82rem;">◐ Telafi</button>
+        </div>
       </div>
       <div class="sh" style="margin-bottom:10px;">
         <div class="st" style="font-size:1rem;">Bu Hafta</div>
@@ -187,6 +181,16 @@
         <div class="stat-card"><div class="sl">Durum</div><div class="sv" id="stat-delay">—</div><div class="ssub" id="stat-delay-label">sayfa</div></div>
         <div class="stat-card"><div class="sl">Seri</div><div class="sv" id="stat-streak">—</div><div class="ssub">gün</div></div>
       </div>
+    </div>
+
+    <!-- MEMBERS -->
+    <div class="page" id="page-members">
+      <div class="sh"><div><div class="st">Grup Üyeleri</div><div class="ss" id="members-subtitle"></div></div></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px;">
+        <span class="badge b-ok">✓ Zamanında</span><span class="badge b-comp">◐ Telafi</span>
+        <span class="badge b-late">✗ Gecikmeli</span><span class="badge b-none">— Girmemiş</span>
+      </div>
+      <div class="card" id="members-list"><div class="empty"><div class="eico">👥</div><p>Yükleniyor...</p></div></div>
     </div>
 
     <!-- REPORT -->
@@ -233,7 +237,10 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       <span>Ana Sayfa</span><div class="ndot"></div>
     </button>
-
+    <button class="nav-item" onclick="switchPage('members',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Üyeler</span><div class="ndot"></div>
+    </button>
     <button class="nav-item" onclick="switchPage('report',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       <span>Rapor</span><div class="ndot"></div>
@@ -247,30 +254,18 @@
 
 <div id="toast"></div>
 
-<!-- LOG MODAL -->
+<!-- COMP MODAL -->
 <div id="log-modal">
   <div class="mo" onclick="closeModal('log-modal')">
     <div class="modal" onclick="event.stopPropagation()">
       <span class="mhandle"></span>
-      <div class="mtitle">📝 Okuma Kaydı</div>
-      <div class="log-tabs">
-        <div class="log-tab active" id="tab-today" onclick="switchLogTab('today')">Bugün</div>
-        <div class="log-tab" id="tab-comp" onclick="switchLogTab('comp')">Telafi / Geçmiş</div>
+      <div class="mtitle">◐ Telafi Okuması</div>
+      <div class="fr"><label>Telafi Tarihi</label><input type="date" id="log-date-comp"/></div>
+      <div style="background:var(--bg3);border-radius:var(--rs);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:.82rem;color:var(--text2);">Hedef sayfa sayısı esas alınır</span>
+        <span style="font-weight:700;color:var(--accent);" id="comp-goal-display">—</span>
       </div>
-      <div id="log-today-content">
-        <div style="background:var(--bg3);border-radius:var(--rs);padding:14px;margin-bottom:16px;text-align:center;">
-          <div style="font-size:.78rem;color:var(--text2);margin-bottom:4px;">Günlük Hedef</div>
-          <div style="font-size:1.6rem;font-weight:700;color:var(--accent);" id="log-goal-display">— sayfa</div>
-        </div>
-        <div class="fr"><label>Not (opsiyonel)</label><textarea id="log-note-today" placeholder="Bir not bırakabilirsiniz..."></textarea></div>
-        <button class="btn btn-primary btn-block" onclick="submitTodayLog()">✓ Günlük Hedef Okundu</button>
-      </div>
-      <div id="log-comp-content" style="display:none;">
-        <div class="fr"><label>Tarih</label><input type="date" id="log-date-comp"/></div>
-        <div class="fr"><label>Okunan Sayfa</label><input type="number" id="log-pages-comp" placeholder="Örn: 25" min="1"/></div>
-        <div class="fr"><label>Not (opsiyonel)</label><textarea id="log-note-comp" placeholder="Not..."></textarea></div>
-        <button class="btn btn-primary btn-block" onclick="submitCompLog()">Telafi Kaydını Kaydet</button>
-      </div>
+      <button class="btn btn-primary btn-block" onclick="submitCompLog()">◐ Telafi Kaydını Kaydet</button>
     </div>
   </div>
 </div>
@@ -345,10 +340,20 @@ let me = null, myProfile = null, myGroup = null, allProfiles = [], allGroups = [
 const DN = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
 const MN = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
 
-function todayStr(){ return new Date().toISOString().split('T')[0]; }
+function todayStr(){
+  const d=new Date();
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
+function dateStr(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${dd}`;
+}
 function weekStart(d=new Date()){
-  const dt=new Date(d); const day=dt.getDay();
-  dt.setDate(dt.getDate()-(day===0?6:day-1)); dt.setHours(0,0,0,0); return dt;
+  const dt=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  const day=dt.getDay();
+  dt.setDate(dt.getDate()-(day===0?6:day-1));
+  return dt;
 }
 let _tt; function toast(msg,type=''){
   const t=document.getElementById('toast');
@@ -409,131 +414,117 @@ async function loadMyGroup(){
   else document.getElementById('header-group-name').textContent='Grup yok';
 }
 
-// Tarih kaymasını önleyen yardımcı fonksiyon (Yerel Tarihi YYYY-MM-DD yapar)
-const toLocalISO = (date) => {
-  const d = new Date(date);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
-
 // ── HOME ──────────────────────────────────────────────────────
-async function loadHome() {
-  const now = new Date();
-  const today = toLocalISO(now);
-  
-  // Profil ve Karşılama
-  document.getElementById('home-greeting').textContent = `Merhaba, ${myProfile?.full_name?.split(' ')[0] || myProfile?.username} 👋`;
-  document.getElementById('home-date').textContent = `${DN[(now.getDay() + 6) % 7]}, ${now.getDate()} ${MN[now.getMonth()]} ${now.getFullYear()}`;
-
-  if (!myGroup) {
-    document.getElementById('week-body').innerHTML = '<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--text2);font-size:.82rem;">Henüz bir gruba atanmadınız</td></tr>';
-    ['stat-week', 'stat-total', 'stat-delay', 'stat-streak'].forEach(id => document.getElementById(id).textContent = '—');
+async function loadHome(){
+  const now=new Date(), today=todayStr();
+  document.getElementById('home-greeting').textContent=`Merhaba, ${myProfile?.full_name?.split(' ')[0]||myProfile?.username} 👋`;
+  document.getElementById('home-date').textContent=`${DN[(now.getDay()+6)%7]}, ${now.getDate()} ${MN[now.getMonth()]} ${now.getFullYear()}`;
+  if(!myGroup){
+    document.getElementById('week-body').innerHTML='<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--text2);font-size:.82rem;">Henüz bir gruba atanmadınız</td></tr>';
+    ['stat-week','stat-total','stat-delay','stat-streak'].forEach(id=>document.getElementById(id).textContent='—');
     return;
   }
+  const goal=myGroup.daily_page_goal;
+  const ws=weekStart(now), we=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+6);
+  const wsStr=dateStr(ws), weStr=dateStr(we);
+  document.getElementById('week-range').textContent=`${ws.getDate()} ${MN[ws.getMonth()]} – ${we.getDate()} ${MN[we.getMonth()]}`;
 
-  const goal = myGroup.daily_page_goal;
-  const ws = weekStart(now); 
-  const we = new Date(ws); we.setDate(we.getDate() + 6);
-  
-  const wsStr = toLocalISO(ws);
-  const weStr = toLocalISO(we);
-  
-  document.getElementById('week-range').textContent = `${ws.getDate()} ${MN[ws.getMonth()]} – ${we.getDate()} ${MN[we.getMonth()]}`;
+  const {data:members}=await sb.from('group_members').select('user_id,profiles(*)').eq('group_id',myGroup.id);
+  if(!members?.length) return;
 
-  // Veri Çekme
-  const { data: members } = await sb.from('group_members').select('user_id,profiles(*)').eq('group_id', myGroup.id);
-  if (!members?.length) return;
+  const mIds=members.map(m=>m.user_id);
+  const {data:wLogs}=await sb.from('reading_logs').select('*').eq('group_id',myGroup.id).gte('log_date',wsStr).lte('log_date',weStr).in('user_id',mIds);
 
-  const mIds = members.map(m => m.user_id);
-  const { data: wLogs } = await sb.from('reading_logs').select('*').eq('group_id', myGroup.id).gte('log_date', wsStr).lte('log_date', weStr).in('user_id', mIds);
+  const lMap={};
+  (wLogs||[]).forEach(l=>{ if(!lMap[l.user_id])lMap[l.user_id]={}; lMap[l.user_id][l.log_date]=l; });
 
-  const lMap = {};
-  (wLogs || []).forEach(l => { 
-    if (!lMap[l.user_id]) lMap[l.user_id] = {}; 
-    lMap[l.user_id][l.log_date] = l; 
-  });
-
-  // Tablo Başlığı (Header)
-  let hHtml = '<th class="name-cell">Üye</th>';
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(ws); d.setDate(d.getDate() + i);
-    const ds = toLocalISO(d);
-    // DN dizini Pazartesi'den başlıyorsa (i) kullanın, standart JS günü ise d.getDay()
-    hHtml += `<th class="${ds === today ? 'today-col' : ''}">${DN[(d.getDay() + 6) % 7]}<br><span style="font-size:.65rem;opacity:.7">${d.getDate()}</span></th>`;
+  // Header
+  let hHtml='<th class="name-cell">Üye</th>';
+  for(let i=0;i<7;i++){
+    const d=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+i);
+    const ds=dateStr(d);
+    hHtml+=`<th class="${ds===today?'today-col':''}">${DN[i]}<br><span style="font-size:.65rem;opacity:.7">${d.getDate()}</span></th>`;
   }
-  document.getElementById('week-head').innerHTML = hHtml;
+  document.getElementById('week-head').innerHTML=hHtml;
 
-  // Sıralama (Önce "Ben")
-  const sorted = members.slice().sort((a, b) => a.user_id === me.id ? -1 : b.user_id === me.id ? 1 : (a.profiles?.full_name || '').localeCompare(b.profiles?.full_name || ''));
+  // Sort: me first
+  const sorted=members.slice().sort((a,b)=>a.user_id===me.id?-1:b.user_id===me.id?1:(a.profiles?.full_name||'').localeCompare(b.profiles?.full_name||''));
 
-  // Tablo Gövdesi (Body)
-  let bHtml = '';
-  sorted.forEach(m => {
-    const isMe = m.user_id === me.id;
-    const name = m.profiles?.full_name || m.profiles?.username || '?';
-    let row = `<tr class="${isMe ? 'me-row' : ''}"><td class="name-cell">${name.split(' ')[0]}</td>`;
-    
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(ws); d.setDate(d.getDate() + i);
-      const ds = toLocalISO(d);
-      
-      const isFuture = ds > today; // Tarih karşılaştırmasını string üzerinden yapmak kaymayı önler
-      const log = lMap[m.user_id]?.[ds];
-      
-      let cls = 'dot-future', sym = '';
-      if (!isFuture) {
-        if (log?.is_compensatory) { cls = 'dot-yellow'; sym = '◐'; }
-        else if (log && log.pages_read >= goal) { cls = 'dot-green'; sym = '✓'; }
-        else if (log && log.pages_read > 0) { cls = 'dot-yellow'; sym = '~'; }
-        else { cls = 'dot-red'; sym = '✗'; }
+  let bHtml='';
+  sorted.forEach(m=>{
+    const isMe=m.user_id===me.id;
+    const name=m.profiles?.full_name||m.profiles?.username||'?';
+    let row=`<tr class="${isMe?'me-row':''}"><td class="name-cell">${name.split(' ')[0]}</td>`;
+    for(let i=0;i<7;i++){
+      const d=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+i);
+      const ds=dateStr(d);
+      // future: compare date-only, not datetime
+      const future=ds>today;
+      const log=lMap[m.user_id]?.[ds];
+      let cls='dot-future',sym='';
+      if(!future){
+        if(log?.is_compensatory){cls='dot-yellow';sym='◐';}
+        else if(log&&log.pages_read>=goal){cls='dot-green';sym='✓';}
+        else if(log&&log.pages_read>0){cls='dot-yellow';sym='~';}
+        else{cls='dot-red';sym='✗';}
       }
-      row += `<td><div class="dot ${cls}">${sym}</div></td>`;
+      row+=`<td><div class="dot ${cls}">${sym}</div></td>`;
     }
-    bHtml += row + '</tr>';
+    bHtml+=row+'</tr>';
   });
-  document.getElementById('week-body').innerHTML = bHtml;
+  document.getElementById('week-body').innerHTML=bHtml;
 
-  // İstatistiklerim
-  const { data: myLogs } = await sb.from('reading_logs').select('*').eq('user_id', me.id).eq('group_id', myGroup.id).order('log_date', { ascending: false });
-  const myMap = {}; (myLogs || []).forEach(l => myMap[l.log_date] = l);
-  
-  const start = new Date(myGroup.start_date);
-  const days = Math.max(0, Math.floor((now - start) / 86400000));
-  const totalGoal = (days + 1) * goal;
-  const totalRead = (myLogs || []).reduce((s, l) => s + l.pages_read, 0);
-  const wkPages = (myLogs || []).filter(l => l.log_date >= wsStr && l.log_date <= weStr).reduce((s, l) => s + l.pages_read, 0);
-  
-  const diff = totalRead - totalGoal;
-  document.getElementById('stat-week').textContent = wkPages;
-  document.getElementById('stat-total').textContent = totalRead;
-  
-  const de = document.getElementById('stat-delay'), dl = document.getElementById('stat-delay-label');
-  if (diff >= 0) {
-    de.textContent = '+' + diff; de.className = 'sv green'; dl.textContent = 'sayfa ileride';
-  } else {
-    de.textContent = diff; de.className = 'sv red'; dl.textContent = 'sayfa geride';
-  }
-
-  // Streak Hesaplama
-  let streak = 0; 
-  let dc = new Date(now);
-  while (true) {
-    const ds = toLocalISO(dc);
-    if (myMap[ds] && myMap[ds].pages_read >= goal) {
-      streak++;
-      dc.setDate(dc.getDate() - 1);
-    } else {
-      break;
-    }
-  }
-  document.getElementById('stat-streak').textContent = streak;
+  // My stats
+  const {data:myLogs}=await sb.from('reading_logs').select('*').eq('user_id',me.id).eq('group_id',myGroup.id).order('log_date',{ascending:false});
+  const myMap={}; (myLogs||[]).forEach(l=>myMap[l.log_date]=l);
+  const start=new Date(myGroup.start_date);
+  const days=Math.max(0,Math.floor((now-start)/86400000));
+  const totalGoal=(days+1)*goal;
+  const totalRead=(myLogs||[]).reduce((s,l)=>s+l.pages_read,0);
+  const wkPages=(myLogs||[]).filter(l=>l.log_date>=wsStr&&l.log_date<=weStr).reduce((s,l)=>s+l.pages_read,0);
+  const diff=totalRead-totalGoal;
+  document.getElementById('stat-week').textContent=wkPages;
+  document.getElementById('stat-total').textContent=totalRead;
+  const de=document.getElementById('stat-delay'), dl=document.getElementById('stat-delay-label');
+  if(diff>=0){de.textContent='+'+diff;de.className='sv green';dl.textContent='sayfa ileride';}
+  else{de.textContent=diff;de.className='sv red';dl.textContent='sayfa geride';}
+  let streak=0; const dc=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  while(true){ const ds=dateStr(dc); if(myMap[ds]&&myMap[ds].pages_read>=goal){streak++;dc.setDate(dc.getDate()-1);}else break; }
+  document.getElementById('stat-streak').textContent=streak;
 }
 
+// ── MEMBERS ───────────────────────────────────────────────────
+async function loadMembers(){
+  if(!myGroup){ document.getElementById('members-list').innerHTML='<div class="empty"><div class="eico">👥</div><p>Henüz bir gruba atanmadınız</p></div>'; return; }
+  const today=todayStr();
+  document.getElementById('members-subtitle').textContent=`${myGroup.name} — Bugün`;
+  const {data:members}=await sb.from('group_members').select('user_id,profiles(*)').eq('group_id',myGroup.id);
+  const {data:logs}=await sb.from('reading_logs').select('*').eq('group_id',myGroup.id).eq('log_date',today);
+  const lm={}; (logs||[]).forEach(l=>lm[l.user_id]=l);
+  const goal=myGroup.daily_page_goal;
+  const sorted=(members||[]).slice().sort((a,b)=>{
+    const s=l=>!l?0:l.is_compensatory?2:l.pages_read>=goal?3:1;
+    return s(lm[b.user_id])-s(lm[a.user_id]);
+  });
+  let html='';
+  sorted.forEach(m=>{
+    const log=lm[m.user_id], name=m.profiles?.full_name||m.profiles?.username||'?';
+    const ini=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    let av='',bc='',bt='',meta='';
+    if(!log){av='';bc='b-none';bt='— Girmemiş';meta='Bugün kayıt yok';}
+    else if(log.is_compensatory){av='comp';bc='b-comp';bt='◐ Telafi';meta=`${log.pages_read} sayfa (telafi)`;}
+    else if(log.pages_read>=goal){av='ok';bc='b-ok';bt='✓ Zamanında';meta=`${log.pages_read} sayfa okundu`;}
+    else{av='late';bc='b-late';bt='✗ Gecikmeli';meta=`${log.pages_read}/${goal} sayfa`;}
+    html+=`<div class="mi"><div class="mav ${av}">${ini}</div><div class="minfo"><div class="mname">${name}${m.profiles?.role==='admin'?'<span class="atag">ADMİN</span>':''}</div><div class="mmeta">${meta}</div></div><span class="badge ${bc}">${bt}</span></div>`;
+  });
+  document.getElementById('members-list').innerHTML=html||'<div class="empty"><p>Üye yok</p></div>';
+}
 
 // ── REPORT ────────────────────────────────────────────────────
 async function loadReport(){
   const now=new Date();
-  const ws=weekStart(now), we=new Date(ws); we.setDate(we.getDate()+6);
-  const wsStr=ws.toISOString().split('T')[0], weStr=we.toISOString().split('T')[0];
+  const ws=weekStart(now), we=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+6);
+  const wsStr=dateStr(ws), weStr=dateStr(we);
   const fmt=d=>`${d.getDate()} ${MN[d.getMonth()]}`;
   document.getElementById('report-week-label').textContent=`${fmt(ws)} – ${fmt(we)}`;
   if(!myGroup){document.getElementById('my-weekly-report').innerHTML='<p style="color:var(--text2);font-size:.82rem;">Grup bulunamadı</p>';return;}
@@ -542,10 +533,10 @@ async function loadReport(){
   const lm={}; (myLogs||[]).forEach(l=>lm[l.log_date]=l);
   let total=0,daysOk=0,bars='';
   for(let i=0;i<7;i++){
-    const d=new Date(ws); d.setDate(d.getDate()+i);
-    const ds=d.toISOString().split('T')[0], log=lm[ds], pages=log?.pages_read||0;
+    const d=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+i);
+    const ds=dateStr(d), log=lm[ds], pages=log?.pages_read||0;
     total+=pages; const pct=Math.min(100,Math.round(pages/goal*100));
-    const fut=d>now;
+    const fut=ds>today;
     if(log&&log.pages_read>=goal&&!log.is_compensatory) daysOk++;
     const col=fut?'var(--border)':log?.is_compensatory?'var(--yellow)':pages>=goal?'var(--green)':pages>0?'var(--yellow)':'var(--red)';
     bars+=`<div class="rb-wrap"><div class="rb-label"><span>${DN[i]} ${d.getDate()}</span><span>${pages>0?pages+' s.':fut?'—':'Girilmedi'}</span></div><div class="rb"><div class="rbf" style="width:${fut?0:pct}%;background:${col};"></div></div></div>`;
@@ -564,200 +555,38 @@ async function loadReport(){
   });
   document.getElementById('group-weekly-report').innerHTML=gh||'<div class="empty"><p>Veri yok</p></div>';
 }
-// Sayfa yüklendiğinde veya loadHome / loadMembers çalıştıktan sonra bu fonksiyonu çağırmalısın
-window.checkTodayLogStatus = async function() {
-  if (!myGroup || !me) return;
-  
-  // Bugün kayıt yapılmış mı kontrol et
-  const { data: ex } = await sb.from('reading_logs')
-    .select('id')
-    .eq('user_id', me.id)
-    .eq('group_id', myGroup.id)
-    .eq('log_date', todayStr())
-    .maybeSingle();
-    
-  const btn = document.getElementById('btn-today-log');
-  if (btn) {
-    if (ex) {
-      // Eğer bugün kayıt varsa: Yeşil yap, yazıyı değiştir ve tıklanmaz yap
-      btn.style.backgroundColor = '#28a745';
-      btn.style.borderColor = '#28a745';
-      btn.style.color = '#white';
-      btn.textContent = '✓ Bugünün Okuması Tamamlandı';
-      btn.disabled = true;
-      btn.style.cursor = 'not-allowed';
-      btn.style.opacity = '0.8';
-    } else {
-      // Kayıt yoksa: Orijinal mavi haline getir ve aktif et
-      btn.style.backgroundColor = '#007bff';
-      btn.style.borderColor = '#007bff';
-      btn.textContent = '✓ Günlük Okuma Yapıldı';
-      btn.disabled = false;
-      btn.style.cursor = 'pointer';
-      btn.style.opacity = '1';
-    }
-  }
+
+// ── LOG ACTIONS ───────────────────────────────────────────────
+window.logToday=async function(){
+  if(!myGroup) return toast('Aktif grup bulunamadı','error');
+  await saveLog(todayStr(),myGroup.daily_page_goal,'',false);
 };
-
-// ==========================================
-// 1. GÜNLÜK OKUMA DURUM KONTROLÜ (BUTON RENKLENDİRME)
-// ==========================================
-window.checkTodayLogStatus = async function() {
-  // Eğer grup yoksa veya geçerli kullanıcı (me) henüz yüklenmediyse işlemi pas geç
-  if (!myGroup || !window.me || !window.me.id) {
-    console.log("Kullanıcı verisi henüz yüklenmedi, kontrol bekleniyor...");
-    return;
-  }
-  
-  try {
-    // Geçerli kullanıcının (me.id) bugüne ait kaydı var mı sorgula
-    const { data: ex, error } = await sb.from('reading_logs')
-      .select('id')
-      .eq('user_id', window.me.id)
-      .eq('group_id', myGroup.id)
-      .eq('log_date', todayStr())
-      .maybeSingle();
-      
-    if (error) throw error;
-      
-    const btn = document.getElementById('btn-today-log');
-    if (btn) {
-      if (ex) {
-        // Okuma yapılmışsa: Butonu yeşil yap, yazıyı değiştir ve kilitle
-        btn.style.backgroundColor = '#28a745';
-        btn.style.borderColor = '#28a745';
-        btn.style.color = '#ffffff';
-        btn.textContent = '✓ Bugünün Okuması Tamamlandı';
-        btn.disabled = true;
-        btn.style.cursor = 'not-allowed';
-        btn.style.opacity = '0.8';
-      } else {
-        // Okuma yapılmamışsa: Butonu aktif/orijinal mavi halinde tut
-        btn.style.backgroundColor = '#007bff';
-        btn.style.borderColor = '#007bff';
-        btn.style.color = '#ffffff';
-        btn.textContent = '✓ Günlük Okuma Yapıldı';
-        btn.disabled = false;
-        btn.style.cursor = 'pointer';
-        btn.style.opacity = '1';
-      }
-    }
-  } catch (err) {
-    console.error("Durum kontrolü sırasında hata oluştu:", err.message);
-  }
-};
-
-// ==========================================
-// 2. GÜNLÜK OKUMA - HIZLI KAYIT (MODAL AÇMAZ)
-// ==========================================
-window.quickSubmitTodayLog = async function() {
-  if (!myGroup) return toast('Aktif grup bulunamadı', 'error');
-  if (!window.me || !window.me.id) return toast('Kullanıcı bilgisi alınamadı, lütfen sayfayı yenileyin', 'error');
-  
-  // Çift tıklamayı ve mükerrer kaydı önlemek için butonu anlık olarak kilitle
-  const btn = document.getElementById('btn-today-log');
-  if (btn) btn.disabled = true;
-
-  // Not alanını boş geçerek doğrudan bugünün tarihini ve grup hedefini kaydeder
-  await saveLog(todayStr(), myGroup.daily_page_goal, '', false);
-};
-
-// ==========================================
-// 3. TELAFİ OKUMA - MODAL PENCERESİNİ AÇMA
-// ==========================================
-window.openLogModal = function(tab) {
-  if (!myGroup) return toast('Aktif grup bulunamadı', 'error');
-  
-  // Telafi kısmındaki kilitli gri alana otomatik sayfa hedefini yazdırır (Örn: 10 sayfa)
-  const goalDisplayComp = document.getElementById('log-goal-display-comp');
-  if (goalDisplayComp) {
-    goalDisplayComp.textContent = myGroup.daily_page_goal;
-  }
-  
-  // Form alanlarını sıfırla
-  const dateInput = document.getElementById('log-date-comp');
-  const noteInput = document.getElementById('log-note-comp');
-  if (dateInput) dateInput.value = todayStr();
-  if (noteInput) noteInput.value = '';
-  
-  switchLogTab(tab || 'comp');
+window.openCompModal=function(){
+  if(!myGroup) return toast('Aktif grup bulunamadı','error');
+  // Default to yesterday
+  const yd=new Date(); yd.setDate(yd.getDate()-1);
+  document.getElementById('log-date-comp').value=dateStr(yd);
+  document.getElementById('comp-goal-display').textContent=myGroup.daily_page_goal+' sayfa';
   openM('log-modal');
 };
-
-// Sekme değiştirme mantığı
-window.switchLogTab = function(tab) {
-  const isToday = tab === 'today';
-  const tabToday = document.getElementById('tab-today');
-  const tabComp = document.getElementById('tab-comp');
-  const contentToday = document.getElementById('log-today-content');
-  const contentComp = document.getElementById('log-comp-content');
-  
-  if (tabToday) tabToday.classList.toggle('active', isToday);
-  if (tabComp) tabComp.classList.toggle('active', !isToday);
-  if (contentToday) contentToday.style.display = isToday ? 'block' : 'none';
-  if (contentComp) contentComp.style.display = isToday ? 'none' : 'block';
+window.submitCompLog=async function(){
+  const date=document.getElementById('log-date-comp').value;
+  if(!date) return toast('Tarih seçin','error');
+  if(date===todayStr()) return toast('Bugün için "Okuma" butonunu kullanın','error');
+  await saveLog(date,myGroup.daily_page_goal,'',true);
 };
-
-// ==========================================
-// 4. TELAFİ OKUMA - KAYDETME (SAYI KİLİTLİ, SADECE TARİH)
-// ==========================================
-window.submitCompLog = async function() {
-  const dateInput = document.getElementById('log-date-comp');
-  const noteInput = document.getElementById('log-note-comp');
-  
-  const date = dateInput ? dateInput.value : '';
-  const pages = myGroup.daily_page_goal; // Sayfa sayısı tamamen otomatik ve kilitli, müdahale edilemez
-  const note = noteInput ? noteInput.value.trim() : '';
-  
-  if (!date) return toast('Tarih seçimi gerekli', 'error');
-  if (!window.me || !window.me.id) return toast('Kullanıcı bilgisini doğrulayın', 'error');
-  
-  await saveLog(date, pages, note, true);
-};
-
-// ==========================================
-// 5. ORİJİNAL VERİTABANI ÖZÜ (UPSERT MANTIĞI)
-// ==========================================
-async function saveLog(date, pages, note, isComp) {
-  if (!window.me || !window.me.id) return toast('Geçerli kullanıcı bulunamadı', 'error');
-
-  const { data: ex } = await sb.from('reading_logs')
-    .select('id')
-    .eq('user_id', window.me.id)
-    .eq('group_id', myGroup.id)
-    .eq('log_date', date)
-    .maybeSingle();
-    
-  const payload = { pages_read: pages, note: note || null, is_compensatory: isComp };
+async function saveLog(date,pages,note,isComp){
+  const {data:ex}=await sb.from('reading_logs').select('id').eq('user_id',me.id).eq('group_id',myGroup.id).eq('log_date',date).maybeSingle();
+  const payload={pages_read:pages,note:note||null,is_compensatory:isComp};
   let error;
-  
-  if (ex) { 
-    const { error: e } = await sb.from('reading_logs').update(payload).eq('id', ex.id); 
-    error = e; 
-  } else { 
-    const { error: e } = await sb.from('reading_logs').insert({ user_id: window.me.id, group_id: myGroup.id, log_date: date, ...payload }); 
-    error = e; 
-  }
-  
-  if (error) { 
-    toast('Kayıt hatası: ' + error.message, 'error'); 
-    // Hata durumunda günlük okuma butonunu eski haline döndürmek için
-    if (!isComp) await checkTodayLogStatus();
-    return; 
-  }
-  
-  // Eğer telafi modali açıksa kapatır
-  if (typeof closeModal === 'function') closeModal('log-modal');
-  
-  // İstediğin yeni bildirim mesajları
-  toast(isComp ? 'Telafi okuma yapıldı! ◐' : 'Günlük okuma yapıldı! ✓', 'success');
-  
-  // Sayfa verilerini yenile ve yeşil buton kontrolünü tekrar çalıştır
-  await loadHome(); 
-  await loadMembers();
-  await checkTodayLogStatus(); 
+  if(ex){const{error:e}=await sb.from('reading_logs').update(payload).eq('id',ex.id);error=e;}
+  else{const{error:e}=await sb.from('reading_logs').insert({user_id:me.id,group_id:myGroup.id,log_date:date,...payload});error=e;}
+  if(error){toast('Kayıt hatası: '+error.message,'error');return;}
+  closeModal('log-modal');
+  toast(isComp?'Telafi kaydedildi! ◐':'Okuma kaydedildi! ✓','success');
+  await loadHome(); await loadMembers();
 }
-  // ── LOG MODAL ─────────────────────────────────────────────────
+
 // ── ADMIN: GROUPS ─────────────────────────────────────────────
 async function loadAdminGroups(){
   const {data}=await sb.from('reading_groups').select('*,books(title)').order('created_at',{ascending:false});
