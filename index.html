@@ -82,6 +82,8 @@
     .dot-empty{background:var(--bg3);color:var(--text2)}
     .dot-future{background:transparent}
     .me-row .name-cell{color:var(--accent);font-weight:700}
+    .name-cell{min-width:90px}
+    .row-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;flex-shrink:0;vertical-align:middle;margin-right:5px}
     .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:16px}
     @media(min-width:400px){.stat-grid{grid-template-columns:repeat(4,1fr)}}
     .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:3px}
@@ -183,15 +185,6 @@
       </div>
     </div>
 
-    <!-- MEMBERS -->
-    <div class="page" id="page-members">
-      <div class="sh"><div><div class="st">Grup Üyeleri</div><div class="ss" id="members-subtitle"></div></div></div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px;">
-        <span class="badge b-ok">✓ Zamanında</span><span class="badge b-comp">◐ Telafi</span>
-        <span class="badge b-late">✗ Gecikmeli</span><span class="badge b-none">— Girmemiş</span>
-      </div>
-      <div class="card" id="members-list"><div class="empty"><div class="eico">👥</div><p>Yükleniyor...</p></div></div>
-    </div>
 
     <!-- REPORT -->
     <div class="page" id="page-report">
@@ -214,10 +207,19 @@
         <button class="btn btn-secondary btn-block" onclick="requestNotifPermission()">🔔 Bildirim İzni Ver</button>
       </div>
       <div class="card" style="margin-bottom:11px;">
-        <div style="font-weight:600;margin-bottom:13px;font-size:.88rem;">👤 Hesap</div>
-        <div style="font-size:.8rem;color:var(--text2);">Ad Soyad</div><div style="margin-bottom:9px;" id="settings-fullname">—</div>
-        <div style="font-size:.8rem;color:var(--text2);">Kullanıcı Adı</div><div style="margin-bottom:9px;" id="settings-username">—</div>
-        <div style="font-size:.8rem;color:var(--text2);">E-posta</div><div id="settings-email">—</div>
+        <div style="font-weight:600;margin-bottom:16px;font-size:.88rem;">👤 Profil</div>
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+          <div class="avatar" id="settings-avatar" style="width:52px;height:52px;font-size:1.1rem;flex-shrink:0;">?</div>
+          <div>
+            <div style="font-weight:600;" id="settings-fullname">—</div>
+            <div style="font-size:.78rem;color:var(--text2);" id="settings-username">—</div>
+            <div style="font-size:.78rem;color:var(--text2);" id="settings-email">—</div>
+          </div>
+        </div>
+        <div class="fr"><label>Ad Soyad</label><input type="text" id="edit-fullname" placeholder="Adınız Soyadınız"/></div>
+        <div class="fr"><label>Kullanıcı Adı</label><input type="text" id="edit-username" placeholder="kullanici_adi"/></div>
+        <div class="fr"><label>Yeni Şifre <span style="font-weight:400;text-transform:none;color:var(--text2);">(boş = değiştirme)</span></label><input type="password" id="edit-password" placeholder="••••••••"/></div>
+        <button class="btn btn-primary btn-block" onclick="saveProfile()">Kaydet</button>
       </div>
       <div class="card" id="admin-panel" style="display:none;margin-bottom:11px;">
         <div style="font-weight:600;margin-bottom:13px;font-size:.88rem;">⚙️ Yönetici <span class="atag">ADMİN</span></div>
@@ -236,10 +238,6 @@
     <button class="nav-item active" onclick="switchPage('home',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       <span>Ana Sayfa</span><div class="ndot"></div>
-    </button>
-    <button class="nav-item" onclick="switchPage('members',this)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      <span>Üyeler</span><div class="ndot"></div>
     </button>
     <button class="nav-item" onclick="switchPage('report',this)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
@@ -395,18 +393,48 @@ async function loadProfile(){
   myProfile=data;
 }
 
+// ── PROFILE DISPLAY ─────────────────────────────────────────
+function updateProfileDisplay(){
+  const name=myProfile?.full_name||myProfile?.username||'?';
+  const init=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('user-avatar').textContent=init;
+  const sa=document.getElementById('settings-avatar');
+  if(sa){ sa.textContent=init; }
+  document.getElementById('settings-fullname').textContent=myProfile?.full_name||'—';
+  document.getElementById('settings-username').textContent='@'+(myProfile?.username||'—');
+  document.getElementById('settings-email').textContent=me?.email||'—';
+  document.getElementById('edit-fullname').value=myProfile?.full_name||'';
+  document.getElementById('edit-username').value=myProfile?.username||'';
+  document.getElementById('edit-password').value='';
+}
+
 // ── INIT ──────────────────────────────────────────────────────
 async function initApp(){
   const init=(myProfile?.full_name||myProfile?.username||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
   document.getElementById('user-avatar').textContent=init;
-  document.getElementById('settings-fullname').textContent=myProfile?.full_name||'—';
-  document.getElementById('settings-username').textContent=myProfile?.username||'—';
-  document.getElementById('settings-email').textContent=me?.email||'—';
+  updateProfileDisplay();
   if(myProfile?.role==='admin'){ document.getElementById('admin-panel').style.display='block'; await loadAdminGroups(); }
   await loadMyGroup();
   await loadHome(); await loadMembers(); await loadReport();
   await loadNotifSettings(); scheduleNotif();
 }
+
+window.saveProfile=async function(){
+  const fullname=document.getElementById('edit-fullname').value.trim();
+  const username=document.getElementById('edit-username').value.trim();
+  const password=document.getElementById('edit-password').value;
+  if(!fullname||!username) return toast('Ad ve kullanıcı adı gerekli','error');
+  const {error:profErr}=await sb.from('profiles').update({full_name:fullname,username}).eq('id',me.id);
+  if(profErr){toast('Hata: '+profErr.message,'error');return;}
+  if(password){
+    if(password.length<6){toast('Şifre en az 6 karakter olmalı','error');return;}
+    const {error:pwErr}=await sb.auth.updateUser({password});
+    if(pwErr){toast('Şifre hatası: '+pwErr.message,'error');return;}
+  }
+  myProfile={...myProfile,full_name:fullname,username};
+  updateProfileDisplay();
+  toast('Profil güncellendi! ✓','success');
+};
 
 async function loadMyGroup(){
   const {data}=await sb.from('group_members').select('group_id,reading_groups(*,books(*))').eq('user_id',me.id).limit(1).maybeSingle();
@@ -447,6 +475,11 @@ async function loadHome(){
   }
   document.getElementById('week-head').innerHTML=hHtml;
 
+  // Avatar color palette
+  const avatarColors=['#3fb950','#388bfd','#bc8cff','#c9a84c','#f85149','#58a6ff','#d29922','#7ee787'];
+  const memberColorMap={};
+  members.forEach((m,idx)=>{ memberColorMap[m.user_id]=avatarColors[idx%avatarColors.length]; });
+
   // Sort: me first
   const sorted=members.slice().sort((a,b)=>a.user_id===me.id?-1:b.user_id===me.id?1:(a.profiles?.full_name||'').localeCompare(b.profiles?.full_name||''));
 
@@ -454,7 +487,9 @@ async function loadHome(){
   sorted.forEach(m=>{
     const isMe=m.user_id===me.id;
     const name=m.profiles?.full_name||m.profiles?.username||'?';
-    let row=`<tr class="${isMe?'me-row':''}"><td class="name-cell">${name.split(' ')[0]}</td>`;
+    const avColor=memberColorMap[m.user_id]||'#388bfd';
+    const avInit=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    let row=`<tr class="${isMe?'me-row':''}"><td class="name-cell"><span class="row-avatar" style="background:${avColor}">${avInit}</span>${name.split(' ')[0]}</td>`;
     for(let i=0;i<7;i++){
       const d=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+i);
       const ds=dateStr(d);
@@ -522,7 +557,7 @@ async function loadMembers(){
 
 // ── REPORT ────────────────────────────────────────────────────
 async function loadReport(){
-  const now=new Date();
+  const now=new Date(), today=todayStr();
   const ws=weekStart(now), we=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+6);
   const wsStr=dateStr(ws), weStr=dateStr(we);
   const fmt=d=>`${d.getDate()} ${MN[d.getMonth()]}`;
@@ -724,7 +759,7 @@ window.switchPage=function(name,btn){
   document.getElementById('page-'+name).classList.add('active');
   btn.classList.add('active');
   if(name==='home') loadHome();
-  if(name==='members') loadMembers();
+
   if(name==='report') loadReport();
 };
 
