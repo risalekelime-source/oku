@@ -74,7 +74,7 @@
     .week-grid th{padding:6px 2px;text-align:center;color:var(--text2);font-weight:600;font-size:.62rem;text-transform:uppercase}
     .week-grid th.today-col{color:var(--accent)}
     .week-grid td{padding:3px 2px;text-align:center;vertical-align:middle}
-    .name-cell{text-align:left!important;padding:4px 6px 4px 0!important;font-size:.78rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px}
+    .name-cell{text-align:left!important;padding:4px 6px 4px 2px!important;font-size:.78rem;font-weight:500;white-space:normal;min-width:110px}
     .dot{width:26px;height:26px;border-radius:7px;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700}
     .dot-green{background:rgba(0,210,106,.18);color:var(--green);box-shadow:0 0 8px rgba(0,210,106,.2)}
     .dot-yellow{background:rgba(255,184,0,.18);color:var(--yellow);box-shadow:0 0 8px rgba(255,184,0,.2)}
@@ -82,7 +82,7 @@
     .dot-empty{background:var(--bg3);color:var(--text2)}
     .dot-future{background:transparent}
     .me-row .name-cell{color:var(--accent);font-weight:700}
-    .name-cell{min-width:90px}
+    .name-cell{min-width:120px;max-width:none!important;white-space:normal!important}
     .row-avatar{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:#fff;flex-shrink:0;vertical-align:middle;margin-right:5px}
     .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:16px}
     @media(min-width:400px){.stat-grid{grid-template-columns:repeat(4,1fr)}}
@@ -105,6 +105,7 @@
     .btn:active{transform:scale(.97)}.btn-primary{background:var(--accent);color:#1a1000}
     .btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
     .btn-danger{background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+    .btn-read{background:rgba(0,210,106,.15);color:var(--green);border:1px solid rgba(0,210,106,.4)}
     .btn-comp{background:rgba(255,184,0,.13);color:var(--yellow);border:1px solid rgba(255,184,0,.35)}
     .btn-block{width:100%;display:flex}.btn:disabled{opacity:.5;cursor:not-allowed}.btn-sm{padding:7px 12px;font-size:.78rem}
     .fr{margin-bottom:13px}
@@ -156,8 +157,8 @@
 <div id="main-app" class="screen">
   <header class="app-header">
     <div class="hinner">
-      <div class="hlogo">📖 Risale<span id="header-group-name">Yükleniyor...</span></div>
-      <div class="hright"><div class="avatar" id="user-avatar">?</div><button class="logout-btn" onclick="doLogout()">Çıkış</button></div>
+      <div class="hlogo">📖 Risale<span id="header-group-name" style="display:none;">Yükleniyor...</span></div>
+      <div class="hright"><div style="text-align:right;line-height:1.2;margin-right:2px;"><div style="font-size:.8rem;font-weight:600;color:var(--text);" id="header-user-name"></div><div style="font-size:.65rem;color:var(--text2);" id="header-group-label"></div></div><div class="avatar" id="user-avatar">?</div><button class="logout-btn" onclick="doLogout()">Çıkış</button></div>
     </div>
   </header>
 
@@ -165,9 +166,9 @@
     <!-- HOME -->
     <div class="page active" id="page-home">
       <div class="sh">
-        <div><div class="st" id="home-greeting">Merhaba 👋</div><div class="ss" id="home-date"></div></div>
+        <div><div class="st" id="home-date"></div></div>
         <div style="display:flex;gap:7px;">
-          <button class="btn btn-primary" onclick="logToday()" style="padding:9px 14px;font-size:.82rem;">📖 Okuma</button>
+          <button class="btn btn-read" onclick="logToday()" style="padding:9px 14px;font-size:.82rem;">📖 Okuma</button>
           <button class="btn btn-comp" onclick="openCompModal()" style="padding:9px 14px;font-size:.82rem;">◐ Telafi</button>
         </div>
       </div>
@@ -414,6 +415,7 @@ async function initApp(){
   const init=(myProfile?.full_name||myProfile?.username||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
   document.getElementById('user-avatar').textContent=init;
   updateProfileDisplay();
+  document.getElementById('header-user-name').textContent=myProfile?.full_name||myProfile?.username||'';
   if(myProfile?.role==='admin'){ document.getElementById('admin-panel').style.display='block'; await loadAdminGroups(); }
   await loadMyGroup();
   await loadHome(); await loadMembers(); await loadReport();
@@ -439,14 +441,13 @@ window.saveProfile=async function(){
 
 async function loadMyGroup(){
   const {data}=await sb.from('group_members').select('group_id,reading_groups(*,books(*))').eq('user_id',me.id).limit(1).maybeSingle();
-  if(data?.reading_groups){ myGroup=data.reading_groups; document.getElementById('header-group-name').textContent=myGroup.name; }
+  if(data?.reading_groups){ myGroup=data.reading_groups; document.getElementById('header-group-name').textContent=myGroup.name; document.getElementById('header-group-label').textContent=myGroup.name; }
   else document.getElementById('header-group-name').textContent='Grup yok';
 }
 
 // ── HOME ──────────────────────────────────────────────────────
 async function loadHome(){
   const now=new Date(), today=todayStr();
-  document.getElementById('home-greeting').textContent=`Merhaba, ${myProfile?.full_name?.split(' ')[0]||myProfile?.username} 👋`;
   document.getElementById('home-date').textContent=`${DN[(now.getDay()+6)%7]}, ${now.getDate()} ${MN[now.getMonth()]} ${now.getFullYear()}`;
   if(!myGroup){
     document.getElementById('week-body').innerHTML='<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--text2);font-size:.82rem;">Henüz bir gruba atanmadınız</td></tr>';
@@ -490,7 +491,7 @@ async function loadHome(){
     const name=m.profiles?.full_name||m.profiles?.username||'?';
     const avColor=memberColorMap[m.user_id]||'#388bfd';
     const avInit=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-    let row=`<tr class="${isMe?'me-row':''}"><td class="name-cell"><span class="row-avatar" style="background:${avColor}">${avInit}</span>${name.split(' ')[0]}</td>`;
+    let row=`<tr class="${isMe?'me-row':''}"><td class="name-cell"><span class="row-avatar" style="background:${avColor}">${avInit}</span>${name}</td>`;
     for(let i=0;i<7;i++){
       const d=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+i);
       const ds=dateStr(d);
