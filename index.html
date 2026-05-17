@@ -27,7 +27,7 @@
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{-webkit-tap-highlight-color:transparent}
-    body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
+    body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden;overscroll-behavior-y:none}
     button{font-family:var(--fb);cursor:pointer;border:none;background:none}
     input,select,textarea{font-family:var(--fb)}
     ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
@@ -64,7 +64,7 @@
     .nav-item.active{color:var(--accent);text-shadow:0 0 12px rgba(240,165,0,.4)}.nav-item svg{width:21px;height:21px}
     .ndot{width:4px;height:4px;border-radius:50%;background:var(--accent);margin-top:-1px;opacity:0;transition:opacity .2s}
     .nav-item.active .ndot{opacity:1}
-    .content{flex:1;overflow-y:auto;padding:16px 14px calc(86px + var(--sb));max-width:768px;margin:0 auto;width:100%}
+    .content{flex:1;overflow-y:auto;padding:16px 14px calc(86px + var(--sb));max-width:768px;margin:0 auto;width:100%;overscroll-behavior-y:none}
     .page{display:none;animation:fadeIn .25s ease}.page.active{display:block}
     .sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
     .st{font-family:var(--fd);font-size:1.15rem;font-weight:600}
@@ -109,6 +109,8 @@
     .btn-read{background:#00c462;color:#003a1c;border:none;font-weight:700;}
     .btn-comp{background:#f5a800;color:#3a2600;border:none;font-weight:700;}
     .comp-day-btn:hover{background:var(--card2)!important;border-color:var(--yellow)!important;}
+    .btn-ilave{background:#2563eb;color:#fff;border:none;font-weight:700;}
+    .btn-read.disabled-btn{opacity:.45;cursor:not-allowed;}
     .btn-block{width:100%;display:flex}.btn:disabled{opacity:.5;cursor:not-allowed}.btn-sm{padding:7px 12px;font-size:.78rem}
     .fr{margin-bottom:13px}
     .fr label{display:block;font-size:.72rem;color:var(--text2);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
@@ -118,8 +120,8 @@
     .tw{display:flex;align-items:center;justify-content:space-between}
     .toggle{position:relative;width:46px;height:25px;background:var(--bg3);border-radius:13px;cursor:pointer;transition:background .2s;flex-shrink:0}
     .toggle.on{background:var(--accent)}.toggle::after{content:'';position:absolute;top:3px;left:3px;width:19px;height:19px;background:#fff;border-radius:50%;transition:left .2s}.toggle.on::after{left:24px}
-    #log-modal,#add-user-modal,#add-book-modal,#manage-group-modal,#edit-group-modal{display:none}
-    #log-modal.am,#add-user-modal.am,#add-book-modal.am,#manage-group-modal.am,#edit-group-modal.am{display:block}
+    #log-modal,#add-user-modal,#add-book-modal,#manage-group-modal,#edit-group-modal,#ilave-modal,#delete-user-modal{display:none}
+    #log-modal.am,#add-user-modal.am,#add-book-modal.am,#manage-group-modal.am,#edit-group-modal.am,#ilave-modal.am,#delete-user-modal.am{display:block}
     .mo{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn .2s}
     .modal{background:var(--card);border-radius:var(--r) var(--r) 0 0;padding:22px 18px calc(var(--sb) + 22px);width:100%;max-width:480px;animation:slideUp .3s ease;max-height:90dvh;overflow-y:auto}
     .mhandle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;display:block}
@@ -167,16 +169,17 @@
   <main class="content">
     <!-- HOME -->
     <div class="page active" id="page-home">
-      <div class="sh">
-        <div><div class="st" id="home-date"></div></div>
-        <div style="display:flex;gap:7px;">
-          <button class="btn btn-read" onclick="logToday()" style="padding:9px 14px;font-size:.82rem;">📖 Okuma</button>
-          <button class="btn btn-comp" onclick="openCompModal()" style="padding:9px 14px;font-size:.82rem;">◐ Telafi</button>
+      <!-- Hafta başlığı + butonlar -->
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-family:var(--fd);font-size:1.25rem;font-weight:700;">Bu Hafta</div>
+          <div style="font-size:.95rem;font-weight:600;color:var(--text2);" id="week-range"></div>
         </div>
-      </div>
-      <div class="sh" style="margin-bottom:10px;">
-        <div class="st" style="font-size:1rem;">Bu Hafta</div>
-        <div style="font-size:.72rem;color:var(--text2);" id="week-range"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <button class="btn btn-read btn-block" id="btn-read" onclick="logToday()" style="font-size:.82rem;padding:11px 6px;">📖 Okuma</button>
+          <button class="btn btn-ilave btn-block" onclick="openIlaveModal()" style="font-size:.82rem;padding:11px 6px;">➕ İlave</button>
+          <button class="btn btn-comp btn-block" onclick="openCompModal()" style="font-size:.82rem;padding:11px 6px;">◐ Telafi</button>
+        </div>
       </div>
       <div class="card" style="padding:12px 8px;overflow-x:auto;">
         <table class="week-grid" id="week-table"><thead><tr id="week-head"></tr></thead><tbody id="week-body"></tbody></table>
@@ -221,7 +224,7 @@
           </div>
         </div>
         <div class="fr"><label>Ad Soyad</label><input type="text" id="edit-fullname" placeholder="Adınız Soyadınız"/></div>
-        <div class="fr"><label>Kullanıcı Adı</label><input type="text" id="edit-username" placeholder="kullanici_adi"/></div>
+        <div class="fr"><label>Kullanıcı Adı</label><input type="text" id="edit-username" placeholder="kullanici"/></div>
         <div class="fr"><label>Yeni Şifre <span style="font-weight:400;text-transform:none;color:var(--text2);">(boş = değiştirme)</span></label><input type="password" id="edit-password" placeholder="••••••••"/></div>
         <button class="btn btn-primary btn-block" onclick="saveProfile()">Kaydet</button>
       </div>
@@ -230,6 +233,7 @@
         <button class="btn btn-secondary btn-block" style="margin-bottom:7px;" onclick="openAddUserModal()">+ Yeni Kullanıcı</button>
         <button class="btn btn-secondary btn-block" style="margin-bottom:7px;" onclick="openAddBookModal()">+ Kitap / Grup Oluştur</button>
         <button class="btn btn-secondary btn-block" onclick="openManageGroupModal()">👥 Gruba Üye Ekle / Çıkar</button>
+        <button class="btn btn-danger btn-block" style="margin-top:7px;" onclick="openDeleteUserModal()">🗑️ Kullanıcı Sil</button>
         <div style="margin-top:15px;padding-top:13px;border-top:1px solid var(--border);">
           <div style="font-size:.78rem;font-weight:600;margin-bottom:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;">Gruplar</div>
           <div id="admin-groups-list"><div style="font-size:.82rem;color:var(--text2);">Yükleniyor...</div></div>
@@ -278,7 +282,6 @@
       <span class="mhandle"></span><div class="mtitle">👤 Yeni Kullanıcı</div>
       <div class="fr"><label>E-posta</label><input type="email" id="new-user-email" placeholder="kullanici@email.com"/></div>
       <div class="fr"><label>Ad Soyad</label><input type="text" id="new-user-fullname" placeholder="Ad Soyad"/></div>
-      <div class="fr"><label>Kullanıcı Adı</label><input type="text" id="new-user-username" placeholder="kullanici_adi"/></div>
       <div class="fr"><label>Şifre</label><input type="password" id="new-user-password" placeholder="En az 6 karakter"/></div>
       <div class="fr"><label>Rol</label><select id="new-user-role"><option value="user">Kullanıcı</option><option value="admin">Yönetici</option></select></div>
       <button class="btn btn-primary btn-block" onclick="createUser()">Kullanıcı Oluştur</button>
@@ -317,6 +320,33 @@
   </div>
 </div>
 
+<!-- DELETE USER MODAL -->
+<div id="delete-user-modal">
+  <div class="mo" onclick="closeModal('delete-user-modal')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <span class="mhandle"></span>
+      <div class="mtitle">🗑️ Kullanıcı Sil</div>
+      <div style="font-size:.82rem;color:var(--text2);margin-bottom:14px;">Silmek istediğiniz kullanıcıyı seçin. Bu işlem geri alınamaz.</div>
+      <div class="fr"><label>Kullanıcı</label><select id="delete-user-select"></select></div>
+      <button class="btn btn-danger btn-block" onclick="deleteUser()">🗑️ Kullanıcıyı Sil</button>
+    </div>
+  </div>
+</div>
+
+<!-- İLAVE MODAL -->
+<div id="ilave-modal">
+  <div class="mo" onclick="closeModal('ilave-modal')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <span class="mhandle"></span>
+      <div class="mtitle">➕ İlave Okuma</div>
+      <div style="font-size:.82rem;color:var(--text2);margin-bottom:14px;">Günlük hedef dışında ek okuma yaptıysanız sayfa sayısını girin.</div>
+      <div class="fr"><label>İlave Sayfa Sayısı</label><input type="number" id="ilave-pages" placeholder="Örn: 10" min="1"/></div>
+      <div class="fr"><label>Not (opsiyonel)</label><textarea id="ilave-note" placeholder="Not..."></textarea></div>
+      <button class="btn btn-ilave btn-block" onclick="submitIlaveLog()">➕ İlave Okumayı Kaydet</button>
+    </div>
+  </div>
+</div>
+
 <!-- EDIT GROUP MODAL -->
 <div id="edit-group-modal">
   <div class="mo" onclick="closeModal('edit-group-modal')">
@@ -340,6 +370,7 @@ let me = null, myProfile = null, myGroup = null, allProfiles = [], allGroups = [
 
 const DN = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
 const MN = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+const MNF = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 
 function todayStr(){
   const d=new Date();
@@ -419,7 +450,7 @@ async function initApp(){
   document.getElementById('header-user-name').textContent=myProfile?.full_name||myProfile?.username||'';
   if(myProfile?.role==='admin'){ document.getElementById('admin-panel').style.display='block'; await loadAdminGroups(); }
   await loadMyGroup();
-  await loadHome(); await loadMembers(); await loadReport();
+  await loadHome(); await loadReport();
   await loadNotifSettings(); scheduleNotif();
 }
 
@@ -449,7 +480,7 @@ async function loadMyGroup(){
 // ── HOME ──────────────────────────────────────────────────────
 async function loadHome(){
   const now=new Date(), today=todayStr();
-  document.getElementById('home-date').textContent=`${DN[(now.getDay()+6)%7]}, ${now.getDate()} ${MN[now.getMonth()]} ${now.getFullYear()}`;
+
   if(!myGroup){
     document.getElementById('week-body').innerHTML='<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--text2);font-size:.82rem;">Henüz bir gruba atanmadınız</td></tr>';
     ['stat-week','stat-total','stat-delay','stat-streak'].forEach(id=>document.getElementById(id).textContent='—');
@@ -458,7 +489,7 @@ async function loadHome(){
   const goal=myGroup.daily_page_goal;
   const ws=weekStart(now), we=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+6);
   const wsStr=dateStr(ws), weStr=dateStr(we);
-  document.getElementById('week-range').textContent=`${ws.getDate()} ${MN[ws.getMonth()]} – ${we.getDate()} ${MN[we.getMonth()]}`;
+  document.getElementById('week-range').textContent=`${ws.getDate()} ${MNF[ws.getMonth()]} – ${we.getDate()} ${MNF[we.getMonth()]} ${we.getFullYear()}`;
 
   const {data:members}=await sb.from('group_members').select('user_id,profiles(*)').eq('group_id',myGroup.id);
   if(!members?.length) return;
@@ -529,6 +560,15 @@ async function loadHome(){
   let streak=0; const dc=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   while(true){ const ds=dateStr(dc); if(myMap[ds]&&myMap[ds].pages_read>=goal){streak++;dc.setDate(dc.getDate()-1);}else break; }
   document.getElementById('stat-streak').textContent=streak;
+
+  // Okuma butonu: bugün log varsa pasif yap
+  const todayLogged=myMap[today]&&myMap[today].pages_read>=goal;
+  const btnRead=document.getElementById('btn-read');
+  if(btnRead){
+    btnRead.disabled=todayLogged;
+    btnRead.classList.toggle('disabled-btn',todayLogged);
+    btnRead.textContent=todayLogged?'✓ Okundu':'📖 Okuma';
+  }
 }
 
 // ── MEMBERS ───────────────────────────────────────────────────
@@ -595,6 +635,32 @@ async function loadReport(){
 }
 
 // ── LOG ACTIONS ───────────────────────────────────────────────
+window.openIlaveModal=function(){
+  if(!myGroup) return toast('Aktif grup bulunamadı','error');
+  document.getElementById('ilave-pages').value='';
+  document.getElementById('ilave-note').value='';
+  openM('ilave-modal');
+};
+window.submitIlaveLog=async function(){
+  const pages=parseInt(document.getElementById('ilave-pages').value);
+  const note=document.getElementById('ilave-note').value.trim();
+  if(!pages||pages<1) return toast('Sayfa sayısı girin','error');
+  const today=todayStr();
+  // Bugünün mevcut logu varsa üstüne ekle
+  const {data:ex}=await sb.from('reading_logs').select('id,pages_read').eq('user_id',me.id).eq('group_id',myGroup.id).eq('log_date',today).maybeSingle();
+  let error;
+  if(ex){
+    const {error:e}=await sb.from('reading_logs').update({pages_read:ex.pages_read+pages,note:note||null}).eq('id',ex.id);
+    error=e;
+  } else {
+    const {error:e}=await sb.from('reading_logs').insert({user_id:me.id,group_id:myGroup.id,log_date:today,pages_read:pages,note:note||null,is_compensatory:false});
+    error=e;
+  }
+  if(error){toast('Kayıt hatası: '+error.message,'error');return;}
+  closeModal('ilave-modal');
+  toast(`+${pages} sayfa ilave kaydedildi! ➕`,'success');
+  await loadHome();
+};
 window.logToday=async function(){
   if(!myGroup) return toast('Aktif grup bulunamadı','error');
   await saveLog(todayStr(),myGroup.daily_page_goal,'',false);
@@ -673,7 +739,7 @@ async function saveLog(date,pages,note,isComp){
   if(error){toast('Kayıt hatası: '+error.message,'error');return;}
   closeModal('log-modal');
   toast(isComp?'Telafi kaydedildi! ◐':'Okuma kaydedildi! ✓','success');
-  await loadHome(); await loadMembers();
+  await loadHome();
 }
 
 // ── ADMIN: GROUPS ─────────────────────────────────────────────
@@ -682,8 +748,43 @@ async function loadAdminGroups(){
   allGroups=data||[];
   const el=document.getElementById('admin-groups-list');
   if(!allGroups.length){el.innerHTML='<div style="font-size:.82rem;color:var(--text2);">Henüz grup yok</div>';return;}
-  el.innerHTML=allGroups.map(g=>`<div class="group-item"><div><div class="group-name">${g.name}</div><div class="group-meta">${g.books?.title||'—'} · ${g.daily_page_goal} s/gün</div></div><button class="btn btn-secondary btn-sm" onclick="openEditGroup('${g.id}')">✏️ Düzenle</button></div>`).join('');
+  el.innerHTML=allGroups.map(g=>`<div class="group-item">
+    <div style="flex:1;min-width:0;"><div class="group-name">${g.name}</div><div class="group-meta">${g.books?.title||'—'} · ${g.daily_page_goal} s/gün</div></div>
+    <div style="display:flex;gap:5px;">
+      <button class="btn btn-secondary btn-sm" onclick="openEditGroup('${g.id}')">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteGroup('${g.id}','${g.name.replace(/'/g,'')}')">🗑️</button>
+    </div>
+  </div>`).join('');
 }
+window.openDeleteUserModal=async function(){
+  const {data:profiles}=await sb.from('profiles').select('id,full_name,username').order('full_name');
+  const sel=document.getElementById('delete-user-select');
+  // Kendi hesabını gösterme
+  sel.innerHTML=(profiles||[]).filter(p=>p.id!==me.id).map(p=>`<option value="${p.id}">${p.full_name||p.username}</option>`).join('');
+  openM('delete-user-modal');
+};
+window.deleteUser=async function(){
+  const uid=document.getElementById('delete-user-select').value;
+  const name=document.getElementById('delete-user-select').selectedOptions[0]?.text||'';
+  if(!uid) return;
+  if(!confirm(`"${name}" kullanıcısını silmek istediğinize emin misiniz?`)) return;
+  await sb.from('reading_logs').delete().eq('user_id',uid);
+  await sb.from('group_members').delete().eq('user_id',uid);
+  await sb.from('notification_settings').delete().eq('user_id',uid);
+  await sb.from('profiles').delete().eq('id',uid);
+  // auth.users silmek service key gerektirir, profil silinir yeterli
+  closeModal('delete-user-modal');
+  toast('Kullanici silindi. Auth kaydi Supabase Dashboard dan silinmeli.','success');
+};
+window.deleteGroup=async function(gid,gname){
+  if(!confirm(`"${gname}" grubunu silmek istediğinize emin misiniz?\nTüm okuma kayıtları silinecek!`)) return;
+  await sb.from('reading_logs').delete().eq('group_id',gid);
+  await sb.from('group_members').delete().eq('group_id',gid);
+  const {error}=await sb.from('reading_groups').delete().eq('id',gid);
+  if(error){toast('Silme hatası: '+error.message,'error');return;}
+  toast('Grup silindi','success');
+  await loadAdminGroups(); await loadMyGroup(); await loadHome();
+};
 window.openEditGroup=function(gid){
   const g=allGroups.find(x=>x.id===gid); if(!g) return;
   document.getElementById('edit-group-id').value=g.id;
@@ -706,16 +807,16 @@ window.saveGroupEdit=async function(){
 
 // ── ADMIN: CREATE USER ────────────────────────────────────────
 window.openAddUserModal=function(){
-  ['new-user-email','new-user-fullname','new-user-username','new-user-password'].forEach(id=>document.getElementById(id).value='');
+  ['new-user-email','new-user-fullname','new-user-password'].forEach(id=>document.getElementById(id).value='');
   openM('add-user-modal');
 };
 window.createUser=async function(){
   const email=document.getElementById('new-user-email').value.trim();
   const fullname=document.getElementById('new-user-fullname').value.trim();
-  const username=document.getElementById('new-user-username').value.trim();
   const password=document.getElementById('new-user-password').value;
   const role=document.getElementById('new-user-role').value;
-  if(!email||!password||!username) return toast('E-posta, kullanıcı adı ve şifre gerekli','error');
+  const username=email.split('@')[0];
+  if(!email||!password) return toast('E-posta ve şifre gerekli','error');
   const {data,error}=await sb.auth.signUp({email,password,options:{data:{username,full_name:fullname}}});
   if(error){toast('Hata: '+error.message,'error');return;}
   if(!data.user){toast('Kullanıcı oluşturulamadı','error');return;}
@@ -767,10 +868,17 @@ window.saveGroupMembers=async function(){
   const curSet=new Set((cur||[]).map(m=>m.user_id)), selSet=new Set(selIds);
   const toAdd=selIds.filter(id=>!curSet.has(id));
   const toRem=[...curSet].filter(id=>!selSet.has(id));
-  if(toAdd.length){ const {error}=await sb.from('group_members').insert(toAdd.map(uid=>({group_id:gid,user_id:uid}))); if(error){toast('Ekleme hatası: '+error.message,'error');return;} }
+  if(toAdd.length){
+    // Önce diğer gruplardan çıkar (bir kullanıcı sadece bir grupta olabilir)
+    for(const uid of toAdd){
+      await sb.from('group_members').delete().eq('user_id',uid).neq('group_id',gid);
+    }
+    const {error}=await sb.from('group_members').insert(toAdd.map(uid=>({group_id:gid,user_id:uid})));
+    if(error){toast('Ekleme hatası: '+error.message,'error');return;}
+  }
   if(toRem.length){ const {error}=await sb.from('group_members').delete().eq('group_id',gid).in('user_id',toRem); if(error){toast('Çıkarma hatası: '+error.message,'error');return;} }
   closeModal('manage-group-modal'); toast(`${toAdd.length} eklendi, ${toRem.length} çıkarıldı`,'success');
-  await loadMyGroup(); await loadHome(); await loadMembers();
+  await loadMyGroup(); await loadHome();
 };
 
 // ── NOTIFICATIONS ─────────────────────────────────────────────
