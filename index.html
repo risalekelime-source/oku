@@ -126,8 +126,22 @@
     .modal{background:var(--card);border-radius:var(--r) var(--r) 0 0;padding:22px 18px calc(var(--sb) + 22px);width:100%;max-width:480px;animation:slideUp .3s ease;max-height:90dvh;overflow-y:auto}
     .mhandle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;display:block}
     .mtitle{font-family:var(--fd);font-size:1.15rem;margin-bottom:18px}
-    .rb-wrap{margin:5px 0}.rb-label{display:flex;justify-content:space-between;font-size:.76rem;color:var(--text2);margin-bottom:3px}
+    .rb-wrap{margin:4px 0}.rb-label{display:flex;justify-content:space-between;font-size:.76rem;color:var(--text2);margin-bottom:3px}
     .rb{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden}.rbf{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+    .day-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+    .day-row:last-child{border-bottom:none}
+    .day-label{width:38px;font-size:.72rem;font-weight:700;color:var(--text2);flex-shrink:0;text-align:right}
+    .day-date{width:22px;font-size:.72rem;color:var(--text2);flex-shrink:0;text-align:center}
+    .day-bar-wrap{flex:1;height:18px;background:var(--bg3);border-radius:5px;overflow:hidden;position:relative}
+    .day-bar{height:100%;border-radius:5px;transition:width .4s ease;min-width:0}
+    .day-pages{font-size:.72rem;font-weight:600;width:44px;text-align:right;flex-shrink:0}
+    .day-badge{font-size:.6rem;font-weight:700;padding:2px 5px;border-radius:5px;flex-shrink:0;white-space:nowrap}
+    .db-ok{background:rgba(0,196,98,.2);color:#00c462}
+    .db-comp{background:rgba(224,148,0,.2);color:#e09400}
+    .db-ilave{background:rgba(37,99,235,.2);color:#60a5fa}
+    .db-miss{background:rgba(255,60,60,.15);color:#ff6b6b}
+    .db-fut{background:rgba(255,255,255,.06);color:var(--text2)}
+    .month-week-sep{font-size:.7rem;font-weight:700;color:var(--text2);padding:8px 0 4px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid var(--border);margin-top:6px}
     .user-check-list{max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--rs);background:var(--bg2)}
     .ucl-item{display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid var(--border);cursor:pointer}
     .ucl-item:last-child{border-bottom:none}.ucl-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
@@ -201,9 +215,9 @@
 
     <!-- REPORT -->
     <div class="page" id="page-report">
-      <div class="sh"><div class="st">Haftalık Rapor</div><div class="ss" id="report-week-label"></div></div>
-      <div class="card" style="margin-bottom:13px;"><div style="font-weight:600;margin-bottom:11px;font-size:.88rem;">📊 Benim Durumum</div><div id="my-weekly-report"></div></div>
-      <div class="sh" style="margin-bottom:10px;"><div class="st" style="font-size:1rem;">Grup Sıralaması</div></div>
+      <div class="sh"><div class="st">Aylık Rapor</div><div class="ss" id="report-week-label"></div></div>
+      <div class="card" style="margin-bottom:13px;"><div style="font-weight:600;margin-bottom:11px;font-size:.88rem;">📊 Son 30 Gün</div><div id="my-weekly-report"></div></div>
+      <div class="sh" style="margin-bottom:10px;"><div class="st" style="font-size:1rem;">Bu Hafta Sıralaması</div></div>
       <div class="card" id="group-weekly-report"><div class="empty"><div class="eico">📈</div><p>Yükleniyor...</p></div></div>
     </div>
 
@@ -610,30 +624,104 @@ async function loadMembers(){
 // ── REPORT ────────────────────────────────────────────────────
 async function loadReport(){
   const now=new Date(), today=todayStr();
+
+  // Son 30 günü hesapla
+  const mEnd=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const mStart=new Date(mEnd); mStart.setDate(mStart.getDate()-29);
+  const mStartStr=dateStr(mStart), mEndStr=dateStr(mEnd);
+
+  // Bu haftayı da hesapla (grup sıralaması için)
   const ws=weekStart(now), we=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+6);
   const wsStr=dateStr(ws), weStr=dateStr(we);
-  const fmt=d=>`${d.getDate()} ${MN[d.getMonth()]}`;
-  document.getElementById('report-week-label').textContent=`${fmt(ws)} – ${fmt(we)}`;
-  if(!myGroup){document.getElementById('my-weekly-report').innerHTML='<p style="color:var(--text2);font-size:.82rem;">Grup bulunamadı</p>';return;}
-  const goal=myGroup.daily_page_goal, wGoal=goal*7;
-  const {data:myLogs}=await sb.from('reading_logs').select('*').eq('user_id',me.id).eq('group_id',myGroup.id).gte('log_date',wsStr).lte('log_date',weStr).order('log_date');
-  const lm={}; (myLogs||[]).forEach(l=>lm[l.log_date]=l);
-  let total=0,daysOk=0,bars='';
-  for(let i=0;i<7;i++){
-    const d=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+i);
-    const ds=dateStr(d), log=lm[ds], pages=log?.pages_read||0;
-    total+=pages; const pct=Math.min(100,Math.round(pages/goal*100));
-    const fut=ds>today;
-    if(log&&log.pages_read>=goal&&!log.is_compensatory) daysOk++;
-    const col=fut?'var(--border)':log?.is_compensatory?'var(--yellow)':pages>=goal?'var(--green)':pages>0?'var(--yellow)':'var(--red)';
-    bars+=`<div class="rb-wrap"><div class="rb-label"><span>${DN[i]} ${d.getDate()}</span><span>${pages>0?pages+' s.':fut?'—':'Girilmedi'}</span></div><div class="rb"><div class="rbf" style="width:${fut?0:pct}%;background:${col};"></div></div></div>`;
+  const fmt=d=>`${d.getDate()} ${MNF[d.getMonth()]}`;
+  document.getElementById('report-week-label').textContent=`${fmt(mStart)} – ${fmt(mEnd)} ${mEnd.getFullYear()}`;
+
+  if(!myGroup){
+    document.getElementById('my-weekly-report').innerHTML='<p style="color:var(--text2);font-size:.82rem;">Grup bulunamadı</p>';
+    return;
   }
-  document.getElementById('my-weekly-report').innerHTML=`<div class="stat-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:13px;"><div class="stat-card"><div class="sl">Toplam</div><div class="sv" style="font-size:1.2rem;">${total}</div><div class="ssub">sayfa</div></div><div class="stat-card"><div class="sl">Hedef</div><div class="sv" style="font-size:1.2rem;">${wGoal}</div><div class="ssub">sayfa</div></div><div class="stat-card"><div class="sl">Zamanında</div><div class="sv" style="font-size:1.2rem;${total>=wGoal?'color:var(--green)':''}">${daysOk}</div><div class="ssub">gün</div></div></div>`+bars;
+  const goal=myGroup.daily_page_goal;
+
+  // Son 30 günün loglarını çek
+  const {data:myLogs}=await sb.from('reading_logs').select('*')
+    .eq('user_id',me.id).eq('group_id',myGroup.id)
+    .gte('log_date',mStartStr).lte('log_date',mEndStr)
+    .order('log_date',{ascending:true});
+  const lm={}; (myLogs||[]).forEach(l=>lm[l.log_date]=l);
+
+  // İstatistikler
+  let totalPages=0, daysOk=0, daysComp=0, daysIlave=0, daysMiss=0;
+  for(let i=0;i<30;i++){
+    const d=new Date(mStart.getFullYear(),mStart.getMonth(),mStart.getDate()+i);
+    const ds=dateStr(d);
+    if(ds>today) break;
+    const log=lm[ds];
+    if(!log){daysMiss++;}
+    else if(log.is_compensatory){daysComp++;totalPages+=log.pages_read;}
+    else if(log.pages_read>goal){daysIlave++;daysOk++;totalPages+=log.pages_read;}
+    else if(log.pages_read>=goal){daysOk++;totalPages+=log.pages_read;}
+    else{daysMiss++;totalPages+=log.pages_read;}
+  }
+
+  // Özet kartlar
+  const summaryHtml=`<div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px;">
+    <div class="stat-card"><div class="sl">Toplam</div><div class="sv" style="font-size:1.1rem;">${totalPages}</div><div class="ssub">sayfa</div></div>
+    <div class="stat-card"><div class="sl" style="color:#00c462;">Zamanında</div><div class="sv" style="font-size:1.1rem;color:#00c462;">${daysOk}</div><div class="ssub">gün</div></div>
+    <div class="stat-card"><div class="sl" style="color:#e09400;">Telafi</div><div class="sv" style="font-size:1.1rem;color:#e09400;">${daysComp}</div><div class="ssub">gün</div></div>
+    <div class="stat-card"><div class="sl" style="color:var(--red);">Eksik</div><div class="sv" style="font-size:1.1rem;color:var(--red);">${daysMiss}</div><div class="ssub">gün</div></div>
+  </div>`;
+
+  // Günlük detay - haftalara böl
+  let detailHtml='';
+  let curWeek=-1;
+  const maxPages=Math.max(...Object.values(lm).map(l=>l.pages_read), goal, 1);
+
+  for(let i=0;i<30;i++){
+    const d=new Date(mStart.getFullYear(),mStart.getMonth(),mStart.getDate()+i);
+    const ds=dateStr(d);
+    const isFuture=ds>today;
+    const dayOfWeek=(d.getDay()+6)%7; // 0=Pzt
+
+    // Hafta ayırıcı
+    if(dayOfWeek===0){
+      const wNum=Math.floor(i/7);
+      const wS=new Date(mStart.getFullYear(),mStart.getMonth(),mStart.getDate()+i);
+      const wE=new Date(wS); wE.setDate(wE.getDate()+6);
+      if(wNum>0 || i===0){
+        detailHtml+=`<div class="month-week-sep">${wS.getDate()} ${MN[wS.getMonth()]} – ${Math.min(wE.getDate(),mEnd.getDate())} ${MN[Math.min(wE.getMonth(),mEnd.getMonth())]}</div>`;
+      }
+    }
+
+    const log=lm[ds];
+    const pages=log?.pages_read||0;
+    const pct=isFuture?0:Math.min(100,Math.round(pages/maxPages*100));
+
+    let barColor='var(--bg3)', badgeClass='db-fut', badgeText='—', pagesColor='var(--text2)';
+    if(!isFuture){
+      if(!log||pages===0){barColor='rgba(255,60,60,.3)';badgeClass='db-miss';badgeText='Eksik';pagesColor='var(--red)';}
+      else if(log.is_compensatory){barColor='#e09400';badgeClass='db-comp';badgeText='Telafi';pagesColor='#e09400';}
+      else if(pages>goal){barColor='#2563eb';badgeClass='db-ilave';badgeText='İlave';pagesColor='#60a5fa';}
+      else if(pages>=goal){barColor='#00c462';badgeClass='db-ok';badgeText='Tamam';pagesColor='#00c462';}
+      else{barColor='rgba(255,60,60,.5)';badgeClass='db-miss';badgeText='Eksik';pagesColor='var(--red)';}
+    }
+
+    detailHtml+=`<div class="day-row">
+      <div class="day-label">${DN[dayOfWeek]}</div>
+      <div class="day-date">${d.getDate()}</div>
+      <div class="day-bar-wrap"><div class="day-bar" style="width:${pct}%;background:${barColor};"></div></div>
+      <div class="day-pages" style="color:${pagesColor};">${isFuture?'':pages>0?pages+' s.':'—'}</div>
+      <div class="day-badge ${badgeClass}">${badgeText}</div>
+    </div>`;
+  }
+
+  document.getElementById('my-weekly-report').innerHTML=summaryHtml+detailHtml;
+
+  // Grup sıralaması (bu hafta)
   const {data:members}=await sb.from('group_members').select('user_id,profiles(*)').eq('group_id',myGroup.id);
   const {data:gLogs}=await sb.from('reading_logs').select('user_id,pages_read').eq('group_id',myGroup.id).gte('log_date',wsStr).lte('log_date',weStr);
   const uwp={}; (gLogs||[]).forEach(l=>uwp[l.user_id]=(uwp[l.user_id]||0)+l.pages_read);
   const sorted=(members||[]).slice().sort((a,b)=>(uwp[b.user_id]||0)-(uwp[a.user_id]||0));
-  const maxP=Math.max(...sorted.map(m=>uwp[m.user_id]||0),wGoal,1);
+  const wGoal=goal*7, maxP=Math.max(...sorted.map(m=>uwp[m.user_id]||0),wGoal,1);
   let gh='';
   sorted.forEach((m,i)=>{
     const p=uwp[m.user_id]||0, pct=Math.round(p/maxP*100);
