@@ -156,6 +156,84 @@
     .log-tabs{display:flex;gap:0;margin-bottom:18px;background:var(--bg3);border-radius:var(--rs);padding:3px}
     .log-tab{flex:1;padding:9px;text-align:center;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--text2);transition:all .2s}
     .log-tab.active{background:var(--card);color:var(--accent)}
+    /* ──────────────────────────────────────────────────────────────
+   TAKVİM GÖRÜNÜMÜ EK CSS DÜZENLEMELERİ (7 KOLON GRID)
+   ────────────────────────────────────────────────────────────── */
+
+/* Gün Başlıkları Satırı (Pzt, Sal... Paz) */
+.cal-header {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.cal-head-cell {
+    text-align: center;
+    font-size: .68rem;
+    font-weight: 700;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    padding: 4px 0;
+}
+
+/* Takvim Ana Tablo Alanı (Her Satıra Kesin Olarak 7 Eşit Kolon Zorlar) */
+.cal-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr) !important;
+    gap: 6px; /* Hücreler arası boşluk */
+    margin-bottom: 4px;
+}
+
+/* Takvim Gün Hücreleri (Tam Kare Yapı) */
+.cal-cell {
+    aspect-ratio: 1 / 1; /* En ve boy oranını 1:1 yaparak tam kare kalmasını sağlar */
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    cursor: default;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, .06);
+    background: var(--bg2); /* Boş/Varsayılan arka plan tonu */
+    min-width: 0; /* Flexbox kırpma buglarını önler */
+}
+
+/* Hücre İçindeki Tarih Numarası */
+.cal-cell .cc-date {
+    font-size: .75rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Hücre İçindeki Sayfa Sayısı Etiketi (Küçük ve Okunabilir) */
+.cal-cell .cc-pages {
+    font-size: .55rem;
+    font-weight: 600;
+    line-height: 1;
+    opacity: .9;
+    padding: 2px 4px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.2); /* Koyu arka planda sayının okunmasını kolaylaştırır */
+}
+
+/* Durumlara Göre Renk Tanımlamaları */
+.cc-ok { background: #00c462 !important; color: #fff !important; }       /* Zamanında okundu */
+.cc-ilave { background: #2563eb !important; color: #fff !important; }    /* Hedefin üzerinde okundu */
+.cc-comp { background: #e09400 !important; color: #fff !important; }     /* Telafi günü */
+.cc-miss { background: rgba(255, 60, 60, 0.3); color: #ffbcbc !important; border-color: rgba(255, 60, 60, 0.2); } /* Eksik / Okunmamış gün */
+.cc-fut { background: rgba(255, 255, 255, .04); color: rgba(255, 255, 255, .2); } /* Gelecek günler */
+.cc-empty { background: transparent !important; border-color: transparent !important; } /* Ay dışı boşluklar */
+
+/* Bugünün Hücresine Özel Vurgu */
+.cal-cell.today-cal {
+    outline: 2px solid var(--accent) !important;
+    outline-offset: 1px;
+    z-index: 2;
+}
   </style>
 </head>
 <body>
@@ -628,112 +706,130 @@ async function loadMembers(){
 
 // ── REPORT ────────────────────────────────────────────────────
 async function loadReport(){
-  const now=new Date(), today=todayStr();
+  const now = new Date(), today = todayStr();
 
   // Son 30 günü hesapla
-  const mEnd=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  const mStart=new Date(mEnd); mStart.setDate(mStart.getDate()-29);
-  const mStartStr=dateStr(mStart), mEndStr=dateStr(mEnd);
+  const mEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const mStart = new Date(mEnd); mStart.setDate(mStart.getDate() - 29);
+  const mStartStr = dateStr(mStart), mEndStr = dateStr(mEnd);
 
   // Bu haftayı da hesapla (grup sıralaması için)
-  const ws=weekStart(now), we=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+6);
-  const wsStr=dateStr(ws), weStr=dateStr(we);
-  const fmt=d=>`${d.getDate()} ${MNF[d.getMonth()]}`;
-  document.getElementById('report-week-label').textContent=`${fmt(mStart)} – ${fmt(mEnd)} ${mEnd.getFullYear()}`;
+  const ws = weekStart(now), we = new Date(ws.getFullYear(), ws.getMonth(), ws.getDate() + 6);
+  const wsStr = dateStr(ws), weStr = dateStr(we);
+  const fmt = d => `${d.getDate()} ${MNF[d.getMonth()]}`;
+  document.getElementById('report-week-label').textContent = `${fmt(mStart)} – ${fmt(mEnd)} ${mEnd.getFullYear()}`;
 
   if(!myGroup){
-    document.getElementById('my-weekly-report').innerHTML='<p style="color:var(--text2);font-size:.82rem;">Grup bulunamadı</p>';
+    document.getElementById('my-weekly-report').innerHTML = '<p style="color:var(--text2);font-size:.82rem;">Grup bulunamadı</p>';
     return;
   }
-  const goal=myGroup.daily_page_goal;
+  const goal = myGroup.daily_page_goal;
 
   // Son 30 günün loglarını çek
-  const {data:myLogs}=await sb.from('reading_logs').select('*')
-    .eq('user_id',me.id).eq('group_id',myGroup.id)
-    .gte('log_date',mStartStr).lte('log_date',mEndStr)
-    .order('log_date',{ascending:true});
-  const lm={}; (myLogs||[]).forEach(l=>lm[l.log_date]=l);
+  const {data:myLogs} = await sb.from('reading_logs').select('*')
+    .eq('user_id', me.id).eq('group_id', myGroup.id)
+    .gte('log_date', mStartStr).lte('log_date', mEndStr)
+    .order('log_date', {ascending: true});
+  const lm = {}; (myLogs||[]).forEach(l => lm[l.log_date] = l);
 
   // İstatistikler
-  let totalPages=0, daysOk=0, daysComp=0, daysIlave=0, daysMiss=0;
-  for(let i=0;i<30;i++){
-    const d=new Date(mStart.getFullYear(),mStart.getMonth(),mStart.getDate()+i);
-    const ds=dateStr(d);
-    if(ds>today) break;
-    const log=lm[ds];
-    if(!log){daysMiss++;}
-    else if(log.is_compensatory){daysComp++;totalPages+=log.pages_read;}
-    else if(log.pages_read>goal){daysIlave++;daysOk++;totalPages+=log.pages_read;}
-    else if(log.pages_read>=goal){daysOk++;totalPages+=log.pages_read;}
-    else{daysMiss++;totalPages+=log.pages_read;}
+  let totalPages = 0, daysOk = 0, daysComp = 0, daysIlave = 0, daysMiss = 0;
+  for(let i=0; i<30; i++){
+    const d = new Date(mStart.getFullYear(), mStart.getMonth(), mStart.getDate() + i);
+    const ds = dateStr(d);
+    if(ds > today) break;
+    const log = lm[ds];
+    if(!log){ daysMiss++; }
+    else if(log.is_compensatory){ daysComp++; totalPages += log.pages_read; }
+    else if(log.pages_read > goal){ daysIlave++; daysOk++; totalPages += log.pages_read; }
+    else if(log.pages_read >= goal){ daysOk++; totalPages += log.pages_read; }
+    else{ daysMiss++; totalPages += log.pages_read; }
   }
 
   // Özet kartlar
-  const summaryHtml=`<div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px;">
+  const summaryHtml = `<div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px;">
     <div class="stat-card"><div class="sl">Toplam</div><div class="sv" style="font-size:1.1rem;">${totalPages}</div><div class="ssub">sayfa</div></div>
-    <div class="stat-card"><div class="sl" style="color:#00c462;">Zamanında</div><div class="sv" style="font-size:1.1rem;color:#00c462;">${daysOk}</div><div class="ssub">gün</div></div>
+    <div class="stat-card"><div class="sl" style="color:#00c462;">Tamam</div><div class="sv" style="font-size:1.1rem;color:#00c462;">${daysOk}</div><div class="ssub">gün</div></div>
     <div class="stat-card"><div class="sl" style="color:#e09400;">Telafi</div><div class="sv" style="font-size:1.1rem;color:#e09400;">${daysComp}</div><div class="ssub">gün</div></div>
     <div class="stat-card"><div class="sl" style="color:var(--red);">Eksik</div><div class="sv" style="font-size:1.1rem;color:var(--red);">${daysMiss}</div><div class="ssub">gün</div></div>
   </div>`;
 
-  // Günlük detay - haftalara böl
-  let detailHtml='';
-  let curWeek=-1;
-  const maxPages=Math.max(...Object.values(lm).map(l=>l.pages_read), goal, 1);
+  // Takvim: 30 günlük, Pazartesi başlangıçlı 7 sütun grid tasarımı
+  const firstDow = (mStart.getDay() + 6) % 7;
+  const calStart = new Date(mStart.getFullYear(), mStart.getMonth(), mStart.getDate() - firstDow);
 
-  for(let i=0;i<30;i++){
-    const d=new Date(mStart.getFullYear(),mStart.getMonth(),mStart.getDate()+i);
-    const ds=dateStr(d);
-    const isFuture=ds>today;
-    const dayOfWeek=(d.getDay()+6)%7; // 0=Pzt
+  const lastDay = new Date(mEnd.getFullYear(), mEnd.getMonth(), mEnd.getDate());
+  const lastDow = (lastDay.getDay() + 6) % 7;
+  const calEnd = new Date(lastDay.getFullYear(), lastDay.getMonth(), lastDay.getDate() + (6 - lastDow));
+  const totalCells = Math.round((calEnd - calStart) / 86400000) + 1;
 
-    // Hafta ayırıcı
-    if(dayOfWeek===0){
-      const wNum=Math.floor(i/7);
-      const wS=new Date(mStart.getFullYear(),mStart.getMonth(),mStart.getDate()+i);
-      const wE=new Date(wS); wE.setDate(wE.getDate()+6);
-      if(wNum>0 || i===0){
-        detailHtml+=`<div class="month-week-sep">${wS.getDate()} ${MN[wS.getMonth()]} – ${Math.min(wE.getDate(),mEnd.getDate())} ${MN[Math.min(wE.getMonth(),mEnd.getMonth())]}</div>`;
-      }
+  // Gün başlıkları HTML
+  let calHtml = `<div class="cal-header">`;
+  ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'].forEach(d => {
+    calHtml += `<div class="cal-head-cell">${d}</div>`;
+  });
+  calHtml += `</div><div class="cal-grid">`;
+
+  // Hücre Döngüsü
+  for(let i=0; i<totalCells; i++){
+    const d = new Date(calStart.getFullYear(), calStart.getMonth(), calStart.getDate() + i);
+    const ds = dateStr(d);
+    const inRange = ds >= mStartStr && ds <= mEndStr;
+    const isToday = ds === today;
+    const isFuture = ds > today;
+
+    if(!inRange){
+      calHtml += `<div class="cal-cell cc-empty"></div>`;
+      continue;
     }
 
-    const log=lm[ds];
-    const pages=log?.pages_read||0;
-    const pct=isFuture?0:Math.min(100,Math.round(pages/maxPages*100));
+    const log = lm[ds];
+    const pages = log?.pages_read || 0;
+    let cls = 'cc-fut', pagesLabel = '';
 
-    let barColor='var(--bg3)', badgeClass='db-fut', badgeText='—', pagesColor='var(--text2)';
     if(!isFuture){
-      if(!log||pages===0){barColor='rgba(255,60,60,.3)';badgeClass='db-miss';badgeText='Eksik';pagesColor='var(--red)';}
-      else if(log.is_compensatory){barColor='#e09400';badgeClass='db-comp';badgeText='Telafi';pagesColor='#e09400';}
-      else if(pages>goal){barColor='#2563eb';badgeClass='db-ilave';badgeText='İlave';pagesColor='#60a5fa';}
-      else if(pages>=goal){barColor='#00c462';badgeClass='db-ok';badgeText='Tamam';pagesColor='#00c462';}
-      else{barColor='rgba(255,60,60,.5)';badgeClass='db-miss';badgeText='Eksik';pagesColor='var(--red)';}
+      if(!log || pages === 0){ cls = 'cc-miss'; }
+      else if(log.is_compensatory){ cls = 'cc-comp'; pagesLabel = pages + 's'; }
+      else if(pages > goal){ cls = 'cc-ilave'; pagesLabel = pages + 's'; }
+      else if(pages >= goal){ cls = 'cc-ok'; pagesLabel = pages + 's'; }
+      else{ cls = 'cc-miss'; pagesLabel = pages + 's'; }
     }
 
-    detailHtml+=`<div class="day-row">
-      <div class="day-label">${DN[dayOfWeek]}</div>
-      <div class="day-date">${d.getDate()}</div>
-      <div class="day-bar-wrap"><div class="day-bar" style="width:${pct}%;background:${barColor};"></div></div>
-      <div class="day-pages" style="color:${pagesColor};">${isFuture?'':pages>0?pages+' s.':'—'}</div>
-      <div class="day-badge ${badgeClass}">${badgeText}</div>
+    calHtml += `<div class="cal-cell ${cls}${isToday ? ' today-cal' : ''}">
+      <span class="cc-date">${d.getDate()}</span>
+      ${pagesLabel ? `<span class="cc-pages">${pagesLabel}</span>` : ''}
     </div>`;
   }
+  calHtml += `</div>`;
 
-  document.getElementById('my-weekly-report').innerHTML=summaryHtml+detailHtml;
+  // Alt Renk Açıklaması (Legend)
+  const legendHtml = `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;">
+    <span style="display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--text2);"><span style="width:10px;height:10px;border-radius:3px;background:#00c462;display:inline-block;"></span>Zamanında</span>
+    <span style="display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--text2);"><span style="width:10px;height:10px;border-radius:3px;background:#2563eb;display:inline-block;"></span>İlave</span>
+    <span style="display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--text2);"><span style="width:10px;height:10px;border-radius:3px;background:#e09400;display:inline-block;"></span>Telafi</span>
+    <span style="display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--text2);"><span style="width:10px;height:10px;border-radius:3px;background:rgba(255,60,60,0.35);display:inline-block;"></span>Eksik</span>
+  </div>`;
 
-  // Grup sıralaması (bu hafta)
-  const {data:members}=await sb.from('group_members').select('user_id,profiles(*)').eq('group_id',myGroup.id);
-  const {data:gLogs}=await sb.from('reading_logs').select('user_id,pages_read').eq('group_id',myGroup.id).gte('log_date',wsStr).lte('log_date',weStr);
-  const uwp={}; (gLogs||[]).forEach(l=>uwp[l.user_id]=(uwp[l.user_id]||0)+l.pages_read);
-  const sorted=(members||[]).slice().sort((a,b)=>(uwp[b.user_id]||0)-(uwp[a.user_id]||0));
-  const wGoal=goal*7, maxP=Math.max(...sorted.map(m=>uwp[m.user_id]||0),wGoal,1);
-  let gh='';
-  sorted.forEach((m,i)=>{
-    const p=uwp[m.user_id]||0, pct=Math.round(p/maxP*100);
-    const name=m.profiles?.full_name||m.profiles?.username||'?', isMe=m.user_id===me.id;
-    gh+=`<div class="rb-wrap"><div class="rb-label"><span>${i+1}. ${name}${isMe?' <span style="color:var(--accent)">(Sen)</span>':''}</span><span>${p}/${wGoal} s.</span></div><div class="rb"><div class="rbf" style="width:${pct}%;${p>=wGoal?'':'background:var(--blue);'}"></div></div></div>`;
+  document.getElementById('my-weekly-report').innerHTML = summaryHtml + calHtml + legendHtml;
+
+  // Grup sıralaması (Bu haftaki ilerleme çubukları)
+  const {data:members} = await sb.from('group_members').select('user_id,profiles(*)').eq('group_id', myGroup.id);
+  const {data:gLogs} = await sb.from('reading_logs').select('user_id,pages_read').eq('group_id', myGroup.id).gte('log_date', wsStr).lte('log_date', weStr);
+  
+  const uwp = {}; 
+  (gLogs||[]).forEach(l => uwp[l.user_id] = (uwp[l.user_id] || 0) + l.pages_read);
+  
+  const sorted = (members||[]).slice().sort((a,b) => (uwp[b.user_id]||0) - (uwp[a.user_id]||0));
+  const wGoal = goal * 7, maxP = Math.max(...sorted.map(m => uwp[m.user_id]||0), wGoal, 1);
+  
+  let gh = '';
+  sorted.forEach((m, i) => {
+    const p = uwp[m.user_id] || 0, pct = Math.round(p / maxP * 100);
+    const name = m.profiles?.full_name || m.profiles?.username || '?';
+    const isMe = m.user_id === me.id;
+    gh += `<div class="rb-wrap"><div class="rb-label"><span>${i+1}. ${name}${isMe ? ' <span style="color:var(--accent)">(Sen)</span>' : ''}</span><span>${p}/${wGoal} s.</span></div><div class="rb"><div class="rbf" style="width:${pct}%;${p>=wGoal?'':'background:var(--blue);'}"></div></div></div>`;
   });
-  document.getElementById('group-weekly-report').innerHTML=gh||'<div class="empty"><p>Veri yok</p></div>';
+  document.getElementById('group-weekly-report').innerHTML = gh || '<div class="empty"><p>Veri yok</p></div>';
 }
 
 // ── LOG ACTIONS ───────────────────────────────────────────────
