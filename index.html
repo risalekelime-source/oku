@@ -162,8 +162,8 @@
   <header class="app-header">
     <div class="hinner">
       <div class="hlogo">📖 Risale Oku<span id="header-group-name" style="display:none;">Yükleniyor...</span></div>
-      <div class="hright"><div style="text-align:right;line-height:1.2;margin-right:2px;"><div style="font-size:.8rem;font-weight:600;color:var(--text);" id="header-user-name"></div><div style="font-size:.72rem;color:var(--accent);font-weight:600;letter-spacing:.2px;" id="header-group-label"></div></div><div class="avatar" id="user-avatar">?</div><button class="logout-btn" onclick="doLogout()" title="Çıkış" style="padding:6px 9px;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="hright"><div style="text-align:right;line-height:1.2;margin-right:2px;"><div style="font-size:.8rem;font-weight:600;color:var(--text);" id="header-user-name"></div><div style="font-size:.72rem;color:var(--accent);font-weight:600;letter-spacing:.2px;" id="header-group-label"></div></div><div class="avatar" id="user-avatar">?</div><button class="logout-btn" onclick="doLogout()" title="Çıkış" style="padding:7px 10px;border-radius:8px;display:flex;align-items:center;color:var(--red);border-color:rgba(255,77,77,.3);">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
           <polyline points="16 17 21 12 16 7"/>
           <line x1="21" y1="12" x2="9" y2="12"/>
@@ -486,6 +486,9 @@ async function loadMyGroup(){
 // ── HOME ──────────────────────────────────────────────────────
 async function loadHome(){
   const now=new Date(), today=todayStr();
+  // Butonu her zaman önce aktif yap, sonra kontrol et
+  const btnRead=document.getElementById('btn-read');
+  if(btnRead){ btnRead.disabled=false; btnRead.classList.remove('disabled-btn'); btnRead.textContent='📖 Okuma'; }
 
   if(!myGroup){
     document.getElementById('week-body').innerHTML='<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--text2);font-size:.82rem;">Henüz bir gruba atanmadınız</td></tr>';
@@ -567,9 +570,9 @@ async function loadHome(){
   while(true){ const ds=dateStr(dc); if(myMap[ds]&&myMap[ds].pages_read>=goal){streak++;dc.setDate(dc.getDate()-1);}else break; }
   document.getElementById('stat-streak').textContent=streak;
 
-  // Okuma butonu: bugün log varsa pasif yap
-  const todayLogged=myMap[today]&&myMap[today].pages_read>=goal;
-  const btnRead=document.getElementById('btn-read');
+  // Okuma butonu: bugün hedef sayfa kaydedilmişse pasif yap
+  const todayLog=myMap[today];
+  const todayLogged=todayLog && todayLog.pages_read>=goal && !todayLog.is_compensatory;
   if(btnRead){
     btnRead.disabled=todayLogged;
     btnRead.classList.toggle('disabled-btn',todayLogged);
