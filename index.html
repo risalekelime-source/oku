@@ -1135,16 +1135,13 @@ window.saveNotifSettings=async function(){
 };
 window.toggleNotif=async function(){ document.getElementById('notif-toggle').classList.toggle('on'); await saveNotifSettings(); };
 window.testNotif=async function(){
-  if(!('Notification' in window)){toast('Tarayıcınız bildirimleri desteklemiyor','error');return;}
+  if(!('Notification' in window)&&!('serviceWorker' in navigator)){
+    toast('Tarayıcınız bildirimleri desteklemiyor','error'); return;
+  }
   if(Notification.permission!=='granted'){toast('Önce bildirim izni verin','error');return;}
-  try{
-    new Notification('📖 Risale Okuma Takip',{
-      body:'Test bildirimi başarılı! Günlük hatırlatıcı çalışıyor.',
-      icon:'/oku/icon-192.png',
-      tag:'test-notif'
-    });
-    toast('Test bildirimi gönderildi! ✓','success');
-  }catch(e){ toast('Bildirim hatası: '+e.message,'error'); }
+  const ok=await showNotif('📖 Risale Okuma Takip','Test bildirimi başarılı! Günlük hatırlatıcı çalışıyor.','test-notif');
+  if(ok) toast('Test bildirimi gönderildi! ✓','success');
+  else toast('Bildirim gönderilemedi. İzinleri kontrol edin.','error');
 };
 window.requestNotifPermission=async function(){
   if(!('Notification' in window)){toast('Tarayıcınız bildirimleri desteklemiyor','error');return;}
@@ -1152,6 +1149,26 @@ window.requestNotifPermission=async function(){
   if(p==='granted'){toast('Bildirim izni verildi! 🔔','success');scheduleNotif();}
   else toast('Bildirim izni reddedildi. Tarayıcı ayarlarından izin verin.','error');
 };
+// Bildirim göster: önce SW, sonra fallback
+async function showNotif(title, body, tag='notif'){
+  const opts={body, icon:'/oku/icon-192.png', badge:'/oku/icon-192.png', tag};
+  try{
+    if('serviceWorker' in navigator){
+      const reg=await navigator.serviceWorker.getRegistration();
+      if(reg){
+        await reg.showNotification(title, opts);
+        return true;
+      }
+    }
+    // Fallback
+    new Notification(title, opts);
+    return true;
+  }catch(e){
+    console.log('Notif error:',e.message);
+    return false;
+  }
+}
+
 // Bildirim sistemi: her 30 saniyede kontrol, dakika penceresi 0-59 saniye
 let lastNotifDate='';
 function scheduleNotif(){
@@ -1177,17 +1194,13 @@ async function checkNotif(){
     .eq('user_id',me.id).eq('group_id',myGroup.id).eq('log_date',today).maybeSingle();
   if(!log){
     lastNotifDate=notifKey;
-    try{
-      new Notification('📖 Risale Okuma Takip',{
-        body:`Bugün ${myGroup.daily_page_goal} sayfalık okumanı kaydetmeyi unutma!`,
-        icon:'/oku/icon-192.png',
-        badge:'/oku/icon-192.png',
-        tag:'daily-reminder', // Aynı bildirimi tekrar gösterme
-        requireInteraction:false
-      });
-    }catch(e){ console.log('Notif error:',e); }
+    showNotif(
+      '📖 Risale Okuma Takip',
+      `Bugün ${myGroup.daily_page_goal} sayfalık okumanı kaydetmeyi unutma!`,
+      'daily-reminder'
+    );
   } else {
-    lastNotifDate=notifKey; // Okunmuş, tekrar uyarma
+    lastNotifDate=notifKey;
   }
 }
 
