@@ -249,7 +249,8 @@
           <div class="toggle" id="notif-toggle" onclick="toggleNotif()"></div>
         </div>
         <div class="fr"><label>Saat</label><input type="time" id="notif-time" value="20:00" onchange="saveNotifSettings()"/></div>
-        <button class="btn btn-secondary btn-block" onclick="requestNotifPermission()">🔔 Bildirim İzni Ver</button>
+        <button class="btn btn-secondary btn-block" style="margin-bottom:7px;" onclick="requestNotifPermission()">🔔 Bildirim İzni Ver</button>
+        <button class="btn btn-secondary btn-block" onclick="testNotif()" style="font-size:.8rem;">🧪 Test Bildirimi Gönder</button>
       </div>
       <div class="card" style="margin-bottom:11px;">
         <div style="font-weight:600;margin-bottom:16px;font-size:.88rem;">👤 Profil</div>
@@ -1133,22 +1134,61 @@ window.saveNotifSettings=async function(){
   toast('Bildirim ayarları kaydedildi','success');
 };
 window.toggleNotif=async function(){ document.getElementById('notif-toggle').classList.toggle('on'); await saveNotifSettings(); };
+window.testNotif=async function(){
+  if(!('Notification' in window)){toast('Tarayıcınız bildirimleri desteklemiyor','error');return;}
+  if(Notification.permission!=='granted'){toast('Önce bildirim izni verin','error');return;}
+  try{
+    new Notification('📖 Risale Okuma Takip',{
+      body:'Test bildirimi başarılı! Günlük hatırlatıcı çalışıyor.',
+      icon:'/oku/icon-192.png',
+      tag:'test-notif'
+    });
+    toast('Test bildirimi gönderildi! ✓','success');
+  }catch(e){ toast('Bildirim hatası: '+e.message,'error'); }
+};
 window.requestNotifPermission=async function(){
   if(!('Notification' in window)){toast('Tarayıcınız bildirimleri desteklemiyor','error');return;}
   const p=await Notification.requestPermission();
   if(p==='granted'){toast('Bildirim izni verildi! 🔔','success');scheduleNotif();}
   else toast('Bildirim izni reddedildi. Tarayıcı ayarlarından izin verin.','error');
 };
-function scheduleNotif(){ clearInterval(notifTimer); notifTimer=setInterval(checkNotif,60000); checkNotif(); }
+// Bildirim sistemi: her 30 saniyede kontrol, dakika penceresi 0-59 saniye
+let lastNotifDate='';
+function scheduleNotif(){
+  clearInterval(notifTimer);
+  notifTimer=setInterval(checkNotif, 30000); // 30 saniyede bir
+  checkNotif();
+}
 async function checkNotif(){
   if(!('Notification' in window)||Notification.permission!=='granted'||!myGroup||!me) return;
   const {data:s}=await sb.from('notification_settings').select('*').eq('user_id',me.id).maybeSingle();
   if(!s?.reminder_enabled) return;
   const now=new Date();
   const [h,m]=(s.reminder_time||'20:00').split(':').map(Number);
-  if(now.getHours()!==h||now.getMinutes()!==m) return;
-  const {data:log}=await sb.from('reading_logs').select('id').eq('user_id',me.id).eq('group_id',myGroup.id).eq('log_date',todayStr()).maybeSingle();
-  if(!log){ try{ new Notification('📖 Risale Okuma',{body:`Bugün ${myGroup.daily_page_goal} sayfalık okumanı kaydetmeyi unutma!`,icon:'icon-192.png'}); }catch(e){} }
+  const today=todayStr();
+  // Aynı gün zaten bildirim gösterildiyse tekrar gösterme
+  const notifKey=today+'_'+h+'_'+m;
+  if(lastNotifDate===notifKey) return;
+  // Belirlenen saatte mi? (dakika penceresi: tam dakika ±1)
+  const diffMin=now.getHours()*60+now.getMinutes() - (h*60+m);
+  if(diffMin<0||diffMin>1) return;
+  // Bugün okuma girilmiş mi?
+  const {data:log}=await sb.from('reading_logs').select('id')
+    .eq('user_id',me.id).eq('group_id',myGroup.id).eq('log_date',today).maybeSingle();
+  if(!log){
+    lastNotifDate=notifKey;
+    try{
+      new Notification('📖 Risale Okuma Takip',{
+        body:`Bugün ${myGroup.daily_page_goal} sayfalık okumanı kaydetmeyi unutma!`,
+        icon:'/oku/icon-192.png',
+        badge:'/oku/icon-192.png',
+        tag:'daily-reminder', // Aynı bildirimi tekrar gösterme
+        requireInteraction:false
+      });
+    }catch(e){ console.log('Notif error:',e); }
+  } else {
+    lastNotifDate=notifKey; // Okunmuş, tekrar uyarma
+  }
 }
 
 // ── NAV ───────────────────────────────────────────────────────
