@@ -766,7 +766,22 @@ window.submitIlaveLog=async function(){
 };
 window.logToday=async function(){
   if(!myGroup) return toast('Aktif grup bulunamadı','error');
-  await saveLog(todayStr(),myGroup.daily_page_goal,'',false);
+  const today=todayStr();
+
+  // Bugün kayıt var mı kontrol et
+  const {data:ex}=await sb.from('reading_logs').select('id,pages_read,is_compensatory')
+    .eq('user_id',me.id).eq('group_id',myGroup.id).eq('log_date',today).maybeSingle();
+
+  if(ex){
+    // Daha önce girilmiş — onay iste
+    const tip=ex.is_compensatory?'telafi':'zamanında';
+    const confirmed=confirm(
+      `Bugün zaten ${ex.pages_read} sayfa (${tip}) kaydedilmiş.\n\nÜzerine yazmak istiyor musunuz?`
+    );
+    if(!confirmed) return;
+  }
+
+  await saveLog(today, myGroup.daily_page_goal, '', false);
 };
 window.openCompModal=async function(){
   if(!myGroup) return toast('Aktif grup bulunamadı','error');
