@@ -120,8 +120,8 @@
     .tw{display:flex;align-items:center;justify-content:space-between}
     .toggle{position:relative;width:46px;height:25px;background:var(--bg3);border-radius:13px;cursor:pointer;transition:background .2s;flex-shrink:0}
     .toggle.on{background:var(--accent)}.toggle::after{content:'';position:absolute;top:3px;left:3px;width:19px;height:19px;background:#fff;border-radius:50%;transition:left .2s}.toggle.on::after{left:24px}
-    #log-modal,#add-user-modal,#add-book-modal,#manage-group-modal,#edit-group-modal,#ilave-modal,#delete-user-modal{display:none}
-    #log-modal.am,#add-user-modal.am,#add-book-modal.am,#manage-group-modal.am,#edit-group-modal.am,#ilave-modal.am,#delete-user-modal.am{display:block}
+    #log-modal,#add-user-modal,#add-book-modal,#manage-group-modal,#edit-group-modal,#ilave-modal,#delete-user-modal,#guide-modal{display:none}
+    #log-modal.am,#add-user-modal.am,#add-book-modal.am,#manage-group-modal.am,#edit-group-modal.am,#ilave-modal.am,#delete-user-modal.am,#guide-modal.am{display:block}
     .mo{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn .2s}
     .modal{background:var(--card);border-radius:var(--r) var(--r) 0 0;padding:22px 18px calc(var(--sb) + 22px);width:100%;max-width:480px;animation:slideUp .3s ease;max-height:90dvh;overflow-y:auto}
     .mhandle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;display:block}
@@ -153,9 +153,59 @@
     #toast{position:fixed;bottom:calc(78px + var(--sb) + 8px);left:50%;transform:translateX(-50%) translateY(16px);background:var(--card2);border:1px solid var(--border);color:var(--text);padding:10px 18px;border-radius:28px;font-size:.83rem;font-weight:500;z-index:300;opacity:0;transition:all .3s;white-space:nowrap;pointer-events:none}
     #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
     #toast.success{border-color:var(--green);color:var(--green)}#toast.error{border-color:var(--red);color:var(--red)}
+    .theme-swatch{cursor:pointer;opacity:.7;transition:opacity .2s;}
+    .theme-swatch:hover,.theme-swatch.active{opacity:1;}
+    .theme-swatch.active div:first-child{outline:2px solid var(--accent);outline-offset:2px;}
     .log-tabs{display:flex;gap:0;margin-bottom:18px;background:var(--bg3);border-radius:var(--rs);padding:3px}
     .log-tab{flex:1;padding:9px;text-align:center;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--text2);transition:all .2s}
     .log-tab.active{background:var(--card);color:var(--accent)}
+
+    /* ── TEMALAR ─────────────────────────────────────────────── */
+    body.theme-gece{
+      --bg:#0a0e1a;--bg2:#0f1525;--bg3:#1a2035;
+      --card:#131929;--card2:#1e2640;
+      --border:rgba(255,255,255,0.10);
+      --accent:#f0a500;--accent2:#ffd060;
+      --green:#00d26a;--red:#ff4d4d;--yellow:#ffb800;
+      --blue:#4d9fff;--purple:#c084fc;
+      --text:#f0f4ff;--text2:#8896b3;
+    }
+    body.theme-zeytin{
+      --bg:#0d1510;--bg2:#121c14;--bg3:#1a2a1c;
+      --card:#152018;--card2:#1e2e20;
+      --border:rgba(255,255,255,0.09);
+      --accent:#7ecb58;--accent2:#a8e080;
+      --green:#4ade80;--red:#f87171;--yellow:#fbbf24;
+      --blue:#60a5fa;--purple:#a78bfa;
+      --text:#ecfce8;--text2:#7aaa70;
+    }
+    body.theme-umman{
+      --bg:#050e1a;--bg2:#091525;--bg3:#102030;
+      --card:#0c1a2e;--card2:#122040;
+      --border:rgba(255,255,255,0.09);
+      --accent:#38bdf8;--accent2:#7dd3fc;
+      --green:#34d399;--red:#f87171;--yellow:#fbbf24;
+      --blue:#60a5fa;--purple:#a78bfa;
+      --text:#e0f2fe;--text2:#7099b8;
+    }
+    body.theme-gül{
+      --bg:#1a0e14;--bg2:#25121c;--bg3:#341825;
+      --card:#201018;--card2:#2e1522;
+      --border:rgba(255,255,255,0.09);
+      --accent:#f472b6;--accent2:#fbcfe8;
+      --green:#4ade80;--red:#f87171;--yellow:#fbbf24;
+      --blue:#60a5fa;--purple:#c084fc;
+      --text:#fce7f3;--text2:#b07090;
+    }
+    body.theme-kum{
+      --bg:#1a1510;--bg2:#231c12;--bg3:#2e2518;
+      --card:#1e1a10;--card2:#2a2215;
+      --border:rgba(255,255,255,0.09);
+      --accent:#d4a256;--accent2:#e8c88a;
+      --green:#86efac;--red:#fca5a5;--yellow:#fde68a;
+      --blue:#93c5fd;--purple:#c4b5fd;
+      --text:#fef3c7;--text2:#a08060;
+    }
   </style>
 </head>
 <body>
@@ -169,6 +219,56 @@
     <div class="fg"><label>Şifre</label><input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"/></div>
     <div class="lerr" id="login-error">E-posta veya şifre hatalı.</div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Giriş Yap</button>
+    <button onclick="openGuide()" style="width:100%;margin-top:10px;background:transparent;border:1px solid var(--border);color:var(--text2);padding:11px;border-radius:var(--rs);cursor:pointer;font-family:var(--fb);font-size:.85rem;transition:all .2s;">📖 Kullanma Kılavuzu</button>
+  </div>
+</div>
+
+<!-- KILAVUZ MODAL -->
+<div id="guide-modal" style="display:none;">
+  <div class="mo" onclick="closeModal('guide-modal')">
+    <div class="modal" style="max-height:88dvh;" onclick="event.stopPropagation()">
+      <span class="mhandle"></span>
+      <div class="mtitle">📖 Kullanma Kılavuzu</div>
+      <div style="font-size:.85rem;line-height:1.7;color:var(--text);">
+
+        <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">🎯 Amaç</div>
+        <p style="margin-bottom:14px;color:var(--text2);">Risale-i Nur okuma gruplarının günlük okuma takibini kolayca yapabilmesi için tasarlanmıştır.</p>
+
+        <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">📖 Okuma Kaydetme</div>
+        <div style="background:var(--bg3);border-radius:var(--rs);padding:12px;margin-bottom:14px;">
+          <div style="margin-bottom:8px;"><span style="background:#00c462;color:#fff;padding:2px 8px;border-radius:5px;font-size:.75rem;font-weight:700;">📖 Okuma</span> <span style="color:var(--text2);margin-left:6px;">Günlük hedefi tamamladığınızda basın. Anında kaydeder.</span></div>
+          <div style="margin-bottom:8px;"><span style="background:#2563eb;color:#fff;padding:2px 8px;border-radius:5px;font-size:.75rem;font-weight:700;">➕ İlave</span> <span style="color:var(--text2);margin-left:6px;">Günlük hedefin üstünde okuma yaptıysanız kullanın.</span></div>
+          <div><span style="background:#e09400;color:#fff;padding:2px 8px;border-radius:5px;font-size:.75rem;font-weight:700;">◐ Telafi</span> <span style="color:var(--text2);margin-left:6px;">Geçmiş okunmayan günleri telafi etmek için kullanın.</span></div>
+        </div>
+
+        <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">📊 Bu Hafta Tablosu</div>
+        <div style="background:var(--bg3);border-radius:var(--rs);padding:12px;margin-bottom:14px;">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+            <span style="background:#00c462;color:#fff;padding:2px 8px;border-radius:5px;font-size:.72rem;font-weight:700;">✓ Zamanında</span>
+            <span style="background:#e09400;color:#fff;padding:2px 8px;border-radius:5px;font-size:.72rem;font-weight:700;">◐ Telafi</span>
+            <span style="background:#c0392b;color:#fff;padding:2px 8px;border-radius:5px;font-size:.72rem;font-weight:700;">✗ Eksik</span>
+          </div>
+          <p style="color:var(--text2);font-size:.82rem;">Her satır bir grup üyesi. Sütunlar haftanın günleri. Kendi satırınız en üstte gösterilir.</p>
+        </div>
+
+        <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">📅 Aylık Rapor</div>
+        <p style="margin-bottom:14px;color:var(--text2);">Son 30 günün takvim görünümü. Yeşil = zamanında, Mavi = ilave, Sarı = telafi, Kırmızı = eksik.</p>
+
+        <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">🔔 Bildirimler</div>
+        <p style="margin-bottom:14px;color:var(--text2);">Ayarlar → Bildirim bölümünden hatırlatma saatini ayarlayın. Önce <strong>Bildirim İzni Ver</strong> butonuna basın. Uygulama açıkken çalışır.</p>
+
+        <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">📱 Ana Ekrana Ekleme</div>
+        <div style="background:var(--bg3);border-radius:var(--rs);padding:12px;margin-bottom:14px;">
+          <div style="margin-bottom:6px;"><strong>iPhone:</strong> <span style="color:var(--text2);">Safari → Paylaş simgesi → Ana Ekrana Ekle</span></div>
+          <div><strong>Android:</strong> <span style="color:var(--text2);">Chrome → Menü (⋮) → Uygulamayı Yükle</span></div>
+        </div>
+
+        <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">⚙️ Yönetici</div>
+        <p style="color:var(--text2);">Yönetim sekmesinden kullanıcı ekleyebilir, gruplara üye atayabilir, okuma gruplarını düzenleyebilirsiniz. Varsayılan şifre: <strong style="color:var(--accent);">risale2025</strong></p>
+
+      </div>
+      <button class="btn btn-secondary btn-block" style="margin-top:16px;" onclick="closeModal('guide-modal')">Kapat</button>
+    </div>
   </div>
 </div>
 
@@ -242,6 +342,33 @@
     <!-- SETTINGS -->
     <div class="page" id="page-settings">
       <div class="sh"><div class="st">Ayarlar</div></div>
+      <!-- Tema Seçici -->
+      <div class="card" style="margin-bottom:11px;">
+        <div style="font-weight:600;margin-bottom:13px;font-size:.88rem;">🎨 Tema</div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
+          <div onclick="setTheme('gece')" class="theme-swatch" id="sw-gece" title="Gece">
+            <div style="background:#0a0e1a;border:2px solid #0a0e1a;border-radius:8px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🌙</div>
+            <div style="font-size:.62rem;text-align:center;margin-top:4px;color:var(--text2);">Gece</div>
+          </div>
+          <div onclick="setTheme('zeytin')" class="theme-swatch" id="sw-zeytin" title="Zeytin">
+            <div style="background:#0d1510;border:2px solid #0d1510;border-radius:8px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🫒</div>
+            <div style="font-size:.62rem;text-align:center;margin-top:4px;color:var(--text2);">Zeytin</div>
+          </div>
+          <div onclick="setTheme('umman')" class="theme-swatch" id="sw-umman" title="Umman">
+            <div style="background:#050e1a;border:2px solid #050e1a;border-radius:8px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🌊</div>
+            <div style="font-size:.62rem;text-align:center;margin-top:4px;color:var(--text2);">Umman</div>
+          </div>
+          <div onclick="setTheme('gül')" class="theme-swatch" id="sw-gül" title="Gül">
+            <div style="background:#1a0e14;border:2px solid #1a0e14;border-radius:8px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🌹</div>
+            <div style="font-size:.62rem;text-align:center;margin-top:4px;color:var(--text2);">Gül</div>
+          </div>
+          <div onclick="setTheme('kum')" class="theme-swatch" id="sw-kum" title="Kum">
+            <div style="background:#1a1510;border:2px solid #1a1510;border-radius:8px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🏔️</div>
+            <div style="font-size:.62rem;text-align:center;margin-top:4px;color:var(--text2);">Kum</div>
+          </div>
+        </div>
+      </div>
+
       <div class="card" style="margin-bottom:11px;">
         <div style="font-weight:600;margin-bottom:13px;font-size:.88rem;">🔔 Bildirim</div>
         <div class="tw" style="margin-bottom:13px;">
@@ -263,9 +390,7 @@
           </div>
         </div>
         <div class="fr"><label>Ad Soyad</label><input type="text" id="edit-fullname" placeholder="Adınız Soyadınız"/></div>
-        <div class="fr"><label>Kullanıcı Adı</label><input type="text" id="edit-username" placeholder="kullanici" disabled /></div>
-        <div class="fr"><label>E-posta <span style="font-weight:400;text-transform:none;color:var(--text2);">(boş = değiştirme)</span></label><input type="email" id="edit-email" placeholder="yeni@email.com" disabled/></div>
-        <div class="fr"><label>Yeni Şifre <span style="font-weight:400;text-transform:none;color:var(--text2);">(boş = değiştirme)</span></label><input type="password" id="edit-password" placeholder="••••••••" /></div>
+        <div class="fr"><label>Yeni Şifre <span style="font-weight:400;text-transform:none;color:var(--text2);">(boş = değiştirme)</span></label><input type="password" id="edit-password" placeholder="••••••••"/></div>
         <button class="btn btn-primary btn-block" onclick="saveProfile()">Kaydet</button>
       </div>
 
@@ -314,9 +439,14 @@
   <div class="mo" onclick="closeModal('add-user-modal')">
     <div class="modal" onclick="event.stopPropagation()">
       <span class="mhandle"></span><div class="mtitle">👤 Yeni Kullanıcı</div>
-      <div class="fr"><label>E-posta</label><input type="email" id="new-user-email" placeholder="kullanici@email.com"/></div>
       <div class="fr"><label>Ad Soyad</label><input type="text" id="new-user-fullname" placeholder="Ad Soyad"/></div>
-      <div class="fr"><label>Şifre</label><input type="password" id="new-user-password" placeholder="En az 6 karakter"/></div>
+      <div class="fr"><label>E-posta</label><input type="email" id="new-user-email" placeholder="kullanici@email.com"/></div>
+      <div class="fr">
+        <label>Varsayılan Şifre</label>
+        <input type="text" id="new-user-password" value="risale2025"/>
+        <div style="font-size:.7rem;color:var(--text2);margin-top:4px;">Kullanıcı giriş sonrası ayarlar'dan değiştirebilir</div>
+      </div>
+      <div class="fr"><label>Grup</label><select id="new-user-group"><option value="">— Grup seçin (opsiyonel) —</option></select></div>
       <div class="fr"><label>Rol</label><select id="new-user-role"><option value="user">Kullanıcı</option><option value="admin">Yönetici</option></select></div>
       <button class="btn btn-primary btn-block" onclick="createUser()">Kullanıcı Oluştur</button>
     </div>
@@ -473,8 +603,6 @@ function updateProfileDisplay(){
   document.getElementById('settings-username').textContent='@'+(myProfile?.username||'—');
   document.getElementById('settings-email').textContent=me?.email||'—';
   document.getElementById('edit-fullname').value=myProfile?.full_name||'';
-  document.getElementById('edit-username').value=myProfile?.username||'';
-  const ee=document.getElementById('edit-email'); if(ee) ee.value='';
   document.getElementById('edit-password').value='';
 }
 
@@ -492,29 +620,19 @@ async function initApp(){
 
 window.saveProfile=async function(){
   const fullname=document.getElementById('edit-fullname').value.trim();
-  const username=document.getElementById('edit-username').value.trim();
-  const newEmail=document.getElementById('edit-email').value.trim();
   const password=document.getElementById('edit-password').value;
-  if(!fullname||!username) return toast('Ad ve kullanıcı adı gerekli','error');
+  if(!fullname) return toast('Ad Soyad gerekli','error');
 
-  const {error:profErr}=await sb.from('profiles').update({full_name:fullname,username}).eq('id',me.id);
+  const {error:profErr}=await sb.from('profiles').update({full_name:fullname}).eq('id',me.id);
   if(profErr){toast('Hata: '+profErr.message,'error');return;}
 
-  // E-posta değişikliği
-  if(newEmail && newEmail!==me.email){
-    const {error:emailErr}=await sb.auth.updateUser({email:newEmail});
-    if(emailErr){toast('E-posta hatası: '+emailErr.message,'error');return;}
-    toast('E-posta değişikliği için gelen kutunuzu onaylayın.','success');
-  }
-
-  // Şifre değişikliği
   if(password){
     if(password.length<6){toast('Şifre en az 6 karakter olmalı','error');return;}
     const {error:pwErr}=await sb.auth.updateUser({password});
     if(pwErr){toast('Şifre hatası: '+pwErr.message,'error');return;}
   }
 
-  myProfile={...myProfile,full_name:fullname,username};
+  myProfile={...myProfile,full_name:fullname};
   updateProfileDisplay();
   toast('Profil güncellendi! ✓','success');
 };
@@ -1025,26 +1143,34 @@ window.saveGroupEdit=async function(){
 };
 
 // ── ADMIN: CREATE USER ────────────────────────────────────────
-window.openAddUserModal=function(){
-  ['new-user-email','new-user-fullname','new-user-password'].forEach(id=>document.getElementById(id).value='');
+window.openAddUserModal=async function(){
+  document.getElementById('new-user-fullname').value='';
+  document.getElementById('new-user-email').value='';
+  document.getElementById('new-user-password').value='risale2025';
+  // Grup listesini doldur
+  const {data:groups}=await sb.from('reading_groups').select('id,name').order('name');
+  const gSel=document.getElementById('new-user-group');
+  gSel.innerHTML='<option value="">— Grup seçin (opsiyonel) —</option>';
+  (groups||[]).forEach(g=>{ gSel.innerHTML+=`<option value="${g.id}">${g.name}</option>`; });
   openM('add-user-modal');
 };
 window.createUser=async function(){
   const email=document.getElementById('new-user-email').value.trim();
   const fullname=document.getElementById('new-user-fullname').value.trim();
-  const password=document.getElementById('new-user-password').value;
+  const password=document.getElementById('new-user-password').value.trim();
   const role=document.getElementById('new-user-role').value;
+  const groupId=document.getElementById('new-user-group').value;
   const username=email.split('@')[0];
-  if(!email||!password) return toast('E-posta ve şifre gerekli','error');
+  if(!email||!fullname) return toast('Ad Soyad ve e-posta gerekli','error');
+  if(!password||password.length<6) return toast('Şifre en az 6 karakter olmalı','error');
 
   // Mevcut admin oturumunu sakla
   const {data:{session:adminSession}}=await sb.auth.getSession();
 
-  // Yeni kullanıcı oluştur (bu mevcut oturumu değiştirir)
+  // Yeni kullanıcı oluştur
   const {data,error}=await sb.auth.signUp({email,password,options:{data:{username,full_name:fullname}}});
   if(error){toast('Hata: '+error.message,'error');return;}
   if(!data.user){toast('Kullanıcı oluşturulamadı','error');return;}
-
   const newUserId=data.user.id;
 
   // Admin oturumunu geri yükle
@@ -1055,12 +1181,20 @@ window.createUser=async function(){
     });
   }
 
-  // Profil güncelle (admin oturumuyla)
+  // Profil güncelle
   await new Promise(r=>setTimeout(r,800));
   await sb.from('profiles').update({role,full_name:fullname,username}).eq('id',newUserId);
 
+  // Gruba ekle
+  if(groupId){
+    // Diğer gruplardan çıkar (tek grup kuralı)
+    await sb.from('group_members').delete().eq('user_id',newUserId).neq('group_id',groupId);
+    await sb.from('group_members').upsert({group_id:groupId,user_id:newUserId},{onConflict:'group_id,user_id'});
+  }
+
   closeModal('add-user-modal');
-  toast('Kullanıcı oluşturuldu! ✓','success');
+  toast(`${fullname} oluşturuldu${groupId?' ve gruba eklendi':''} ✓`,'success');
+  if(myProfile?.role==='admin'){ await loadAdminGroups(); await loadAdminAllMembers(); }
 };
 
 // ── ADMIN: CREATE BOOK/GROUP ──────────────────────────────────
@@ -1214,6 +1348,24 @@ window.switchPage=function(name,btn){
 
   if(name==='report') loadReport();
 };
+
+// ── TEMA YÖNETİMİ ─────────────────────────────────────────
+const THEMES=['gece','zeytin','umman','gül','kum'];
+window.setTheme=function(theme){
+  document.body.className=document.body.className.replace(/theme-\S+/g,'').trim();
+  document.body.classList.add('theme-'+theme);
+  localStorage.setItem('risale-theme',theme);
+  THEMES.forEach(t=>{
+    const sw=document.getElementById('sw-'+t);
+    if(sw) sw.classList.toggle('active',t===theme);
+  });
+};
+function loadTheme(){
+  const saved=localStorage.getItem('risale-theme')||'gece';
+  setTheme(saved);
+}
+window.openGuide=function(){ openM('guide-modal'); };
+loadTheme();
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 boot();
