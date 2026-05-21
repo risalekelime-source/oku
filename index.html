@@ -360,6 +360,7 @@
       <span class="mhandle"></span>
       <div class="mtitle">➕ İlave Okuma</div>
       <div style="font-size:.82rem;color:var(--text2);margin-bottom:14px;">Günlük hedef dışında ek okuma yaptıysanız sayfa sayısını girin.</div>
+      <div class="fr"><label>Tarih</label><input type="date" id="ilave-date"/></div>
       <div class="fr"><label>İlave Sayfa Sayısı</label><input type="number" id="ilave-pages" placeholder="Örn: 10" min="1"/></div>
       <div class="fr"><label>Not (opsiyonel)</label><textarea id="ilave-note" placeholder="Not..."></textarea></div>
       <button class="btn btn-ilave btn-block" onclick="submitIlaveLog()">➕ İlave Okumayı Kaydet</button>
@@ -740,23 +741,26 @@ async function loadReport(){
 // ── LOG ACTIONS ───────────────────────────────────────────────
 window.openIlaveModal=function(){
   if(!myGroup) return toast('Aktif grup bulunamadı','error');
+  document.getElementById('ilave-date').value=todayStr();
   document.getElementById('ilave-pages').value='';
   document.getElementById('ilave-note').value='';
   openM('ilave-modal');
 };
 window.submitIlaveLog=async function(){
+  const date=document.getElementById('ilave-date').value;
   const pages=parseInt(document.getElementById('ilave-pages').value);
   const note=document.getElementById('ilave-note').value.trim();
+  if(!date) return toast('Tarih seçin','error');
   if(!pages||pages<1) return toast('Sayfa sayısı girin','error');
-  const today=todayStr();
-  // Bugünün mevcut logu varsa üstüne ekle
-  const {data:ex}=await sb.from('reading_logs').select('id,pages_read').eq('user_id',me.id).eq('group_id',myGroup.id).eq('log_date',today).maybeSingle();
+
+  // Seçilen günün mevcut logu varsa üstüne ekle
+  const {data:ex}=await sb.from('reading_logs').select('id,pages_read').eq('user_id',me.id).eq('group_id',myGroup.id).eq('log_date',date).maybeSingle();
   let error;
   if(ex){
     const {error:e}=await sb.from('reading_logs').update({pages_read:ex.pages_read+pages,note:note||null}).eq('id',ex.id);
     error=e;
   } else {
-    const {error:e}=await sb.from('reading_logs').insert({user_id:me.id,group_id:myGroup.id,log_date:today,pages_read:pages,note:note||null,is_compensatory:false});
+    const {error:e}=await sb.from('reading_logs').insert({user_id:me.id,group_id:myGroup.id,log_date:date,pages_read:pages,note:note||null,is_compensatory:false});
     error=e;
   }
   if(error){toast('Kayıt hatası: '+error.message,'error');return;}
