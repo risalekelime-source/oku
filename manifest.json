@@ -2,7 +2,7 @@
   "name": "Risale Okuma Takip",
   "short_name": "Risale Okuma",
   "description": "Risale-i Nur okuma takip programı",
-  "start_url": "./",
+  "start_url": "/oku/",
   "display": "standalone",
   "background_color": "#0a0e1a",
   "theme_color": "#0a0e1a",
@@ -39,5 +39,6 @@
   ],
   "lang": "tr",
   "dir": "ltr",
-  "scope": "./"
+  "scope": "/oku/",
+  "id": "/oku/"
 }
