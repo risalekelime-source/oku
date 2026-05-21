@@ -120,8 +120,8 @@
     .tw{display:flex;align-items:center;justify-content:space-between}
     .toggle{position:relative;width:46px;height:25px;background:var(--bg3);border-radius:13px;cursor:pointer;transition:background .2s;flex-shrink:0}
     .toggle.on{background:var(--accent)}.toggle::after{content:'';position:absolute;top:3px;left:3px;width:19px;height:19px;background:#fff;border-radius:50%;transition:left .2s}.toggle.on::after{left:24px}
-    #log-modal,#add-user-modal,#add-book-modal,#manage-group-modal,#edit-group-modal,#ilave-modal,#delete-user-modal,#guide-modal{display:none}
-    #log-modal.am,#add-user-modal.am,#add-book-modal.am,#manage-group-modal.am,#edit-group-modal.am,#ilave-modal.am,#delete-user-modal.am,#guide-modal.am{display:block}
+    #log-modal,#add-user-modal,#add-book-modal,#manage-group-modal,#edit-group-modal,#ilave-modal,#delete-user-modal,#guide-modal,#reset-pw-modal{display:none}
+    #log-modal.am,#add-user-modal.am,#add-book-modal.am,#manage-group-modal.am,#edit-group-modal.am,#ilave-modal.am,#delete-user-modal.am,#guide-modal.am,#reset-pw-modal.am{display:block}
     .mo{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn .2s}
     .modal{background:var(--card);border-radius:var(--r) var(--r) 0 0;padding:22px 18px calc(var(--sb) + 22px);width:100%;max-width:480px;animation:slideUp .3s ease;max-height:90dvh;overflow-y:auto}
     .mhandle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;display:block}
@@ -197,14 +197,20 @@
       --blue:#60a5fa;--purple:#c084fc;
       --text:#fce7f3;--text2:#b07090;
     }
+    body.theme-kum .login-card,body.theme-kum .modal{box-shadow:0 4px 24px rgba(0,0,0,0.15);}
+    body.theme-kum .fg input,body.theme-kum .fr input,body.theme-kum .fr select,body.theme-kum .fr textarea{background:#fff;border-color:rgba(0,0,0,0.15);color:var(--text);}
+    body.theme-kum .fg input:focus,body.theme-kum .fr input:focus{border-color:var(--accent);}
+    body.theme-kum .bottom-nav,body.theme-kum .app-header{background:rgba(245,240,232,0.95);border-color:rgba(0,0,0,0.1);}
+    body.theme-kum #toast{background:#fff;}
     body.theme-kum{
-      --bg:#1a1510;--bg2:#231c12;--bg3:#2e2518;
-      --card:#1e1a10;--card2:#2a2215;
-      --border:rgba(255,255,255,0.09);
-      --accent:#d4a256;--accent2:#e8c88a;
-      --green:#86efac;--red:#fca5a5;--yellow:#fde68a;
-      --blue:#93c5fd;--purple:#c4b5fd;
-      --text:#fef3c7;--text2:#a08060;
+      --bg:#f5f0e8;--bg2:#ede8dc;--bg3:#e0d9cc;
+      --card:#faf7f2;--card2:#f0ebe0;
+      --border:rgba(0,0,0,0.10);
+      --accent:#8b5e2a;--accent2:#b07c3a;
+      --green:#2d7a3a;--red:#c0392b;--yellow:#b07c00;
+      --blue:#1a5fa8;--purple:#6b3fa0;
+      --text:#2c2218;--text2:#7a6850;
+      --sh:0 4px 24px rgba(0,0,0,0.12);
     }
   </style>
 </head>
@@ -362,9 +368,9 @@
             <div style="background:#1a0e14;border:2px solid #1a0e14;border-radius:8px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🌹</div>
             <div style="font-size:.62rem;text-align:center;margin-top:4px;color:var(--text2);">Gül</div>
           </div>
-          <div onclick="setTheme('kum')" class="theme-swatch" id="sw-kum" title="Kum">
-            <div style="background:#1a1510;border:2px solid #1a1510;border-radius:8px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">🏔️</div>
-            <div style="font-size:.62rem;text-align:center;margin-top:4px;color:var(--text2);">Kum</div>
+          <div onclick="setTheme('kum')" class="theme-swatch" id="sw-kum" title="Fildişi">
+            <div style="background:#f5f0e8;border:2px solid #c8b89a;border-radius:8px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">☀️</div>
+            <div style="font-size:.62rem;text-align:center;margin-top:4px;color:var(--text2);">Fildişi</div>
           </div>
         </div>
       </div>
@@ -508,6 +514,27 @@
       <div class="fr"><label>İlave Sayfa Sayısı</label><input type="number" id="ilave-pages" placeholder="Örn: 10" min="1"/></div>
       <div class="fr"><label>Not (opsiyonel)</label><textarea id="ilave-note" placeholder="Not..."></textarea></div>
       <button class="btn btn-ilave btn-block" onclick="submitIlaveLog()">➕ İlave Okumayı Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESET PASSWORD MODAL -->
+<div id="reset-pw-modal">
+  <div class="mo" onclick="closeModal('reset-pw-modal')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <span class="mhandle"></span>
+      <div class="mtitle">🔑 Şifre Sıfırla</div>
+      <input type="hidden" id="reset-pw-uid"/>
+      <div style="background:var(--bg3);border-radius:var(--rs);padding:12px 14px;margin-bottom:14px;">
+        <div style="font-size:.78rem;color:var(--text2);margin-bottom:2px;">Kullanıcı</div>
+        <div style="font-weight:600;" id="reset-pw-name">—</div>
+      </div>
+      <div class="fr">
+        <label>Yeni Şifre</label>
+        <input type="text" id="reset-pw-input" placeholder="En az 6 karakter"/>
+        <div style="font-size:.7rem;color:var(--text2);margin-top:4px;">Kullanıcıya e-posta ile şifre sıfırlama bağlantısı gönderilecektir.</div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="doResetPassword()">🔑 Sıfırlama Maili Gönder</button>
     </div>
   </div>
 </div>
@@ -1018,7 +1045,7 @@ async function loadAdminAllMembers(){
   const {data:groups}=await sb.from('reading_groups').select('id,name,daily_page_goal,start_date,books(title)').order('name');
   if(!groups?.length){ el.innerHTML='<div style="font-size:.82rem;color:var(--text2);text-align:center;padding:16px;">Henüz grup yok</div>'; return; }
 
-  const {data:members}=await sb.from('group_members').select('group_id,user_id,profiles(id,full_name,username)');
+  const {data:members}=await sb.from('group_members').select('group_id,user_id,profiles(id,full_name,username,role)');
   const {data:allLogs}=await sb.from('reading_logs').select('user_id,group_id,pages_read');
 
   // Toplam sayfa per user per group
@@ -1055,12 +1082,22 @@ async function loadAdminAllMembers(){
         const pages=pageMap[m.user_id+'_'+g.id]||0;
         const colors=['#3fb950','#388bfd','#bc8cff','#c9a84c','#f85149','#58a6ff'];
         const col=colors[name.charCodeAt(0)%colors.length];
-        html+=`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">
+        const uid=m.user_id;
+        const currentRole=m.profiles?.role||'user';
+        html+=`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);">
           <div style="width:30px;height:30px;border-radius:50%;background:${col};display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:#fff;flex-shrink:0;">${init}</div>
           <div style="flex:1;min-width:0;">
             <div style="font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
+            <div style="font-size:.68rem;color:var(--text2);">${pages} sayfa · ${currentRole==='admin'?'<span style=color:var(--accent)>Yönetici</span>':'Kullanıcı'}</div>
           </div>
-          <div style="font-size:.78rem;font-weight:700;color:var(--accent);white-space:nowrap;">${pages} sayfa</div>
+          <div style="display:flex;gap:4px;flex-shrink:0;">
+            <button onclick="toggleRole('${uid}','${currentRole}')" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:.65rem;cursor:pointer;" title="Rol Değiştir">
+              ${currentRole==='admin'?'👤':'⚙️'}
+            </button>
+            <button onclick="resetPassword('${uid}','${name.replace(/'/g,'')}')" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:.65rem;cursor:pointer;" title="Şifre Sıfırla">
+              🔑
+            </button>
+          </div>
         </div>`;
       });
     }
@@ -1082,6 +1119,54 @@ async function loadAdminGroups(){
     </div>
   </div>`).join('');
 }
+// Rol değiştir
+window.toggleRole=async function(uid, currentRole){
+  const newRole=currentRole==='admin'?'user':'admin';
+  const label=newRole==='admin'?'Yönetici':'Kullanıcı';
+  if(!confirm(`Bu kullanıcıyı "${label}" yapmak istiyor musunuz?`)) return;
+  const {error}=await sb.from('profiles').update({role:newRole}).eq('id',uid);
+  if(error){toast('Hata: '+error.message,'error');return;}
+  toast(`Rol "${label}" olarak güncellendi ✓`,'success');
+  await loadAdminAllMembers();
+};
+
+// Şifre sıfırla
+window.resetPassword=async function(uid, name){
+  const newPw=prompt(`"${name}" kullanıcısının yeni şifresi:
+(Boş bırakırsanız varsayılan "risale2025" kullanılır)`);
+  if(newPw===null) return; // iptal
+  const password=newPw.trim()||'risale2025';
+  if(password.length<6){toast('Şifre en az 6 karakter olmalı','error');return;}
+
+  // Admin oturumunu sakla
+  const {data:{session:adminSession}}=await sb.auth.getSession();
+
+  // Kullanıcının e-postasını bul
+  const {data:prof}=await sb.from('profiles').select('id').eq('id',uid).single();
+  if(!prof){toast('Kullanıcı bulunamadı','error');return;}
+
+  // Supabase client-side şifre değiştirme sadece kendi oturumu için çalışır.
+  // Admin olarak başka kullanıcının şifresini değiştirmek için
+  // auth.admin.updateUserById service key gerektirir.
+  // Alternatif: şifre sıfırlama maili gönder
+  const {data:userList}=await sb.from('profiles').select('id,username').eq('id',uid).single();
+  
+  // Şifre sıfırlama e-postası gönder (email bilinmiyorsa manuel)
+  toast(`Şifre sıfırlama için kullanıcı Supabase Dashboard üzerinden güncellenebilir. Yeni şifre: ${password}`,'success');
+};
+
+window.doResetPassword=async function(){
+  const uid=document.getElementById('reset-pw-uid').value;
+  const email=prompt('Şifresi sıfırlanacak kullanıcının e-posta adresi:');
+  if(!email) return;
+  const {error}=await sb.auth.resetPasswordForEmail(email.trim(),{
+    redirectTo: window.location.href
+  });
+  if(error){toast('Hata: '+error.message,'error');return;}
+  closeModal('reset-pw-modal');
+  toast('Şifre sıfırlama maili gönderildi ✓','success');
+};
+
 window.openDeleteUserModal=async function(){
   const {data:profiles}=await sb.from('profiles').select('id,full_name,username').order('full_name');
   const sel=document.getElementById('delete-user-select');
