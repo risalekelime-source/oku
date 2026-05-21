@@ -132,13 +132,13 @@
     .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
     .cal-header{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
     .cal-head-cell{text-align:center;font-size:.62rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;padding:2px 0}
-    .cal-cell{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:default;position:relative;border:1px solid rgba(255,255,255,.06)}
+    .cal-cell{aspect-ratio:1;min-height:36px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:default;border:1px solid rgba(255,255,255,.08);}
     .cal-cell .cc-date{font-size:.7rem;font-weight:700;line-height:1}
     .cal-cell .cc-pages{font-size:.58rem;font-weight:600;line-height:1;opacity:.9}
     .cc-ok{background:#00c462;color:#fff;}
     .cc-ilave{background:#2563eb;color:#fff;}
     .cc-comp{background:#e09400;color:#fff;}
-    .cc-miss{background:rgba(255,60,60,.25);color:#ff6b6b;}
+    .cc-miss{background:rgba(200,30,30,.4);color:#ffaaaa;border-color:rgba(255,60,60,.3);}
     .cc-fut{background:rgba(255,255,255,.04);color:rgba(255,255,255,.2);}
     .cc-empty{background:transparent;border-color:transparent;}
     .cal-cell.today-cal{outline:2px solid var(--accent);outline-offset:1px;}
@@ -920,12 +920,31 @@ window.createUser=async function(){
   const role=document.getElementById('new-user-role').value;
   const username=email.split('@')[0];
   if(!email||!password) return toast('E-posta ve şifre gerekli','error');
+
+  // Mevcut admin oturumunu sakla
+  const {data:{session:adminSession}}=await sb.auth.getSession();
+
+  // Yeni kullanıcı oluştur (bu mevcut oturumu değiştirir)
   const {data,error}=await sb.auth.signUp({email,password,options:{data:{username,full_name:fullname}}});
   if(error){toast('Hata: '+error.message,'error');return;}
   if(!data.user){toast('Kullanıcı oluşturulamadı','error');return;}
-  await new Promise(r=>setTimeout(r,1200));
-  await sb.from('profiles').update({role,full_name:fullname,username}).eq('id',data.user.id);
-  closeModal('add-user-modal'); toast('Kullanıcı oluşturuldu!','success');
+
+  const newUserId=data.user.id;
+
+  // Admin oturumunu geri yükle
+  if(adminSession){
+    await sb.auth.setSession({
+      access_token:adminSession.access_token,
+      refresh_token:adminSession.refresh_token
+    });
+  }
+
+  // Profil güncelle (admin oturumuyla)
+  await new Promise(r=>setTimeout(r,800));
+  await sb.from('profiles').update({role,full_name:fullname,username}).eq('id',newUserId);
+
+  closeModal('add-user-modal');
+  toast('Kullanıcı oluşturuldu! ✓','success');
 };
 
 // ── ADMIN: CREATE BOOK/GROUP ──────────────────────────────────
