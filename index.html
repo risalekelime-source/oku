@@ -27,7 +27,7 @@
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{-webkit-tap-highlight-color:transparent}
-    body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden;overscroll-behavior-y:auto}
+    body{font-family:var(--fb);background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
     button{font-family:var(--fb);cursor:pointer;border:none;background:none}
     input,select,textarea{font-family:var(--fb)}
     ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
@@ -64,7 +64,7 @@
     .nav-item.active{color:var(--accent);text-shadow:0 0 12px rgba(240,165,0,.4)}.nav-item svg{width:21px;height:21px}
     .ndot{width:4px;height:4px;border-radius:50%;background:var(--accent);margin-top:-1px;opacity:0;transition:opacity .2s}
     .nav-item.active .ndot{opacity:1}
-    .content{flex:1;overflow-y:auto;padding:16px 14px calc(86px + var(--sb));max-width:768px;margin:0 auto;width:100%;overscroll-behavior-y:auto}
+    .content{flex:1;overflow-y:auto;padding:16px 14px calc(86px + var(--sb));max-width:768px;margin:0 auto;width:100%}
     .page{display:none;animation:fadeIn .25s ease}.page.active{display:block}
     .sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
     .st{font-family:var(--fd);font-size:1.15rem;font-weight:600}
@@ -128,20 +128,20 @@
     .mtitle{font-family:var(--fd);font-size:1.15rem;margin-bottom:18px}
     .rb-wrap{margin:4px 0}.rb-label{display:flex;justify-content:space-between;font-size:.76rem;color:var(--text2);margin-bottom:3px}
     .rb{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden}.rbf{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
-    .day-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)}
-    .day-row:last-child{border-bottom:none}
-    .day-label{width:38px;font-size:.72rem;font-weight:700;color:var(--text2);flex-shrink:0;text-align:right}
-    .day-date{width:22px;font-size:.72rem;color:var(--text2);flex-shrink:0;text-align:center}
-    .day-bar-wrap{flex:1;height:18px;background:var(--bg3);border-radius:5px;overflow:hidden;position:relative}
-    .day-bar{height:100%;border-radius:5px;transition:width .4s ease;min-width:0}
-    .day-pages{font-size:.72rem;font-weight:600;width:44px;text-align:right;flex-shrink:0}
-    .day-badge{font-size:.6rem;font-weight:700;padding:2px 5px;border-radius:5px;flex-shrink:0;white-space:nowrap}
-    .db-ok{background:rgba(0,196,98,.2);color:#00c462}
-    .db-comp{background:rgba(224,148,0,.2);color:#e09400}
-    .db-ilave{background:rgba(37,99,235,.2);color:#60a5fa}
-    .db-miss{background:rgba(255,60,60,.15);color:#ff6b6b}
-    .db-fut{background:rgba(255,255,255,.06);color:var(--text2)}
-    .month-week-sep{font-size:.7rem;font-weight:700;color:var(--text2);padding:8px 0 4px;text-transform:uppercase;letter-spacing:.5px;border-top:1px solid var(--border);margin-top:6px}
+        /* Takvim grid */
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+    .cal-header{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+    .cal-head-cell{text-align:center;font-size:.62rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;padding:2px 0}
+    .cal-cell{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:default;position:relative;border:1px solid rgba(255,255,255,.06)}
+    .cal-cell .cc-date{font-size:.7rem;font-weight:700;line-height:1}
+    .cal-cell .cc-pages{font-size:.58rem;font-weight:600;line-height:1;opacity:.9}
+    .cc-ok{background:#00c462;color:#fff;}
+    .cc-ilave{background:#2563eb;color:#fff;}
+    .cc-comp{background:#e09400;color:#fff;}
+    .cc-miss{background:rgba(255,60,60,.25);color:#ff6b6b;}
+    .cc-fut{background:rgba(255,255,255,.04);color:rgba(255,255,255,.2);}
+    .cc-empty{background:transparent;border-color:transparent;}
+    .cal-cell.today-cal{outline:2px solid var(--accent);outline-offset:1px;}
     .user-check-list{max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--rs);background:var(--bg2)}
     .ucl-item{display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid var(--border);cursor:pointer}
     .ucl-item:last-child{border-bottom:none}.ucl-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
@@ -156,96 +156,6 @@
     .log-tabs{display:flex;gap:0;margin-bottom:18px;background:var(--bg3);border-radius:var(--rs);padding:3px}
     .log-tab{flex:1;padding:9px;text-align:center;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--text2);transition:all .2s}
     .log-tab.active{background:var(--card);color:var(--accent)}
-   /* ──────────────────────────────────────────────────────────────
-   YENİ TAKVİM GÖRÜNÜMÜ VE BÜYÜTÜLMÜŞ YAZI BOYUTLARI
-   ────────────────────────────────────────────────────────────── */
-
-.cal-header {
-    display: grid !important;
-    grid-template-columns: repeat(7, 1fr) !important;
-    gap: 6px;
-    margin-bottom: 8px;
-}
-
-.cal-head-cell {
-    text-align: center;
-    font-size: .75rem; /* Gün başlıkları biraz büyütüldü */
-    font-weight: 700;
-    color: var(--text2);
-    text-transform: uppercase;
-    letter-spacing: .5px;
-    padding: 4px 0;
-}
-
-.cal-grid {
-    display: grid !important;
-    grid-template-columns: repeat(7, 1fr) !important;
-    gap: 6px;
-    margin-bottom: 4px;
-}
-
-.cal-cell {
-    aspect-ratio: 1 / 1;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px; /* Elemanlar arası boşluk artırıldı */
-    cursor: default;
-    position: relative;
-    border: 1px solid rgba(255, 255, 255, .06);
-    background: var(--bg2);
-    min-width: 0;
-}
-
-/* Gün Numarası */
-.cal-cell .cc-date {
-    font-size: .8rem; /* 0.75rem'den büyütüldü */
-    font-weight: 500;
-    opacity: 0.6;
-    line-height: 1;
-}
-
-/* OKUMA SAYFA SAYILARI (Daha Büyük ve Belirgin Yapıldı) */
-.cal-cell .cc-pages {
-    font-size: .95rem !important; /* Fark edilir derecede büyütüldü */
-    font-weight: 800 !important; /* Kalınlaştırıldı */
-    line-height: 1;
-    padding: 2px 5px;
-    border-radius: 5px;
-    background: rgba(0, 0, 0, 0.25); /* Arka plan kontrastı artırıldı */
-    letter-spacing: -0.5px;
-}
-
-/* Durum Renkleri */
-.cc-ok { background: #00c462 !important; color: #fff !important; }
-.cc-ilave { background: #2563eb !important; color: #fff !important; }
-.cc-comp { background: #e09400 !important; color: #fff !important; }
-.cc-miss { background: rgba(255, 60, 60, 0.25); color: #ffbcbc !important; border-color: rgba(255, 60, 60, 0.15); }
-.cc-fut { background: rgba(255, 255, 255, .03); color: rgba(255, 255, 255, .15); }
-.cc-empty { background: transparent !important; border-color: transparent !important; }
-
-.cal-cell.today-cal {
-    outline: 2px solid var(--accent) !important;
-    outline-offset: 1px;
-    z-index: 2;
-}
-
-/* Durumlara Göre Renk Tanımlamaları */
-.cc-ok { background: #00c462 !important; color: #fff !important; }       /* Zamanında okundu */
-.cc-ilave { background: #2563eb !important; color: #fff !important; }    /* Hedefin üzerinde okundu */
-.cc-comp { background: #e09400 !important; color: #fff !important; }     /* Telafi günü */
-.cc-miss { background: rgba(255, 60, 60, 0.3); color: #ffbcbc !important; border-color: rgba(255, 60, 60, 0.2); } /* Eksik / Okunmamış gün */
-.cc-fut { background: rgba(255, 255, 255, .04); color: rgba(255, 255, 255, .2); } /* Gelecek günler */
-.cc-empty { background: transparent !important; border-color: transparent !important; } /* Ay dışı boşluklar */
-
-/* Bugünün Hücresine Özel Vurgu */
-.cal-cell.today-cal {
-    outline: 2px solid var(--accent) !important;
-    outline-offset: 1px;
-    z-index: 2;
-}
   </style>
 </head>
 <body>
@@ -266,18 +176,13 @@
   <header class="app-header">
     <div class="hinner">
       <div class="hlogo">📖 Risale Oku<span id="header-group-name" style="display:none;">Yükleniyor...</span></div>
-      <div class="hright"><div style="text-align:right;line-height:1.2;margin-right:2px;"><div style="font-size:.8rem;font-weight:600;color:var(--text);" id="header-user-name"></div><div style="font-size:.72rem;color:var(--accent);font-weight:600;letter-spacing:.2px;" id="header-group-label"></div></div><div class="avatar" id="user-avatar">?</div>
-
-<button class="logout-btn" onclick="doLogout()" title="Çıkış" style="width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: #ff3333; border: none; cursor: pointer; padding: 0; transition: all 0.2s; box-shadow: 0 2px 4px rgba(255, 51, 51, 0.4);">
-    <!-- Çizgi kalınlığı 3'e çıkarıldı ve renk tam opak beyaz yapıldı -->
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0px 1px 1px rgba(0,0,0,0.15));">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-        <polyline points="16 17 21 12 16 7"></polyline>
-        <line x1="21" y1="12" x2="9" y2="12"></line>
-    </svg>
-</button>
-
-  </div>
+      <div class="hright"><div style="text-align:right;line-height:1.2;margin-right:2px;"><div style="font-size:.8rem;font-weight:600;color:var(--text);" id="header-user-name"></div><div style="font-size:.72rem;color:var(--accent);font-weight:600;letter-spacing:.2px;" id="header-group-label"></div></div><div class="avatar" id="user-avatar">?</div><button class="logout-btn" onclick="doLogout()" title="Çıkış" style="padding:7px 10px;border-radius:8px;display:flex;align-items:center;color:var(--red);border-color:rgba(255,77,77,.3);">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button></div>
     </div>
   </header>
 
@@ -595,9 +500,7 @@ async function loadMyGroup(){
 // ── HOME ──────────────────────────────────────────────────────
 async function loadHome(){
   const now=new Date(), today=todayStr();
-  // Butonu her zaman önce aktif yap, sonra kontrol et
-  const btnRead=document.getElementById('btn-read');
-  if(btnRead){ btnRead.disabled=false; btnRead.classList.remove('disabled-btn'); btnRead.textContent='📖 Okuma'; }
+
 
   if(!myGroup){
     document.getElementById('week-body').innerHTML='<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--text2);font-size:.82rem;">Henüz bir gruba atanmadınız</td></tr>';
@@ -679,14 +582,7 @@ async function loadHome(){
   while(true){ const ds=dateStr(dc); if(myMap[ds]&&myMap[ds].pages_read>=goal){streak++;dc.setDate(dc.getDate()-1);}else break; }
   document.getElementById('stat-streak').textContent=streak;
 
-  // Okuma butonu: bugün hedef sayfa kaydedilmişse pasif yap
-  const todayLog=myMap[today];
-  const todayLogged=todayLog && todayLog.pages_read>=goal && !todayLog.is_compensatory;
-  if(btnRead){
-    btnRead.disabled=todayLogged;
-    btnRead.classList.toggle('disabled-btn',todayLogged);
-    btnRead.textContent=todayLogged?'✓ Okundu':'📖 Okuma';
-  }
+
 }
 
 // ── MEMBERS ───────────────────────────────────────────────────
@@ -717,139 +613,130 @@ async function loadMembers(){
 }
 
 // ── REPORT ────────────────────────────────────────────────────
-// ── REPORT (SADECE İÇİNDE BULUNULAN AY) ───────────────────────
 async function loadReport(){
-  const now = new Date(), today = todayStr();
+  const now=new Date(), today=todayStr();
 
-  // SADECE İÇİNDE BULUNULAN AYIN SINIRLARINI HESAPLA
-  const mStart = new Date(now.getFullYear(), now.getMonth(), 1); // Ayın ilk günü
-  const mEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Ayın son günü
-  const mStartStr = dateStr(mStart), mEndStr = dateStr(mEnd);
+  // Son 30 günü hesapla
+  const mEnd=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const mStart=new Date(mEnd); mStart.setDate(mStart.getDate()-29);
+  const mStartStr=dateStr(mStart), mEndStr=dateStr(mEnd);
 
-  // Bu haftayı hesapla (grup sıralaması için)
-  const ws = weekStart(now), we = new Date(ws.getFullYear(), ws.getMonth(), ws.getDate() + 6);
-  const wsStr = dateStr(ws), weStr = dateStr(we);
-  
-  // Başlık Alanı Güncelleme (Örn: Mayıs 2026)
-  document.getElementById('report-week-label').textContent = `${MNF[now.getMonth()]} ${now.getFullYear()}`;
+  // Bu haftayı da hesapla (grup sıralaması için)
+  const ws=weekStart(now), we=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+6);
+  const wsStr=dateStr(ws), weStr=dateStr(we);
+  const fmt=d=>`${d.getDate()} ${MNF[d.getMonth()]}`;
+  document.getElementById('report-week-label').textContent=`${fmt(mStart)} – ${fmt(mEnd)} ${mEnd.getFullYear()}`;
 
   if(!myGroup){
-    document.getElementById('my-weekly-report').innerHTML = '<p style="color:var(--text2);font-size:.82rem;">Grup bulunamadı</p>';
+    document.getElementById('my-weekly-report').innerHTML='<p style="color:var(--text2);font-size:.82rem;">Grup bulunamadı</p>';
     return;
   }
-  const goal = myGroup.daily_page_goal;
+  const goal=myGroup.daily_page_goal;
 
-  // Sadece bu ayın loglarını çek
-  const {data:myLogs} = await sb.from('reading_logs').select('*')
-    .eq('user_id', me.id).eq('group_id', myGroup.id)
-    .gte('log_date', mStartStr).lte('log_date', mEndStr)
-    .order('log_date', {ascending: true});
-  const lm = {}; (myLogs||[]).forEach(l => lm[l.log_date] = l);
+  // Son 30 günün loglarını çek
+  const {data:myLogs}=await sb.from('reading_logs').select('*')
+    .eq('user_id',me.id).eq('group_id',myGroup.id)
+    .gte('log_date',mStartStr).lte('log_date',mEndStr)
+    .order('log_date',{ascending:true});
+  const lm={}; (myLogs||[]).forEach(l=>lm[l.log_date]=l);
 
-  // İstatistikleri Hesapla (Sadece bulunulan ayın bugüne kadar olan günleri için)
-  let totalPages = 0, daysOk = 0, daysComp = 0, daysIlave = 0, daysMiss = 0;
-  const daysInMonth = mEnd.getDate();
-  
-  for(let i = 0; i < daysInMonth; i++){
-    const d = new Date(mStart.getFullYear(), mStart.getMonth(), 1 + i);
-    const ds = dateStr(d);
-    if(ds > today) break; // Gelecek günleri istatistiğe dahil etme
-    
-    const log = lm[ds];
-    if(!log){ daysMiss++; }
-    else if(log.is_compensatory){ daysComp++; totalPages += log.pages_read; }
-    else if(log.pages_read > goal){ daysIlave++; daysOk++; totalPages += log.pages_read; }
-    else if(log.pages_read >= goal){ daysOk++; totalPages += log.pages_read; }
-    else{ daysMiss++; totalPages += log.pages_read; }
+  // İstatistikler
+  let totalPages=0, daysOk=0, daysComp=0, daysIlave=0, daysMiss=0;
+  for(let i=0;i<30;i++){
+    const d=new Date(mStart.getFullYear(),mStart.getMonth(),mStart.getDate()+i);
+    const ds=dateStr(d);
+    if(ds>today) break;
+    const log=lm[ds];
+    if(!log){daysMiss++;}
+    else if(log.is_compensatory){daysComp++;totalPages+=log.pages_read;}
+    else if(log.pages_read>goal){daysIlave++;daysOk++;totalPages+=log.pages_read;}
+    else if(log.pages_read>=goal){daysOk++;totalPages+=log.pages_read;}
+    else{daysMiss++;totalPages+=log.pages_read;}
   }
 
-  // Özet İstatistik Kartları HTML
-  const summaryHtml = `<div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px;">
+  // Özet kartlar
+  const summaryHtml=`<div class="stat-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px;">
     <div class="stat-card"><div class="sl">Toplam</div><div class="sv" style="font-size:1.1rem;">${totalPages}</div><div class="ssub">sayfa</div></div>
     <div class="stat-card"><div class="sl" style="color:#00c462;">Tamam</div><div class="sv" style="font-size:1.1rem;color:#00c462;">${daysOk}</div><div class="ssub">gün</div></div>
     <div class="stat-card"><div class="sl" style="color:#e09400;">Telafi</div><div class="sv" style="font-size:1.1rem;color:#e09400;">${daysComp}</div><div class="ssub">gün</div></div>
     <div class="stat-card"><div class="sl" style="color:var(--red);">Eksik</div><div class="sv" style="font-size:1.1rem;color:var(--red);">${daysMiss}</div><div class="ssub">gün</div></div>
   </div>`;
 
-  // Takvim Hizalaması: Ayın ilk gününün haftanın hangi gününe denk geldiğini bul (0=Pzt, 6=Paz)
-  const firstDow = (mStart.getDay() + 6) % 7;
-  const calStart = new Date(mStart.getFullYear(), mStart.getMonth(), mStart.getDate() - firstDow);
+  // Takvim: 30 günlük, Pazartesi başlangıçlı 7 sütun grid
+  // İlk günün haftanın kaçıncı günü olduğunu bul (0=Pzt)
+  const firstDow=(mStart.getDay()+6)%7;
+  // Takvim başlangıcı: mStart'ın haftasının Pazartesi'si
+  const calStart=new Date(mStart.getFullYear(),mStart.getMonth(),mStart.getDate()-firstDow);
 
-  // Ayın bittiği haftayı Pazar gününe tamamla
-  const lastDow = (mEnd.getDay() + 6) % 7;
-  const calEnd = new Date(mEnd.getFullYear(), mEnd.getMonth(), mEnd.getDate() + (6 - lastDow));
-  const totalCells = Math.round((calEnd - calStart) / 86400000) + 1;
+  // Kaç satır gerekli?
+  const lastDay=new Date(mEnd.getFullYear(),mEnd.getMonth(),mEnd.getDate());
+  const lastDow=(lastDay.getDay()+6)%7;
+  const calEnd=new Date(lastDay.getFullYear(),lastDay.getMonth(),lastDay.getDate()+(6-lastDow));
+  const totalCells=Math.round((calEnd-calStart)/86400000)+1;
 
-  // Takvim Başlıkları
-  let calHtml = `<div class="cal-header">`;
-  ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'].forEach(d => {
-    calHtml += `<div class="cal-head-cell">${d}</div>`;
+  // Gün başlıkları
+  let calHtml=`<div class="cal-header">`;
+  ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'].forEach(d=>{
+    calHtml+=`<div class="cal-head-cell">${d}</div>`;
   });
-  calHtml += `</div><div class="cal-grid">`;
+  calHtml+=`</div><div class="cal-grid">`;
 
-  // Hücre Oluşturma Döngüsü
-  for(let i = 0; i < totalCells; i++){
-    const d = new Date(calStart.getFullYear(), calStart.getMonth(), calStart.getDate() + i);
-    const ds = dateStr(d);
-    const inRange = ds >= mStartStr && ds <= mEndStr; // Sadece bu ayın günleri mi?
-    const isToday = ds === today;
-    const isFuture = ds > today;
+  for(let i=0;i<totalCells;i++){
+    const d=new Date(calStart.getFullYear(),calStart.getMonth(),calStart.getDate()+i);
+    const ds=dateStr(d);
+    const inRange=ds>=mStartStr&&ds<=mEndStr;
+    const isToday=ds===today;
+    const isFuture=ds>today;
 
-    // Eğer gün, seçili ayın sınırları dışındaysa boş hücre bas (Hizalamayı korumak için)
     if(!inRange){
-      calHtml += `<div class="cal-cell cc-empty"></div>`;
+      calHtml+=`<div class="cal-cell cc-empty"></div>`;
       continue;
     }
 
-    const log = lm[ds];
-    const pages = log?.pages_read || 0;
-    let cls = 'cc-fut', pagesLabel = '';
+    const log=lm[ds];
+    const pages=log?.pages_read||0;
+    let cls='cc-fut', pagesLabel='';
 
     if(!isFuture){
-      if(!log || pages === 0){ cls = 'cc-miss'; }
-      else if(log.is_compensatory){ cls = 'cc-comp'; pagesLabel = pages + 's'; }
-      else if(pages > goal){ cls = 'cc-ilave'; pagesLabel = pages + 's'; }
-      else if(pages >= goal){ cls = 'cc-ok'; pagesLabel = pages + 's'; }
-      else{ cls = 'cc-miss'; pagesLabel = pages + 's'; }
+      if(!log||pages===0){ cls='cc-miss'; }
+      else if(log.is_compensatory){ cls='cc-comp'; pagesLabel=pages+'s'; }
+      else if(pages>goal){ cls='cc-ilave'; pagesLabel=pages+'s'; }
+      else if(pages>=goal){ cls='cc-ok'; pagesLabel=pages+'s'; }
+      else{ cls='cc-miss'; pagesLabel=pages+'s'; }
     }
 
-    // Dikkat: Burada sayfa sayıları daha rahat sığsın diye sadece rakam ("25") basıyoruz, CSS'te fontu büyüttük
-    calHtml += `<div class="cal-cell ${cls}${isToday ? ' today-cal' : ''}">
+    calHtml+=`<div class="cal-cell ${cls}${isToday?' today-cal':''}">
       <span class="cc-date">${d.getDate()}</span>
-      ${pagesLabel ? `<span class="cc-pages">${pages}</span>` : ''}
+      ${pagesLabel?`<span class="cc-pages">${pagesLabel}</span>`:''}
     </div>`;
   }
-  calHtml += `</div>`;
+  calHtml+=`</div>`;
 
-  // Renk Açıklama İndeksi
-  const legendHtml = `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;">
+  // Renk açıklaması
+  const legendHtml=`<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
     <span style="display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--text2);"><span style="width:10px;height:10px;border-radius:3px;background:#00c462;display:inline-block;"></span>Zamanında</span>
     <span style="display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--text2);"><span style="width:10px;height:10px;border-radius:3px;background:#2563eb;display:inline-block;"></span>İlave</span>
     <span style="display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--text2);"><span style="width:10px;height:10px;border-radius:3px;background:#e09400;display:inline-block;"></span>Telafi</span>
-    <span style="display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--text2);"><span style="width:10px;height:10px;border-radius:3px;background:rgba(255,60,60,0.35);display:inline-block;"></span>Eksik</span>
+    <span style="display:flex;align-items:center;gap:4px;font-size:.7rem;color:var(--text2);"><span style="width:10px;height:10px;border-radius:3px;background:rgba(255,60,60,.35);display:inline-block;"></span>Eksik</span>
   </div>`;
 
-  document.getElementById('my-weekly-report').innerHTML = summaryHtml + calHtml + legendHtml;
+  document.getElementById('my-weekly-report').innerHTML=summaryHtml+calHtml+legendHtml;
 
-  // Grup Haftalık Sıralaması (Mevcut kodunuz korundu)
-  const {data:members} = await sb.from('group_members').select('user_id,profiles(*)').eq('group_id', myGroup.id);
-  const {data:gLogs} = await sb.from('reading_logs').select('user_id,pages_read').eq('group_id', myGroup.id).gte('log_date', wsStr).lte('log_date', weStr);
-  
-  const uwp = {}; 
-  (gLogs||[]).forEach(l => uwp[l.user_id] = (uwp[l.user_id] || 0) + l.pages_read);
-  
-  const sorted = (members||[]).slice().sort((a,b) => (uwp[b.user_id]||0) - (uwp[a.user_id]||0));
-  const wGoal = goal * 7, maxP = Math.max(...sorted.map(m => uwp[m.user_id]||0), wGoal, 1);
-  
-  let gh = '';
-  sorted.forEach((m, i) => {
-    const p = uwp[m.user_id] || 0, pct = Math.round(p / maxP * 100);
-    const name = m.profiles?.full_name || m.profiles?.username || '?';
-    const isMe = m.user_id === me.id;
-    gh += `<div class="rb-wrap"><div class="rb-label"><span>${i+1}. ${name}${isMe ? ' <span style="color:var(--accent)">(Sen)</span>' : ''}</span><span>${p}/${wGoal} s.</span></div><div class="rb"><div class="rbf" style="width:${pct}%;${p>=wGoal?'':'background:var(--blue);'}"></div></div></div>`;
+  // Grup sıralaması (bu hafta)
+  const {data:members}=await sb.from('group_members').select('user_id,profiles(*)').eq('group_id',myGroup.id);
+  const {data:gLogs}=await sb.from('reading_logs').select('user_id,pages_read').eq('group_id',myGroup.id).gte('log_date',wsStr).lte('log_date',weStr);
+  const uwp={}; (gLogs||[]).forEach(l=>uwp[l.user_id]=(uwp[l.user_id]||0)+l.pages_read);
+  const sorted=(members||[]).slice().sort((a,b)=>(uwp[b.user_id]||0)-(uwp[a.user_id]||0));
+  const wGoal=goal*7, maxP=Math.max(...sorted.map(m=>uwp[m.user_id]||0),wGoal,1);
+  let gh='';
+  sorted.forEach((m,i)=>{
+    const p=uwp[m.user_id]||0, pct=Math.round(p/maxP*100);
+    const name=m.profiles?.full_name||m.profiles?.username||'?', isMe=m.user_id===me.id;
+    gh+=`<div class="rb-wrap"><div class="rb-label"><span>${i+1}. ${name}${isMe?' <span style="color:var(--accent)">(Sen)</span>':''}</span><span>${p}/${wGoal} s.</span></div><div class="rb"><div class="rbf" style="width:${pct}%;${p>=wGoal?'':'background:var(--blue);'}"></div></div></div>`;
   });
-  document.getElementById('group-weekly-report').innerHTML = gh || '<div class="empty"><p>Veri yok</p></div>';
+  document.getElementById('group-weekly-report').innerHTML=gh||'<div class="empty"><p>Veri yok</p></div>';
 }
+
 // ── LOG ACTIONS ───────────────────────────────────────────────
 window.openIlaveModal=function(){
   if(!myGroup) return toast('Aktif grup bulunamadı','error');
