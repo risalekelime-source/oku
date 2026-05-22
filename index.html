@@ -1082,7 +1082,7 @@ async function loadAdminAllMembers(){
   const {data:groups}=await sb.from('reading_groups').select('id,name,daily_page_goal,start_date,books(title)').order('name');
   if(!groups?.length){ el.innerHTML='<div style="font-size:.82rem;color:var(--text2);text-align:center;padding:16px;">Henüz grup yok</div>'; return; }
 
-  const {data:members}=await sb.from('group_members').select('group_id,user_id,profiles(id,full_name,username,role)');
+  const {data:members}=await sb.from('group_members').select('group_id,user_id,profiles(id,full_name,username,role,email)');
   const {data:allLogs}=await sb.from('reading_logs').select('user_id,group_id,pages_read');
 
   // Toplam sayfa per user per group
@@ -1169,39 +1169,17 @@ window.toggleRole=async function(uid, currentRole){
 
 // Şifre sıfırla
 window.resetPassword=async function(uid, name){
-  const newPw=prompt(`"${name}" kullanıcısının yeni şifresi:
-(Boş bırakırsanız varsayılan "risale2025" kullanılır)`);
-  if(newPw===null) return; // iptal
-  const password=newPw.trim()||'risale2025';
-  if(password.length<6){toast('Şifre en az 6 karakter olmalı','error');return;}
-
-  // Admin oturumunu sakla
-  const {data:{session:adminSession}}=await sb.auth.getSession();
-
-  // Kullanıcının e-postasını bul
-  const {data:prof}=await sb.from('profiles').select('id').eq('id',uid).single();
-  if(!prof){toast('Kullanıcı bulunamadı','error');return;}
-
-  // Supabase client-side şifre değiştirme sadece kendi oturumu için çalışır.
-  // Admin olarak başka kullanıcının şifresini değiştirmek için
-  // auth.admin.updateUserById service key gerektirir.
-  // Alternatif: şifre sıfırlama maili gönder
-  const {data:userList}=await sb.from('profiles').select('id,username').eq('id',uid).single();
-  
-  // Şifre sıfırlama e-postası gönder (email bilinmiyorsa manuel)
-  toast(`Şifre sıfırlama için kullanıcı Supabase Dashboard üzerinden güncellenebilir. Yeni şifre: ${password}`,'success');
-};
-
-window.doResetPassword=async function(){
-  const uid=document.getElementById('reset-pw-uid').value;
-  const email=prompt('Şifresi sıfırlanacak kullanıcının e-posta adresi:');
-  if(!email) return;
-  const {error}=await sb.auth.resetPasswordForEmail(email.trim(),{
+  const confirmed=confirm(`"${name}" kullanıcısına şifre sıfırlama maili gönderilsin mi?`);
+  if(!confirmed) return;
+  // Email'i profiles tablosundan al
+  const {data:prof}=await sb.from('profiles').select('email').eq('id',uid).maybeSingle();
+  const email=prof?.email;
+  if(!email){toast('Bu kullanıcı için e-posta adresi bulunamadı','error');return;}
+  const {error}=await sb.auth.resetPasswordForEmail(email,{
     redirectTo: window.location.href
   });
   if(error){toast('Hata: '+error.message,'error');return;}
-  closeModal('reset-pw-modal');
-  toast('Şifre sıfırlama maili gönderildi ✓','success');
+  toast(`Sıfırlama maili gönderildi: ${email} ✓`,'success');
 };
 
 window.openDeleteUserModal=async function(){
@@ -1305,7 +1283,7 @@ window.createUser=async function(){
 
   // Profil güncelle
   await new Promise(r=>setTimeout(r,800));
-  await sb.from('profiles').update({role,full_name:fullname,username}).eq('id',newUserId);
+  await sb.from('profiles').update({role,full_name:fullname,username,email}).eq('id',newUserId);
 
   // Gruba ekle
   if(groupId){
