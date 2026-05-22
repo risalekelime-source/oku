@@ -399,8 +399,8 @@
           </div>
         </div>
         <div class="fr"><label>Ad Soyad</label><input type="text" id="edit-fullname" placeholder="Adınız Soyadınız"/></div>
-        <button class="btn btn-primary btn-block" style="margin-bottom:8px;" onclick="saveProfile()">Ad Soyad Kaydet</button>
-        <button class="btn btn-secondary btn-block" onclick="sendPasswordReset()">🔑 Şifre Sıfırlama Maili Gönder</button>
+        <div class="fr"><label>Yeni Şifre <span style="font-weight:400;text-transform:none;color:var(--text2);">(boş = değiştirme)</span></label><input type="password" id="edit-password" placeholder="••••••••"/></div>
+        <button class="btn btn-primary btn-block" onclick="saveProfile()">Kaydet</button>
       </div>
 
     </div>
@@ -643,6 +643,7 @@ function updateProfileDisplay(){
   document.getElementById('settings-username').textContent='@'+(myProfile?.username||'—');
   document.getElementById('settings-email').textContent=me?.email||'—';
   document.getElementById('edit-fullname').value=myProfile?.full_name||'';
+  const epEl=document.getElementById('edit-password'); if(epEl) epEl.value='';
 }
 
 // ── INIT ──────────────────────────────────────────────────────
@@ -659,12 +660,18 @@ async function initApp(){
 
 window.saveProfile=async function(){
   const fullname=document.getElementById('edit-fullname').value.trim();
+  const password=document.getElementById('edit-password').value;
   if(!fullname) return toast('Ad Soyad gerekli','error');
   const {error}=await sb.from('profiles').update({full_name:fullname}).eq('id',me.id);
   if(error){toast('Hata: '+error.message,'error');return;}
+  if(password){
+    if(password.length<6){toast('Şifre en az 6 karakter olmalı','error');return;}
+    const {error:pwErr}=await sb.auth.updateUser({password});
+    if(pwErr){toast('Şifre hatası: '+pwErr.message,'error');return;}
+  }
   myProfile={...myProfile,full_name:fullname};
   updateProfileDisplay();
-  toast('Ad Soyad güncellendi! ✓','success');
+  toast('Profil güncellendi! ✓','success');
 };
 
 window.sendPasswordReset=async function(){
@@ -696,12 +703,31 @@ async function loadHome(){
   const wsStr=dateStr(ws), weStr=dateStr(we);
   document.getElementById('week-range').textContent=`${ws.getDate()} ${MNF[ws.getMonth()]} – ${we.getDate()} ${MNF[we.getMonth()]} ${we.getFullYear()}`;
 
-  const {data:members}=await sb.from('group_members').select('user_id,profiles(*)').eq('group_id',myGroup.id);
-  if(!members?.length) return;
+  // Tüm gruplardaki tüm üyeleri çek
+  const {data:allMembers}=await sb.from('group_members')
+    .select('user_id,group_id,profiles(*),reading_groups(id,name,daily_page_goal)');
+  if(!allMembers?.length) return;
 
+  // Kullanıcı başına tek kayıt tut (birden fazla grubu varsa ilkini al)
+  const userMap={};
+  allMembers.forEach(m=>{
+    if(!userMap[m.user_id]) userMap[m.user_id]={...m};
+  });
+  const members=Object.values(userMap);
+
+  // Tüm grup ID'leri
+  const groupIds=[...new Set(allMembers.map(m=>m.group_id))];
   const mIds=members.map(m=>m.user_id);
-  const {data:wLogs}=await sb.from('reading_logs').select('*').eq('group_id',myGroup.id).gte('log_date',wsStr).lte('log_date',weStr).in('user_id',mIds);
 
+  // Bu haftanın loglarını tüm gruplardan çek
+  const {data:wLogs}=await sb.from('reading_logs').select('*')
+    .gte('log_date',wsStr).lte('log_date',weStr).in('user_id',mIds);
+
+  // Her kullanıcının kendi grubunun hedefini al
+  const userGoalMap={};
+  allMembers.forEach(m=>{ userGoalMap[m.user_id]=m.reading_groups?.daily_page_goal||goal; });
+
+  // logs map: userId -> dateStr -> log
   const lMap={};
   (wLogs||[]).forEach(l=>{ if(!lMap[l.user_id])lMap[l.user_id]={}; lMap[l.user_id][l.log_date]=l; });
 
@@ -719,7 +745,7 @@ async function loadHome(){
   const memberColorMap={};
   members.forEach((m,idx)=>{ memberColorMap[m.user_id]=avatarColors[idx%avatarColors.length]; });
 
-  // Sort: me first
+  // Sort: me first, then alphabetical
   const sorted=members.slice().sort((a,b)=>a.user_id===me.id?-1:b.user_id===me.id?1:(a.profiles?.full_name||'').localeCompare(b.profiles?.full_name||''));
 
   let bHtml='';
@@ -728,17 +754,17 @@ async function loadHome(){
     const name=m.profiles?.full_name||m.profiles?.username||'?';
     const avColor=memberColorMap[m.user_id]||'#388bfd';
     const avInit=name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const memberGoal=userGoalMap[m.user_id]||goal;
     let row=`<tr class="${isMe?'me-row':''}"><td class="name-cell"><span class="row-avatar" style="background:${avColor}">${avInit}</span>${name}</td>`;
     for(let i=0;i<7;i++){
       const d=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+i);
       const ds=dateStr(d);
-      // future: compare date-only, not datetime
       const future=ds>today;
       const log=lMap[m.user_id]?.[ds];
       let cls='dot-future',sym='';
       if(!future){
         if(log?.is_compensatory){cls='dot-yellow';sym='◐';}
-        else if(log&&log.pages_read>=goal){cls='dot-green';sym='✓';}
+        else if(log&&log.pages_read>=memberGoal){cls='dot-green';sym='✓';}
         else if(log&&log.pages_read>0){cls='dot-yellow';sym='~';}
         else{cls='dot-red';sym='✗';}
       }
