@@ -225,6 +225,9 @@
     <div class="fg"><label>Şifre</label><input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"/></div>
     <div class="lerr" id="login-error">E-posta veya şifre hatalı.</div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Giriş Yap</button>
+    <div style="text-align:center;margin-top:12px;">
+      <button onclick="forgotPassword()" style="background:none;border:none;color:var(--text2);font-size:.82rem;cursor:pointer;text-decoration:underline;font-family:var(--fb);">Şifremi unuttum</button>
+    </div>
     <button onclick="openGuide()" style="width:100%;margin-top:10px;background:transparent;border:1px solid var(--border);color:var(--text2);padding:11px;border-radius:var(--rs);cursor:pointer;font-family:var(--fb);font-size:.85rem;transition:all .2s;">📖 Kullanma Kılavuzu</button>
   </div>
 </div>
@@ -396,8 +399,8 @@
           </div>
         </div>
         <div class="fr"><label>Ad Soyad</label><input type="text" id="edit-fullname" placeholder="Adınız Soyadınız"/></div>
-        <div class="fr"><label>Yeni Şifre <span style="font-weight:400;text-transform:none;color:var(--text2);">(boş = değiştirme)</span></label><input type="password" id="edit-password" placeholder="••••••••"/></div>
-        <button class="btn btn-primary btn-block" onclick="saveProfile()">Kaydet</button>
+        <button class="btn btn-primary btn-block" style="margin-bottom:8px;" onclick="saveProfile()">Ad Soyad Kaydet</button>
+        <button class="btn btn-secondary btn-block" onclick="sendPasswordReset()">🔑 Şifre Sıfırlama Maili Gönder</button>
       </div>
 
     </div>
@@ -601,6 +604,16 @@ async function boot(){
     else showScreen('login');
   }catch(e){ console.error(e); showScreen('login'); }
 }
+window.forgotPassword=async function(){
+  const email=document.getElementById('login-email').value.trim();
+  if(!email){ toast('Önce e-posta adresinizi girin','error'); return; }
+  const {error}=await sb.auth.resetPasswordForEmail(email,{
+    redirectTo: window.location.href
+  });
+  if(error){ toast('Hata: '+error.message,'error'); return; }
+  toast('Şifre sıfırlama maili gönderildi! Gelen kutunuzu kontrol edin.','success');
+};
+
 window.doLogin=async function(){
   const email=document.getElementById('login-email').value.trim();
   const pw=document.getElementById('login-password').value;
@@ -630,7 +643,6 @@ function updateProfileDisplay(){
   document.getElementById('settings-username').textContent='@'+(myProfile?.username||'—');
   document.getElementById('settings-email').textContent=me?.email||'—';
   document.getElementById('edit-fullname').value=myProfile?.full_name||'';
-  document.getElementById('edit-password').value='';
 }
 
 // ── INIT ──────────────────────────────────────────────────────
@@ -647,21 +659,20 @@ async function initApp(){
 
 window.saveProfile=async function(){
   const fullname=document.getElementById('edit-fullname').value.trim();
-  const password=document.getElementById('edit-password').value;
   if(!fullname) return toast('Ad Soyad gerekli','error');
-
-  const {error:profErr}=await sb.from('profiles').update({full_name:fullname}).eq('id',me.id);
-  if(profErr){toast('Hata: '+profErr.message,'error');return;}
-
-  if(password){
-    if(password.length<6){toast('Şifre en az 6 karakter olmalı','error');return;}
-    const {error:pwErr}=await sb.auth.updateUser({password});
-    if(pwErr){toast('Şifre hatası: '+pwErr.message,'error');return;}
-  }
-
+  const {error}=await sb.from('profiles').update({full_name:fullname}).eq('id',me.id);
+  if(error){toast('Hata: '+error.message,'error');return;}
   myProfile={...myProfile,full_name:fullname};
   updateProfileDisplay();
-  toast('Profil güncellendi! ✓','success');
+  toast('Ad Soyad güncellendi! ✓','success');
+};
+
+window.sendPasswordReset=async function(){
+  const {error}=await sb.auth.resetPasswordForEmail(me.email,{
+    redirectTo: window.location.href
+  });
+  if(error){toast('Hata: '+error.message,'error');return;}
+  toast('Şifre sıfırlama maili gönderildi: '+me.email,'success');
 };
 
 async function loadMyGroup(){
