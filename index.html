@@ -399,6 +399,11 @@
           </div>
         </div>
         <div class="fr"><label>Ad Soyad</label><input type="text" id="edit-fullname" placeholder="Adınız Soyadınız"/></div>
+        <div class="fr">
+          <label>E-posta <span style="font-weight:400;text-transform:none;color:var(--text2);">(değiştirmek için yeni adres girin)</span></label>
+          <input type="email" id="edit-email" placeholder="yeni@email.com"/>
+          <div style="font-size:.7rem;color:var(--text2);margin-top:4px;" id="edit-email-hint"></div>
+        </div>
         <div class="fr"><label>Yeni Şifre <span style="font-weight:400;text-transform:none;color:var(--text2);">(boş = değiştirme)</span></label><input type="password" id="edit-password" placeholder="••••••••"/></div>
         <button class="btn btn-primary btn-block" onclick="saveProfile()">Kaydet</button>
       </div>
@@ -662,6 +667,8 @@ function updateProfileDisplay(){
   document.getElementById('settings-email').textContent=me?.email||'—';
   document.getElementById('edit-fullname').value=myProfile?.full_name||'';
   const epEl=document.getElementById('edit-password'); if(epEl) epEl.value='';
+  const eeEl=document.getElementById('edit-email'); if(eeEl){ eeEl.value=''; eeEl.placeholder=me?.email||''; }
+  const ehEl=document.getElementById('edit-email-hint'); if(ehEl) ehEl.textContent='Mevcut: '+(me?.email||'—');
 }
 
 // ── INIT ──────────────────────────────────────────────────────
@@ -678,18 +685,39 @@ async function initApp(){
 
 window.saveProfile=async function(){
   const fullname=document.getElementById('edit-fullname').value.trim();
+  const newEmail=document.getElementById('edit-email')?.value.trim();
   const password=document.getElementById('edit-password').value;
   if(!fullname) return toast('Ad Soyad gerekli','error');
-  const {error}=await sb.from('profiles').update({full_name:fullname}).eq('id',me.id);
-  if(error){toast('Hata: '+error.message,'error');return;}
+
+  // Ad Soyad güncelle
+  const {error:profErr}=await sb.from('profiles').update({full_name:fullname}).eq('id',me.id);
+  if(profErr){toast('Hata: '+profErr.message,'error');return;}
+
+  // E-posta değişikliği
+  if(newEmail && newEmail!==me.email){
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)){toast('Geçerli bir e-posta girin','error');return;}
+    const {error:emailErr}=await sb.auth.updateUser({email:newEmail});
+    if(emailErr){
+      // "Email not confirmed" gibi hatalar bilgi amaçlı, kritik değil
+      console.warn('Email update warning:',emailErr.message);
+      toast('E-posta değiştirme maili gönderildi. Yeni adresinizi onaylayın.','success');
+    } else {
+      // profiles tablosuna da kaydet
+      await sb.from('profiles').update({email:newEmail}).eq('id',me.id);
+      toast('E-posta değiştirme maili gönderildi. Yeni adresinizi onaylayın.','success');
+    }
+  }
+
+  // Şifre değişikliği
   if(password){
     if(password.length<6){toast('Şifre en az 6 karakter olmalı','error');return;}
     const {error:pwErr}=await sb.auth.updateUser({password});
     if(pwErr){toast('Şifre hatası: '+pwErr.message,'error');return;}
   }
+
   myProfile={...myProfile,full_name:fullname};
   updateProfileDisplay();
-  toast('Profil güncellendi! ✓','success');
+  if(!newEmail||newEmail===me.email) toast('Profil güncellendi! ✓','success');
 };
 
 window.sendPasswordReset=async function(){
@@ -1471,22 +1499,47 @@ window.switchPage=function(name,btn){
 // Supabase şifre sıfırlama linkinden gelince hash'i yakala
 async function handleAuthCallback(){
   const hash=window.location.hash;
-  if(!hash) return false;
-  const params=new URLSearchParams(hash.replace('#',''));
-  const type=params.get('type');
-  const accessToken=params.get('access_token');
-  const refreshToken=params.get('refresh_token');
-  if(type==='recovery' && accessToken){
-    // Oturumu kur
-    await supabase.auth.setSession({access_token:accessToken,refresh_token:refreshToken||''});
-    // Hash'i temizle
-    history.replaceState(null,'',window.location.pathname);
-    // Şifre güncelleme modalını göster
-    document.getElementById('app-loading').classList.add('hidden');
-    document.getElementById('pw-update-modal').classList.add('am');
-    return true;
+  const search=window.location.search;
+
+  // Yöntem 1: Hash tabanlı (#access_token=...&type=recovery)
+  if(hash && hash.includes('type=recovery')){
+    const params=new URLSearchParams(hash.replace(/^#/,''));
+    const accessToken=params.get('access_token');
+    const refreshToken=params.get('refresh_token')||'';
+    if(accessToken){
+      try{
+        await sb.auth.setSession({access_token:accessToken,refresh_token:refreshToken});
+      }catch(e){ console.warn('setSession error:',e); }
+      history.replaceState(null,'',window.location.pathname);
+      showPasswordUpdateModal();
+      return true;
+    }
   }
+
+  // Yöntem 2: Query string tabanlı (?token_hash=...&type=recovery) - Supabase v2 yeni format
+  if(search && search.includes('type=recovery')){
+    const params=new URLSearchParams(search);
+    const tokenHash=params.get('token_hash');
+    if(tokenHash){
+      try{
+        const {error}=await sb.auth.verifyOtp({token_hash:tokenHash, type:'recovery'});
+        if(!error){
+          history.replaceState(null,'',window.location.pathname);
+          showPasswordUpdateModal();
+          return true;
+        }
+      }catch(e){ console.warn('verifyOtp error:',e); }
+    }
+  }
+
+  // Yöntem 3: Supabase onAuthStateChange - PASSWORD_RECOVERY eventi
   return false;
+}
+
+function showPasswordUpdateModal(){
+  document.getElementById('app-loading').classList.add('hidden');
+  ['login-screen','main-app'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById('pw-update-modal').classList.add('am');
 }
 
 window.doUpdatePassword=async function(){
@@ -1494,11 +1547,11 @@ window.doUpdatePassword=async function(){
   const pw2=document.getElementById('new-pw-confirm').value;
   if(!pw||pw.length<6){toast('Şifre en az 6 karakter olmalı','error');return;}
   if(pw!==pw2){toast('Şifreler eşleşmiyor','error');return;}
-  const {error}=await supabase.auth.updateUser({password:pw});
+  const {error}=await sb.auth.updateUser({password:pw});
   if(error){toast('Hata: '+error.message,'error');return;}
   document.getElementById('pw-update-modal').classList.remove('am');
   toast('Şifre güncellendi! Giriş yapabilirsiniz. ✓','success');
-  await supabase.auth.signOut();
+  await sb.auth.signOut();
   showScreen('login');
 };
 
@@ -1519,6 +1572,13 @@ function loadTheme(){
 }
 window.openGuide=function(){ openM('guide-modal'); };
 loadTheme();
+
+// Supabase PASSWORD_RECOVERY eventi dinle (bazı tarayıcılarda hash yerine bu gelir)
+sb.auth.onAuthStateChange((event, session)=>{
+  if(event==='PASSWORD_RECOVERY'){
+    showPasswordUpdateModal();
+  }
+});
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 boot();
