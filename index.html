@@ -120,8 +120,8 @@
     .tw{display:flex;align-items:center;justify-content:space-between}
     .toggle{position:relative;width:46px;height:25px;background:var(--bg3);border-radius:13px;cursor:pointer;transition:background .2s;flex-shrink:0}
     .toggle.on{background:var(--accent)}.toggle::after{content:'';position:absolute;top:3px;left:3px;width:19px;height:19px;background:#fff;border-radius:50%;transition:left .2s}.toggle.on::after{left:24px}
-    #log-modal,#add-user-modal,#add-book-modal,#manage-group-modal,#edit-group-modal,#ilave-modal,#delete-user-modal,#guide-modal,#reset-pw-modal{display:none}
-    #log-modal.am,#add-user-modal.am,#add-book-modal.am,#manage-group-modal.am,#edit-group-modal.am,#ilave-modal.am,#delete-user-modal.am,#guide-modal.am,#reset-pw-modal.am{display:block}
+    #log-modal,#add-user-modal,#add-book-modal,#manage-group-modal,#edit-group-modal,#ilave-modal,#delete-user-modal,#guide-modal,#reset-pw-modal,#pw-update-modal{display:none}
+    #log-modal.am,#add-user-modal.am,#add-book-modal.am,#manage-group-modal.am,#edit-group-modal.am,#ilave-modal.am,#delete-user-modal.am,#guide-modal.am,#reset-pw-modal.am,#pw-update-modal.am{display:block}
     .mo{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn .2s}
     .modal{background:var(--card);border-radius:var(--r) var(--r) 0 0;padding:22px 18px calc(var(--sb) + 22px);width:100%;max-width:480px;animation:slideUp .3s ease;max-height:90dvh;overflow-y:auto}
     .mhandle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;display:block}
@@ -521,6 +521,20 @@
   </div>
 </div>
 
+<!-- ŞİFRE GÜNCELLEME MODAL (recovery flow) -->
+<div id="pw-update-modal">
+  <div class="mo" style="align-items:center;">
+    <div class="modal" onclick="event.stopPropagation()">
+      <span class="mhandle"></span>
+      <div class="mtitle">🔑 Yeni Şifre Belirle</div>
+      <div style="font-size:.82rem;color:var(--text2);margin-bottom:14px;">Şifre sıfırlama bağlantısından geldiniz. Yeni şifrenizi belirleyin.</div>
+      <div class="fr"><label>Yeni Şifre</label><input type="password" id="new-pw-input" placeholder="En az 6 karakter"/></div>
+      <div class="fr"><label>Şifre Tekrar</label><input type="password" id="new-pw-confirm" placeholder="Şifreyi tekrar girin"/></div>
+      <button class="btn btn-primary btn-block" onclick="doUpdatePassword()">Şifreyi Güncelle</button>
+    </div>
+  </div>
+</div>
+
 <!-- RESET PASSWORD MODAL -->
 <div id="reset-pw-modal">
   <div class="mo" onclick="closeModal('reset-pw-modal')">
@@ -599,6 +613,10 @@ window.closeModal=function(id){ document.getElementById(id).classList.remove('am
 // ── AUTH ──────────────────────────────────────────────────────
 async function boot(){
   try{
+    // Önce recovery URL kontrolü
+    const isRecovery=await handleAuthCallback();
+    if(isRecovery) return;
+
     const {data}=await sb.auth.getSession();
     if(data?.session){ me=data.session.user; await loadProfile(); showScreen('app'); initApp(); }
     else showScreen('login');
@@ -1447,6 +1465,41 @@ window.switchPage=function(name,btn){
   if(name==='home') loadHome();
 
   if(name==='report') loadReport();
+};
+
+// ── RECOVERY URL HANDLER ─────────────────────────────────
+// Supabase şifre sıfırlama linkinden gelince hash'i yakala
+async function handleAuthCallback(){
+  const hash=window.location.hash;
+  if(!hash) return false;
+  const params=new URLSearchParams(hash.replace('#',''));
+  const type=params.get('type');
+  const accessToken=params.get('access_token');
+  const refreshToken=params.get('refresh_token');
+  if(type==='recovery' && accessToken){
+    // Oturumu kur
+    await supabase.auth.setSession({access_token:accessToken,refresh_token:refreshToken||''});
+    // Hash'i temizle
+    history.replaceState(null,'',window.location.pathname);
+    // Şifre güncelleme modalını göster
+    document.getElementById('app-loading').classList.add('hidden');
+    document.getElementById('pw-update-modal').classList.add('am');
+    return true;
+  }
+  return false;
+}
+
+window.doUpdatePassword=async function(){
+  const pw=document.getElementById('new-pw-input').value;
+  const pw2=document.getElementById('new-pw-confirm').value;
+  if(!pw||pw.length<6){toast('Şifre en az 6 karakter olmalı','error');return;}
+  if(pw!==pw2){toast('Şifreler eşleşmiyor','error');return;}
+  const {error}=await supabase.auth.updateUser({password:pw});
+  if(error){toast('Hata: '+error.message,'error');return;}
+  document.getElementById('pw-update-modal').classList.remove('am');
+  toast('Şifre güncellendi! Giriş yapabilirsiniz. ✓','success');
+  await supabase.auth.signOut();
+  showScreen('login');
 };
 
 // ── TEMA YÖNETİMİ ─────────────────────────────────────────
