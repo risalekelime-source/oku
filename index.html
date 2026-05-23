@@ -1213,19 +1213,45 @@ window.toggleRole=async function(uid, currentRole){
   await loadAdminAllMembers();
 };
 
-// Şifre sıfırla
+// Şifre sıfırla - admin yeni şifre belirler
 window.resetPassword=async function(uid, name){
-  const confirmed=confirm(`"${name}" kullanıcısına şifre sıfırlama maili gönderilsin mi?`);
-  if(!confirmed) return;
-  // Email'i profiles tablosundan al
+  const newPw=prompt(`"${name}" için yeni şifre girin:\n(En az 6 karakter)`);
+  if(newPw===null) return;
+  if(!newPw||newPw.trim().length<6){toast('Şifre en az 6 karakter olmalı','error');return;}
+
+  // Admin oturumunu sakla
+  const {data:{session:adminSess}}=await sb.auth.getSession();
+  if(!adminSess){toast('Oturum bulunamadı','error');return;}
+
+  // Kullanıcının emailini al
   const {data:prof}=await sb.from('profiles').select('email').eq('id',uid).maybeSingle();
-  const email=prof?.email;
-  if(!email){toast('Bu kullanıcı için e-posta adresi bulunamadı','error');return;}
-  const {error}=await sb.auth.resetPasswordForEmail(email,{
-    redirectTo: window.location.href
+  if(!prof?.email){toast('E-posta bulunamadı','error');return;}
+
+  // O kullanıcı olarak giriş yap ve şifre değiştir
+  const {data:signInData,error:signInErr}=await sb.auth.signInWithPassword({
+    email:prof.email, password:'risale2025'
   });
-  if(error){toast('Hata: '+error.message,'error');return;}
-  toast(`Sıfırlama maili gönderildi: ${email} ✓`,'success');
+
+  if(signInErr){
+    // Direkt giriş yapılamadı - mail yolla
+    const {error:mailErr}=await sb.auth.resetPasswordForEmail(prof.email,{
+      redirectTo:window.location.href
+    });
+    if(mailErr){toast('Hata: '+mailErr.message,'error');return;}
+    // Admin oturumuna geri dön
+    await sb.auth.setSession({access_token:adminSess.access_token,refresh_token:adminSess.refresh_token});
+    toast(`${prof.email} adresine sıfırlama maili gönderildi`,'success');
+    return;
+  }
+
+  // Şifreyi güncelle
+  const {error:pwErr}=await sb.auth.updateUser({password:newPw.trim()});
+  
+  // Admin oturumuna geri dön
+  await sb.auth.setSession({access_token:adminSess.access_token,refresh_token:adminSess.refresh_token});
+  
+  if(pwErr){toast('Şifre güncellenemedi: '+pwErr.message,'error');return;}
+  toast(`"${name}" şifresi güncellendi ✓`,'success');
 };
 
 window.openDeleteUserModal=async function(){
