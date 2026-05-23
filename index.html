@@ -1501,28 +1501,47 @@ async function handleAuthCallback(){
   const hash=window.location.hash;
   const search=window.location.search;
 
+  console.log('[Auth] hash:', hash);
+  console.log('[Auth] search:', search);
+
   // Yöntem 1: Hash tabanlı (#access_token=...&type=recovery)
-  if(hash && hash.includes('type=recovery')){
+  if(hash && (hash.includes('type=recovery') || hash.includes('access_token'))){
     const params=new URLSearchParams(hash.replace(/^#/,''));
+    const type=params.get('type');
     const accessToken=params.get('access_token');
     const refreshToken=params.get('refresh_token')||'';
-    if(accessToken){
+    console.log('[Auth] hash type:', type, 'token:', !!accessToken);
+    if(accessToken && (type==='recovery' || type==='signup')){
+      try{
+        const {error}=await sb.auth.setSession({access_token:accessToken,refresh_token:refreshToken});
+        if(!error){
+          history.replaceState(null,'',window.location.pathname);
+          if(type==='recovery') showPasswordUpdateModal();
+          return type==='recovery';
+        }
+      }catch(e){ console.warn('setSession error:',e); }
+    }
+    // access_token var ama type yok - oturum aç, recovery modalı göster
+    if(accessToken && !type){
       try{
         await sb.auth.setSession({access_token:accessToken,refresh_token:refreshToken});
+        history.replaceState(null,'',window.location.pathname);
+        showPasswordUpdateModal();
+        return true;
       }catch(e){ console.warn('setSession error:',e); }
-      history.replaceState(null,'',window.location.pathname);
-      showPasswordUpdateModal();
-      return true;
     }
   }
 
-  // Yöntem 2: Query string tabanlı (?token_hash=...&type=recovery) - Supabase v2 yeni format
-  if(search && search.includes('type=recovery')){
+  // Yöntem 2: Query string (?token_hash=...&type=recovery)
+  if(search && search.includes('recovery')){
     const params=new URLSearchParams(search);
     const tokenHash=params.get('token_hash');
+    const type=params.get('type');
+    console.log('[Auth] search type:', type, 'token_hash:', !!tokenHash);
     if(tokenHash){
       try{
         const {error}=await sb.auth.verifyOtp({token_hash:tokenHash, type:'recovery'});
+        console.log('[Auth] verifyOtp error:', error);
         if(!error){
           history.replaceState(null,'',window.location.pathname);
           showPasswordUpdateModal();
@@ -1532,7 +1551,6 @@ async function handleAuthCallback(){
     }
   }
 
-  // Yöntem 3: Supabase onAuthStateChange - PASSWORD_RECOVERY eventi
   return false;
 }
 
@@ -1573,10 +1591,15 @@ function loadTheme(){
 window.openGuide=function(){ openM('guide-modal'); };
 loadTheme();
 
-// Supabase PASSWORD_RECOVERY eventi dinle (bazı tarayıcılarda hash yerine bu gelir)
+// onAuthStateChange BOOT'tan ÖNCE tanımlanmalı - event kaçırılmasın
+// PASSWORD_RECOVERY: Supabase yönlendirmesi sonrası gelir
+let bootDone = false;
 sb.auth.onAuthStateChange((event, session)=>{
   if(event==='PASSWORD_RECOVERY'){
+    // Boot henüz çalışmadıysa loading'i gizle
+    document.getElementById('app-loading').classList.add('hidden');
     showPasswordUpdateModal();
+    bootDone = true;
   }
 });
 
