@@ -1502,6 +1502,22 @@ async function handleAuthCallback(){
   const search=window.location.search;
   const fullUrl=window.location.href;
 
+  // Hata kontrolü (#error=access_denied vs)
+  if(hash && hash.includes('error=')){
+    const params=new URLSearchParams(hash.replace(/^#/,''));
+    const errDesc=params.get('error_description')||params.get('error')||'Bilinmeyen hata';
+    const errCode=params.get('error_code')||'';
+    history.replaceState(null,'',window.location.pathname);
+    document.getElementById('app-loading').classList.add('hidden');
+    showScreen('login');
+    if(errCode==='otp_expired'){
+      setTimeout(()=>toast('Şifre sıfırlama linki süresi dolmuş. Lütfen tekrar talep edin.','error'),300);
+    } else {
+      setTimeout(()=>toast('Hata: '+decodeURIComponent(errDesc.replace(/\+/g,' ')),'error'),300);
+    }
+    return false;
+  }
+
   // Yöntem 1: PKCE flow - ?code= parametresi (Supabase v2 yeni default)
   if(search.includes('code=')){
     const params=new URLSearchParams(search);
