@@ -78,6 +78,7 @@
     .dot{width:26px;height:26px;border-radius:7px;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:800;}
     .dot-green{background:#00c462;color:#fff;border:1px solid rgba(255,255,255,.25);}
     .dot-yellow{background:#e09400;color:#fff;border:1px solid rgba(255,255,255,.25);}
+    .dot-blue{background:#2563eb;color:#fff;border:1px solid rgba(255,255,255,.25);}
     .dot-red{background:#c0392b;color:#fff;border:1px solid rgba(255,255,255,.2);}
     .dot-empty{background:var(--bg3);color:var(--text2)}
     .dot-future{background:rgba(255,255,255,.04);color:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.08);}
@@ -309,7 +310,6 @@
         <div class="stat-card"><div class="sl">Son 7 Gün</div><div class="sv" id="stat-week">—</div><div class="ssub">sayfa</div></div>
         <div class="stat-card"><div class="sl">Toplam</div><div class="sv" id="stat-total">—</div><div class="ssub">sayfa</div></div>
         <div class="stat-card"><div class="sl">Durum</div><div class="sv" id="stat-delay">—</div><div class="ssub" id="stat-delay-label">sayfa</div></div>
-        <div class="stat-card"><div class="sl">Seri</div><div class="sv" id="stat-streak">—</div><div class="ssub">gün</div></div>
       </div>
       <!-- Bu Hafta tablosu -->
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">
@@ -741,7 +741,7 @@ async function loadHome(){
 
   if(!myGroup){
     document.getElementById('week-body').innerHTML='<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--text2);font-size:.82rem;">Henüz bir gruba atanmadınız</td></tr>';
-    ['stat-week','stat-total','stat-delay','stat-streak'].forEach(id=>document.getElementById(id).textContent='—');
+    ['stat-week','stat-total','stat-delay'].forEach(id=>document.getElementById(id).textContent='—');
     return;
   }
   const goal=myGroup.daily_page_goal;
@@ -813,6 +813,7 @@ async function loadHome(){
       let cls='dot-future',sym='';
       if(!future){
         if(log?.is_compensatory){cls='dot-yellow';sym='◐';}
+        else if(log&&log.pages_read>memberGoal){cls='dot-blue';sym='➕';}
         else if(log&&log.pages_read>=memberGoal){cls='dot-green';sym='✓';}
         else if(log&&log.pages_read>0){cls='dot-yellow';sym='~';}
         else{cls='dot-red';sym='✗';}
@@ -837,9 +838,6 @@ async function loadHome(){
   const de=document.getElementById('stat-delay'), dl=document.getElementById('stat-delay-label');
   if(diff>=0){de.textContent='+'+diff;de.className='sv green';dl.textContent='sayfa';}
   else{de.textContent=diff;de.className='sv red';dl.textContent='sayfa';}
-  let streak=0; const dc=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  while(true){ const ds=dateStr(dc); if(myMap[ds]&&myMap[ds].pages_read>=goal){streak++;dc.setDate(dc.getDate()-1);}else break; }
-  document.getElementById('stat-streak').textContent=streak;
 
 
 }
