@@ -250,14 +250,14 @@
           <div><span style="background:#e09400;color:#fff;padding:2px 8px;border-radius:5px;font-size:.75rem;font-weight:700;">◐ Telafi</span> <span style="color:var(--text2);margin-left:6px;">Geçmiş okunmayan günleri telafi etmek için kullanın.</span></div>
         </div>
 
-        <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">📊 Bu Hafta Tablosu</div>
+        <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">📊 Son 7 Gün Tablosu</div>
         <div style="background:var(--bg3);border-radius:var(--rs);padding:12px;margin-bottom:14px;">
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
             <span style="background:#00c462;color:#fff;padding:2px 8px;border-radius:5px;font-size:.72rem;font-weight:700;">✓ Zamanında</span>
             <span style="background:#e09400;color:#fff;padding:2px 8px;border-radius:5px;font-size:.72rem;font-weight:700;">◐ Telafi</span>
             <span style="background:#c0392b;color:#fff;padding:2px 8px;border-radius:5px;font-size:.72rem;font-weight:700;">✗ Eksik</span>
           </div>
-          <p style="color:var(--text2);font-size:.82rem;">Her satır bir grup üyesi. Sütunlar haftanın günleri. Kendi satırınız en üstte gösterilir.</p>
+          <p style="color:var(--text2);font-size:.82rem;">Her satır bir grup üyesi. Sütunlar son 7 gün. Kendi satırınız en üstte gösterilir.</p>
         </div>
 
         <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">📅 Aylık Rapor</div>
@@ -306,14 +306,14 @@
       </div>
       <!-- İstatistikler -->
       <div class="stat-grid">
-        <div class="stat-card"><div class="sl">Bu Hafta</div><div class="sv" id="stat-week">—</div><div class="ssub">sayfa</div></div>
+        <div class="stat-card"><div class="sl">Son 7 Gün</div><div class="sv" id="stat-week">—</div><div class="ssub">sayfa</div></div>
         <div class="stat-card"><div class="sl">Toplam</div><div class="sv" id="stat-total">—</div><div class="ssub">sayfa</div></div>
         <div class="stat-card"><div class="sl">Durum</div><div class="sv" id="stat-delay">—</div><div class="ssub" id="stat-delay-label">sayfa</div></div>
         <div class="stat-card"><div class="sl">Seri</div><div class="sv" id="stat-streak">—</div><div class="ssub">gün</div></div>
       </div>
       <!-- Bu Hafta tablosu -->
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">
-        <div style="font-family:var(--fd);font-size:1.1rem;font-weight:700;">Bu Hafta</div>
+        <div style="font-family:var(--fd);font-size:1.1rem;font-weight:700;">Son 7 Gün</div>
         <div style="font-size:.9rem;font-weight:600;color:var(--text2);" id="week-range"></div>
       </div>
       <div class="card" style="padding:12px 8px;overflow-x:auto;">
@@ -326,7 +326,7 @@
     <div class="page" id="page-report">
       <div class="sh"><div class="st">Aylık Rapor</div><div class="ss" id="report-week-label"></div></div>
       <div class="card" style="margin-bottom:13px;"><div style="font-weight:600;margin-bottom:11px;font-size:.88rem;">📊 Son 30 Gün</div><div id="my-weekly-report"></div></div>
-      <div class="sh" style="margin-bottom:10px;"><div class="st" style="font-size:1rem;">Bu Hafta Sıralaması</div></div>
+      <div class="sh" style="margin-bottom:10px;"><div class="st" style="font-size:1rem;">Son 7 Gün Sıralaması</div></div>
       <div class="card" id="group-weekly-report"><div class="empty"><div class="eico">📈</div><p>Yükleniyor...</p></div></div>
     </div>
 
@@ -745,7 +745,9 @@ async function loadHome(){
     return;
   }
   const goal=myGroup.daily_page_goal;
-  const ws=weekStart(now), we=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+6);
+  // Son 7 gün (bugün dahil)
+  const we=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const ws=new Date(we.getFullYear(),we.getMonth(),we.getDate()-6);
   const wsStr=dateStr(ws), weStr=dateStr(we);
   document.getElementById('week-range').textContent=`${ws.getDate()} ${MNF[ws.getMonth()]} – ${we.getDate()} ${MNF[we.getMonth()]} ${we.getFullYear()}`;
 
@@ -777,12 +779,13 @@ async function loadHome(){
   const lMap={};
   (wLogs||[]).forEach(l=>{ if(!lMap[l.user_id])lMap[l.user_id]={}; lMap[l.user_id][l.log_date]=l; });
 
-  // Header
+  // Header - son 7 gün, bugünden geriye
   let hHtml='<th class="name-cell">Üye</th>';
   for(let i=0;i<7;i++){
     const d=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+i);
     const ds=dateStr(d);
-    hHtml+=`<th class="${ds===today?'today-col':''}">${DN[i]}<br><span style="font-size:.65rem;opacity:.7">${d.getDate()}</span></th>`;
+    const dayName=DN[(d.getDay()+6)%7];
+    hHtml+=`<th class="${ds===today?'today-col':''}">${dayName}<br><span style="font-size:.65rem;opacity:.7">${d.getDate()}</span></th>`;
   }
   document.getElementById('week-head').innerHTML=hHtml;
 
@@ -832,8 +835,8 @@ async function loadHome(){
   document.getElementById('stat-week').textContent=wkPages;
   document.getElementById('stat-total').textContent=totalRead;
   const de=document.getElementById('stat-delay'), dl=document.getElementById('stat-delay-label');
-  if(diff>=0){de.textContent='+'+diff;de.className='sv green';dl.textContent='sayfa ileride';}
-  else{de.textContent=diff;de.className='sv red';dl.textContent='sayfa geride';}
+  if(diff>=0){de.textContent='+'+diff;de.className='sv green';dl.textContent='sayfa';}
+  else{de.textContent=diff;de.className='sv red';dl.textContent='sayfa';}
   let streak=0; const dc=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   while(true){ const ds=dateStr(dc); if(myMap[ds]&&myMap[ds].pages_read>=goal){streak++;dc.setDate(dc.getDate()-1);}else break; }
   document.getElementById('stat-streak').textContent=streak;
@@ -877,8 +880,9 @@ async function loadReport(){
   const mStart=new Date(mEnd); mStart.setDate(mStart.getDate()-29);
   const mStartStr=dateStr(mStart), mEndStr=dateStr(mEnd);
 
-  // Bu haftayı da hesapla (grup sıralaması için)
-  const ws=weekStart(now), we=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+6);
+  // Son 7 gün (sıralama için)
+  const we=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const ws=new Date(we.getFullYear(),we.getMonth(),we.getDate()-6);
   const wsStr=dateStr(ws), weStr=dateStr(we);
   const fmt=d=>`${d.getDate()} ${MNF[d.getMonth()]}`;
   document.getElementById('report-week-label').textContent=`${fmt(mStart)} – ${fmt(mEnd)} ${mEnd.getFullYear()}`;
@@ -978,17 +982,23 @@ async function loadReport(){
 
   document.getElementById('my-weekly-report').innerHTML=summaryHtml+calHtml+legendHtml;
 
-  // Grup sıralaması (bu hafta)
-  const {data:members}=await sb.from('group_members').select('user_id,profiles(*)').eq('group_id',myGroup.id);
-  const {data:gLogs}=await sb.from('reading_logs').select('user_id,pages_read').eq('group_id',myGroup.id).gte('log_date',wsStr).lte('log_date',weStr);
+  // Son 7 gün sıralaması - tüm gruplardan
+  const {data:allGM}=await sb.from('group_members').select('user_id,profiles(*),reading_groups(daily_page_goal)');
+  const {data:gLogs}=await sb.from('reading_logs').select('user_id,pages_read').gte('log_date',wsStr).lte('log_date',weStr);
   const uwp={}; (gLogs||[]).forEach(l=>uwp[l.user_id]=(uwp[l.user_id]||0)+l.pages_read);
-  const sorted=(members||[]).slice().sort((a,b)=>(uwp[b.user_id]||0)-(uwp[a.user_id]||0));
-  const wGoal=goal*7, maxP=Math.max(...sorted.map(m=>uwp[m.user_id]||0),wGoal,1);
+  // Kullanıcı başına tek kayıt
+  const userMapR={};
+  (allGM||[]).forEach(m=>{ if(!userMapR[m.user_id]) userMapR[m.user_id]=m; });
+  const allUsers=Object.values(userMapR);
+  const sorted=allUsers.slice().sort((a,b)=>(uwp[b.user_id]||0)-(uwp[a.user_id]||0));
+  const maxP=Math.max(...sorted.map(m=>uwp[m.user_id]||0),1);
   let gh='';
   sorted.forEach((m,i)=>{
     const p=uwp[m.user_id]||0, pct=Math.round(p/maxP*100);
     const name=m.profiles?.full_name||m.profiles?.username||'?', isMe=m.user_id===me.id;
-    gh+=`<div class="rb-wrap"><div class="rb-label"><span>${i+1}. ${name}${isMe?' <span style="color:var(--accent)">(Sen)</span>':''}</span><span>${p}/${wGoal} s.</span></div><div class="rb"><div class="rbf" style="width:${pct}%;${p>=wGoal?'':'background:var(--blue);'}"></div></div></div>`;
+    const mGoal=m.reading_groups?.daily_page_goal||goal;
+    const s7Goal=mGoal*7;
+    gh+=`<div class="rb-wrap"><div class="rb-label"><span>${i+1}. ${name}${isMe?' <span style="color:var(--accent)">(Sen)</span>':''}</span><span>${p}/${s7Goal} s.</span></div><div class="rb"><div class="rbf" style="width:${pct}%;${p>=s7Goal?'':'background:var(--blue);'}"></div></div></div>`;
   });
   document.getElementById('group-weekly-report').innerHTML=gh||'<div class="empty"><p>Veri yok</p></div>';
 }
