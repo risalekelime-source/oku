@@ -298,17 +298,17 @@
   <main class="content">
     <!-- HOME -->
     <div class="page active" id="page-home">
+      <!-- İstatistikler - En Üstte -->
+      <div class="stat-grid" style="margin-bottom:10px;">
+        <div class="stat-card" style="align-items:center;text-align:center;"><div class="sl">Son 7 Gün</div><div class="sv" id="stat-week">—</div><div class="ssub">sayfa</div></div>
+        <div class="stat-card" style="align-items:center;text-align:center;"><div class="sl">Toplam</div><div class="sv" id="stat-total">—</div><div class="ssub">sayfa</div></div>
+        <div class="stat-card" style="align-items:center;text-align:center;"><div class="sl">Durum</div><div class="sv" id="stat-delay">—</div><div class="ssub" id="stat-delay-label">sayfa</div></div>
+      </div>
       <!-- Butonlar -->
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
-        <button class="btn btn-read btn-block" id="btn-read" onclick="logToday()" style="font-size:.82rem;padding:11px 6px;">📖 Okuma</button>
-        <button class="btn btn-ilave btn-block" onclick="openIlaveModal()" style="font-size:.82rem;padding:11px 6px;">➕ İlave</button>
-        <button class="btn btn-comp btn-block" onclick="openCompModal()" style="font-size:.82rem;padding:11px 6px;">◐ Telafi</button>
-      </div>
-      <!-- İstatistikler -->
-      <div class="stat-grid">
-        <div class="stat-card"><div class="sl">Son 7 Gün</div><div class="sv" id="stat-week">—</div><div class="ssub">sayfa</div></div>
-        <div class="stat-card"><div class="sl">Toplam</div><div class="sv" id="stat-total">—</div><div class="ssub">sayfa</div></div>
-        <div class="stat-card"><div class="sl">Durum</div><div class="sv" id="stat-delay">—</div><div class="ssub" id="stat-delay-label">sayfa</div></div>
+        <button class="btn btn-read btn-block" id="btn-read" onclick="logToday()" style="font-size:.82rem;padding:14px 6px;">📖 Okuma</button>
+        <button class="btn btn-ilave btn-block" onclick="openIlaveModal()" style="font-size:.82rem;padding:14px 6px;">➕ İlave</button>
+        <button class="btn btn-comp btn-block" onclick="openCompModal()" style="font-size:.82rem;padding:14px 6px;">◐ Telafi</button>
       </div>
       <!-- Bu Hafta tablosu -->
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">
