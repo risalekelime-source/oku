@@ -511,18 +511,18 @@
 </div>
 
 <!-- İLAVE MODAL -->
-<div id="ilave-modal">
-  <div class="mo" onclick="closeModal('ilave-modal')">
-    <div class="modal" onclick="event.stopPropagation()">
-      <span class="mhandle"></span>
-      <div class="mtitle">➕ İlave Okuma</div>
-      <div style="font-size:.82rem;color:var(--text2);margin-bottom:14px;">Günlük hedef dışında ek okuma yaptıysanız sayfa sayısını girin.</div>
-      <div class="fr"><label>Tarih</label><input type="date" id="ilave-date"/></div>
-      <div class="fr"><label>İlave Sayfa Sayısı</label><input type="number" id="ilave-pages" placeholder="Örn: 10" min="1"/></div>
-      <div class="fr"><label>Not (opsiyonel)</label><textarea id="ilave-note" placeholder="Not..."></textarea></div>
-      <button class="btn btn-ilave btn-block" onclick="submitIlaveLog()">➕ İlave Okumayı Kaydet</button>
-    </div>
+<div id="log-modal">
+  <div class="fr">
+    <label>Tarih Seçin</label>
+    <select id="comp-date-select" style="width:100%; padding:10px;"></select>
   </div>
+  
+  <div class="fr">
+    <label>Okunan Sayfa Sayısı</label>
+    <input type="number" id="comp-pages-input" placeholder="Örn: 50"/>
+  </div>
+  
+  <button class="btn btn-block" onclick="submitCompLog()">Kaydet</button>
 </div>
 
 <!-- ŞİFRE GÜNCELLEME MODAL (recovery flow) -->
@@ -1001,11 +1001,64 @@ async function loadReport(){
 }
 
 // ── LOG ACTIONS ───────────────────────────────────────────────
-window.openIlaveModal=function(){
-  if(!myGroup) return toast('Aktif grup bulunamadı','error');
-  document.getElementById('ilave-date').value=todayStr();
-  document.getElementById('ilave-pages').value='';
-  document.getElementById('ilave-note').value='';
+window.openIlaveModal = async function() {
+  if (!myGroup) return toast('Aktif grup bulunamadı', 'error');
+
+  const now = new Date();
+  const today = todayStr();
+  const ws = weekStart(now);
+
+  // Bu haftanın günlerini bul (hafta başından bugüne kadar, bugün dahil)
+  const pastDays = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(ws.getFullYear(), ws.getMonth(), ws.getDate() + i);
+    const ds = dateStr(d);
+    pastDays.push({ d, ds });
+    if (ds === today) break; // Bugün dahil al ve döngüyü bitir
+  }
+
+  // Bu aralıktaki logları çek
+  const { data: logs, error } = await sb.from('reading_logs')
+    .select('log_date, pages_read')
+    .eq('user_id', me.id)
+    .eq('group_id', myGroup.id)
+    .gte('log_date', dateStr(ws))
+    .lte('log_date', today);
+
+  if (error) {
+    return toast('Okuma geçmişi alınırken hata oluştu', 'error');
+  }
+
+  // Hangi günlerde okuma yapıldığını (dolu günleri) bul
+  const loggedDays = new Set((logs || []).map(l => l.log_date));
+  
+  // Sadece okuma yapılmış günleri filtrele
+  const filledDays = pastDays.filter(({ ds }) => loggedDays.has(ds));
+
+  if (!filledDays.length) {
+    return toast('İlave yapılabilecek dolu bir gün bulunamadı.', 'error');
+  }
+
+  // Tarih listesini <select> elementine doldur
+  const dateSelect = document.getElementById('ilave-date');
+  dateSelect.innerHTML = filledDays.map(({ d, ds }) => {
+    // DN ve MN dizilerinin önceden tanımlı olduğu varsayılıyor (openCompModal'daki gibi)
+    const dayName = DN[(d.getDay() + 6) % 7]; 
+    const dateLabel = `${dayName}, ${d.getDate()} ${MN[d.getMonth()]}`;
+    return `<option value="${ds}">${dateLabel}</option>`;
+  }).join('');
+
+  // Eğer bugün de doluysa varsayılan olarak bugünü seç, değilse listedeki en son günü seç
+  if (loggedDays.has(today)) {
+    dateSelect.value = today;
+  } else {
+    dateSelect.value = filledDays[filledDays.length - 1].ds;
+  }
+
+  // Sayfa sayısı ve not alanlarını elle girilmesi için temizle
+  document.getElementById('ilave-pages').value = '';
+  document.getElementById('ilave-note').value = '';
+  
   openM('ilave-modal');
 };
 window.submitIlaveLog=async function(){
