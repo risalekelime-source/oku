@@ -508,18 +508,33 @@
 </div>
 
 <!-- İLAVE MODAL -->
-<div id="log-modal">
-  <div class="fr">
-    <label>Tarih Seçin</label>
-    <select id="comp-date-select" style="width:100%; padding:10px;"></select>
+<div id="ilave-modal" style="display: none;">
+  <div class="mo" onclick="closeModal('ilave-modal')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <span class="mhandle"></span>
+      <div class="mtitle">➕ İlave Okuma</div>
+      <div style="font-size:.82rem;color:var(--text2);margin-bottom:14px;">
+        Günlük hedef dışında ek okuma yaptıysanız sayfa sayısını girin.
+      </div>
+      
+      <div class="fr">
+        <label>Tarih</label>
+        <select id="ilave-date"></select>
+      </div>
+      
+      <div class="fr">
+        <label>İlave Sayfa Sayısı</label>
+        <input type="number" id="ilave-pages" placeholder="Örn: 10" min="1"/>
+      </div>
+      
+      <div class="fr">
+        <label>Not (opsiyonel)</label>
+        <textarea id="ilave-note" placeholder="Not..."></textarea>
+      </div>
+      
+      <button class="btn btn-ilave btn-block" onclick="submitIlaveLog()">➕ İlave Okumayı Kaydet</button>
+    </div>
   </div>
-  
-  <div class="fr">
-    <label>Okunan Sayfa Sayısı</label>
-    <input type="number" id="comp-pages-input" placeholder="Örn: 50"/>
-  </div>
-  
-  <button class="btn btn-block" onclick="submitCompLog()">Kaydet</button>
 </div>
 
 <!-- ŞİFRE GÜNCELLEME MODAL (recovery flow) -->
