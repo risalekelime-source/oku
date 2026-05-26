@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -225,9 +226,6 @@
     <div class="fg"><label>Şifre</label><input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password"/></div>
     <div class="lerr" id="login-error">E-posta veya şifre hatalı.</div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Giriş Yap</button>
-    <div style="text-align:center;margin-top:12px;">
-      <button onclick="forgotPassword()" style="background:none;border:none;color:var(--text2);font-size:.82rem;cursor:pointer;text-decoration:underline;font-family:var(--fb);">Şifremi unuttum</button>
-    </div>
     <button onclick="openGuide()" style="width:100%;margin-top:10px;background:transparent;border:1px solid var(--border);color:var(--text2);padding:11px;border-radius:var(--rs);cursor:pointer;font-family:var(--fb);font-size:.85rem;transition:all .2s;">📖 Kullanma Kılavuzu</button>
   </div>
 </div>
@@ -517,9 +515,22 @@
       <span class="mhandle"></span>
       <div class="mtitle">➕ İlave Okuma</div>
       <div style="font-size:.82rem;color:var(--text2);margin-bottom:14px;">Günlük hedef dışında ek okuma yaptıysanız sayfa sayısını girin.</div>
-      <div class="fr"><label>Tarih</label><input type="date" id="ilave-date"/></div>
-      <div class="fr"><label>İlave Sayfa Sayısı</label><input type="number" id="ilave-pages" placeholder="Örn: 10" min="1"/></div>
-      <div class="fr"><label>Not (opsiyonel)</label><textarea id="ilave-note" placeholder="Not..."></textarea></div>
+      
+      <div class="fr">
+        <label>Tarih</label>
+        <select id="ilave-date"></select>
+      </div>
+      
+      <div class="fr">
+        <label>İlave Sayfa Sayısı</label>
+        <input type="number" id="ilave-pages" placeholder="Örn: 10" min="1"/>
+      </div>
+      
+      <div class="fr">
+        <label>Not (opsiyonel)</label>
+        <textarea id="ilave-note" placeholder="Not..."></textarea>
+      </div>
+      
       <button class="btn btn-ilave btn-block" onclick="submitIlaveLog()">➕ İlave Okumayı Kaydet</button>
     </div>
   </div>
@@ -1001,11 +1012,64 @@ async function loadReport(){
 }
 
 // ── LOG ACTIONS ───────────────────────────────────────────────
-window.openIlaveModal=function(){
-  if(!myGroup) return toast('Aktif grup bulunamadı','error');
-  document.getElementById('ilave-date').value=todayStr();
-  document.getElementById('ilave-pages').value='';
-  document.getElementById('ilave-note').value='';
+window.openIlaveModal = async function() {
+  if (!myGroup) return toast('Aktif grup bulunamadı', 'error');
+
+  const now = new Date();
+  const today = todayStr();
+
+  // Son 7 günü bul (Bugün dahil, geçmişe doğru kronolojik sıralama için bugün - 6'dan başlar)
+  const pastDays = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6 + i);
+    const ds = dateStr(d);
+    pastDays.push({ d, ds });
+  }
+
+  // 7 gün öncesinin tarih string'i (Sorgu aralığı için)
+  const oldestDateStr = pastDays[0].ds;
+
+  // Son 7 gündeki logları çek
+  const { data: logs, error } = await sb.from('reading_logs')
+    .select('log_date, pages_read')
+    .eq('user_id', me.id)
+    .eq('group_id', myGroup.id)
+    .gte('log_date', oldestDateStr)
+    .lte('log_date', today);
+
+  if (error) {
+    return toast('Okuma geçmişi alınırken hata oluştu', 'error');
+  }
+
+  // Hangi günlerde okuma yapıldığını (dolu günleri) bul
+  const loggedDays = new Set((logs || []).map(l => l.log_date));
+  
+  // Sadece okuma yapılmış günleri filtrele
+  const filledDays = pastDays.filter(({ ds }) => loggedDays.has(ds));
+
+  if (!filledDays.length) {
+    return toast('Son 7 güne ait ilave yapılabilecek dolu bir gün bulunamadı.', 'error');
+  }
+
+  // Tarih listesini <select> elementine doldur
+  const dateSelect = document.getElementById('ilave-date');
+  dateSelect.innerHTML = filledDays.map(({ d, ds }) => {
+    const dayName = DN[(d.getDay() + 6) % 7]; 
+    const dateLabel = `${dayName}, ${d.getDate()} ${MN[d.getMonth()]}`;
+    return `<option value="${ds}">${dateLabel}</option>`;
+  }).join('');
+
+  // Eğer bugün de doluysa varsayılan olarak bugünü seç, değilse listedeki en son dolu günü seç
+  if (loggedDays.has(today)) {
+    dateSelect.value = today;
+  } else {
+    dateSelect.value = filledDays[filledDays.length - 1].ds;
+  }
+
+  // Sayfa sayısı ve not alanlarını elle girilmesi için temizle
+  document.getElementById('ilave-pages').value = '';
+  document.getElementById('ilave-note').value = '';
+  
   openM('ilave-modal');
 };
 window.submitIlaveLog=async function(){
