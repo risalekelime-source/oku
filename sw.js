@@ -1,4 +1,4 @@
-const CACHE = 'risale-v3';
+const CACHE = 'risale-v4';
 const ASSETS = [
   '/oku/',
   '/oku/index.html',
