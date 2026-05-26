@@ -1010,63 +1010,74 @@ async function loadReport(){
 window.openIlaveModal = async function() {
   if (!myGroup) return toast('Aktif grup bulunamadı', 'error');
 
-  const now = new Date();
-  const today = todayStr();
+  try {
+    const now = new Date();
+    const today = todayStr();
 
-  // Android uyumlu son 7 gün bulma mantığı
-  const pastDays = [];
-  for (let i = 0; i < 7; i++) {
-    // Zaman dilimi hatalarını önlemek için doğrudan timestamp (ms) üzerinden geriye gidiyoruz
-    const d = new Date(now.getTime() - (6 - i) * 24 * 60 * 60 * 1000);
-    const ds = dateStr(d);
-    pastDays.push({ d, ds });
-  }
+    // Son 7 günü bulma (Zaman dilimi kaymalarını önlemek için en güvenli Android yöntemi)
+    const pastDays = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date();
+      d.setDate(now.getDate() - (6 - i));
+      const ds = dateStr(d);
+      pastDays.push({ d, ds });
+    }
 
-  const oldestDateStr = pastDays[0].ds;
+    const oldestDateStr = pastDays[0].ds;
 
-  // Son 7 gündeki logları çek
-  const { data: logs, error } = await sb.from('reading_logs')
-    .select('log_date, pages_read')
-    .eq('user_id', me.id)
-    .eq('group_id', myGroup.id)
-    .gte('log_date', oldestDateStr)
-    .lte('log_date', today);
+    // Veritabanı sorgusu
+    const { data: logs, error } = await sb.from('reading_logs')
+      .select('log_date, pages_read')
+      .eq('user_id', me.id)
+      .eq('group_id', myGroup.id)
+      .gte('log_date', oldestDateStr)
+      .lte('log_date', today);
 
-  if (error) {
-    return toast('Okuma geçmişi alınırken hata oluştu', 'error');
-  }
+    if (error) {
+      console.error(error);
+      return toast('Okuma geçmişi alınırken hata oluştu', 'error');
+    }
 
-  const loggedDays = new Set((logs || []).map(l => l.log_date));
-  const filledDays = pastDays.filter(({ ds }) => loggedDays.has(ds));
+    const loggedDays = new Set((logs || []).map(l => l.log_date));
+    const filledDays = pastDays.filter(({ ds }) => loggedDays.has(ds));
 
-  if (!filledDays.length) {
-    return toast('Son 7 güne ait ilave yapılabilecek dolu bir gün bulunamadı.', 'error');
-  }
+    if (!filledDays.length) {
+      return toast('Son 7 güne ait dolu gün bulunamadı.', 'error');
+    }
 
-  // Tarih listesini doldur
-  const dateSelect = document.getElementById('ilave-date');
-  if (!dateSelect) return toast('Tarih seçim alanı bulunamadı', 'error');
+    const dateSelect = document.getElementById('ilave-date');
+    if (!dateSelect) return toast('Tarih alanı bulunamadı', 'error');
 
-  dateSelect.innerHTML = filledDays.map(({ d, ds }) => {
-    const dayName = DN[(d.getDay() + 6) % 7]; 
-    const dateLabel = `${dayName}, ${d.getDate()} ${MN[d.getMonth()]}`;
-    return `<option value="${ds}">${dateLabel}</option>`;
-  }).join('');
+    // Android'in DN ve MN dizilerindeki olası tanımsızlık hatasından kaçınmak için 
+    // doğrudan tarayıcının kendi Türkçe tarih formatlama dil motorunu kullanıyoruz.
+    dateSelect.innerHTML = filledDays.map(({ d, ds }) => {
+      const dateLabel = d.toLocaleDateString('tr-TR', { 
+        weekday: 'long', 
+        day: 'numeric', 
+        month: 'long' 
+      });
+      return `<option value="${ds}">${dateLabel}</option>`;
+    }).join('');
 
-  // Android/Mobil cihazlarda DOM render senkronizasyonu için seçimi hafif geciktiriyoruz
-  setTimeout(() => {
+    // Android DOM eşitleme gecikmesini önlemek için doğrudan seçimi yapıyoruz
     if (loggedDays.has(today)) {
       dateSelect.value = today;
     } else {
       dateSelect.value = filledDays[filledDays.length - 1].ds;
     }
-  }, 50);
 
-  // Sayfa sayısı ve not alanlarını temizle
-  document.getElementById('ilave-pages').value = '';
-  document.getElementById('ilave-note').value = '';
-  
-  openM('ilave-modal');
+    // Inputları temizle
+    document.getElementById('ilave-pages').value = '';
+    document.getElementById('ilave-note').value = '';
+    
+    // Modalı aç
+    openM('ilave-modal');
+
+  } catch (err) {
+    // Eğer Android'de yine de bir hata oluşursa konsola yazdır ve ekranda göster
+    console.error("İlave Modal Hatası:", err);
+    toast('Bir hata oluştu: ' + err.message, 'error');
+  }
 };
 window.submitIlaveLog=async function(){
   const date=document.getElementById('ilave-date').value;
