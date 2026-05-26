@@ -1014,7 +1014,7 @@ window.openIlaveModal = async function() {
     const now = new Date();
     const today = todayStr();
 
-    // Son 7 günü bulma (Zaman dilimi kaymalarını önlemek için en güvenli Android yöntemi)
+    // Son 7 günü bulma
     const pastDays = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date();
@@ -1048,8 +1048,7 @@ window.openIlaveModal = async function() {
     const dateSelect = document.getElementById('ilave-date');
     if (!dateSelect) return toast('Tarih alanı bulunamadı', 'error');
 
-    // Android'in DN ve MN dizilerindeki olası tanımsızlık hatasından kaçınmak için 
-    // doğrudan tarayıcının kendi Türkçe tarih formatlama dil motorunu kullanıyoruz.
+    // Türkçe tarih formatlama
     dateSelect.innerHTML = filledDays.map(({ d, ds }) => {
       const dateLabel = d.toLocaleDateString('tr-TR', { 
         weekday: 'long', 
@@ -1059,22 +1058,23 @@ window.openIlaveModal = async function() {
       return `<option value="${ds}">${dateLabel}</option>`;
     }).join('');
 
-    // Android DOM eşitleme gecikmesini önlemek için doğrudan seçimi yapıyoruz
+    // Varsayılan tarih seçimi
     if (loggedDays.has(today)) {
       dateSelect.value = today;
     } else {
       dateSelect.value = filledDays[filledDays.length - 1].ds;
     }
 
-    // Inputları temizle
-    document.getElementById('ilave-pages').value = '';
-    document.getElementById('ilave-note').value = '';
+    // Sayfa sayısı alanını temizle
+    const pagesInput = document.getElementById('ilave-pages');
+    if (pagesInput) pagesInput.value = '';
+    
+    // HATA VEREN SATIR KALDIRILDI (HTML'de ilave-note olmadığı için crash yapıyordu)
     
     // Modalı aç
     openM('ilave-modal');
 
   } catch (err) {
-    // Eğer Android'de yine de bir hata oluşursa konsola yazdır ve ekranda göster
     console.error("İlave Modal Hatası:", err);
     toast('Bir hata oluştu: ' + err.message, 'error');
   }
