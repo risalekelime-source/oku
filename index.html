@@ -1113,49 +1113,58 @@ window.logToday=async function(){
 
   await saveLog(today, myGroup.daily_page_goal, '', false);
 };
-window.openCompModal=async function(){
-  if(!myGroup) return toast('Aktif grup bulunamadı','error');
-  const now=new Date(), today=todayStr();
-  const ws=weekStart(now);
-  const goal=myGroup.daily_page_goal;
+window.openCompModal = async function() {
+  if (!myGroup) return toast('Aktif grup bulunamadı', 'error');
+  
+  const now = new Date();
+  const today = todayStr();
+  const goal = myGroup.daily_page_goal;
 
-  // Bu haftanın geçmiş günlerini bul (bugün dahil değil, bugün "Okuma" ile girilmeli)
-  const pastDays=[];
-  for(let i=0;i<7;i++){
-    const d=new Date(ws.getFullYear(),ws.getMonth(),ws.getDate()+i);
-    const ds=dateStr(d);
-    if(ds>=today) break; // bugün ve gelecek günleri atla
-    pastDays.push({d, ds});
+  // Dünden başlayarak geriye dönük son 7 günü bul (Bugün dahil değil)
+  const pastDays = [];
+  for (let i = 1; i <= 6; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    const ds = dateStr(d);
+    pastDays.push({ d, ds });
+  }
+  
+  // Kronolojik sıra için eski tarihten yeni tarihe doğru sıralayalım (Opsiyonel)
+  pastDays.reverse();
+
+  // En eski günün tarihi (Sorgu başlangıcı için)
+  const oldestDateStr = pastDays[0].ds;
+
+  // Son 7 günün loglarını çek (Bugün hariç)
+  const { data: logs, error } = await sb.from('reading_logs')
+    .select('log_date,pages_read,is_compensatory')
+    .eq('user_id', me.id)
+    .eq('group_id', myGroup.id)
+    .gte('log_date', oldestDateStr)
+    .lt('log_date', today);
+
+  if (error) {
+    return toast('Okuma geçmişi alınırken hata oluştu', 'error');
   }
 
-  if(!pastDays.length){
-    toast('Geçmiş gün yok, hafta yeni başladı','error');
-    return;
-  }
+  // Hedefe ulaşılmış (dolu) günleri Set'e atalım
+  const loggedDays = new Set((logs || []).filter(l => l.pages_read >= goal).map(l => l.log_date));
 
-  // Bu günlerin loglarını çek
-  const {data:logs}=await sb.from('reading_logs').select('log_date,pages_read,is_compensatory')
-    .eq('user_id',me.id).eq('group_id',myGroup.id)
-    .gte('log_date',dateStr(ws)).lt('log_date',today);
+  // Hedefin altında kalan veya hiç okunmayan (eksik) günleri filtrele
+  const missingDays = pastDays.filter(({ ds }) => !loggedDays.has(ds));
 
-  const loggedDays=new Set((logs||[]).filter(l=>l.pages_read>=goal).map(l=>l.log_date));
+  const listEl = document.getElementById('comp-days-list');
+  const emptyEl = document.getElementById('comp-empty');
 
-  // Okunmayan günleri filtrele
-  const missingDays=pastDays.filter(({ds})=>!loggedDays.has(ds));
-
-  const listEl=document.getElementById('comp-days-list');
-  const emptyEl=document.getElementById('comp-empty');
-
-  if(!missingDays.length){
-    listEl.innerHTML='';
-    emptyEl.style.display='block';
-    listEl.style.display='none';
+  if (!missingDays.length) {
+    listEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    listEl.style.display = 'none';
   } else {
-    emptyEl.style.display='none';
-    listEl.style.display='flex';
-    listEl.innerHTML=missingDays.map(({d,ds})=>{
-      const dayName=DN[(d.getDay()+6)%7];
-      const dateLabel=`${dayName}, ${d.getDate()} ${MN[d.getMonth()]}`;
+    emptyEl.style.display = 'none';
+    listEl.style.display = 'flex';
+    listEl.innerHTML = missingDays.map(({ d, ds }) => {
+      const dayName = DN[(d.getDay() + 6) % 7];
+      const dateLabel = `${dayName}, ${d.getDate()} ${MN[d.getMonth()]}`;
       return `<button class="comp-day-btn" onclick="submitCompLog('${ds}')" style="
         display:flex;align-items:center;justify-content:space-between;
         background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);
@@ -1172,7 +1181,6 @@ window.openCompModal=async function(){
   }
   openM('log-modal');
 };
-
 window.submitCompLog=async function(date){
   if(!date) return;
   closeModal('log-modal');
