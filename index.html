@@ -1014,15 +1014,15 @@ window.openIlaveModal = async function() {
   const now = new Date();
   const today = todayStr();
 
-  // Son 7 günü bul (Bugün dahil, geçmişe doğru kronolojik sıralama için bugün - 6'dan başlar)
+  // Android uyumlu son 7 gün bulma mantığı
   const pastDays = [];
   for (let i = 0; i < 7; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6 + i);
+    // Zaman dilimi hatalarını önlemek için doğrudan timestamp (ms) üzerinden geriye gidiyoruz
+    const d = new Date(now.getTime() - (6 - i) * 24 * 60 * 60 * 1000);
     const ds = dateStr(d);
     pastDays.push({ d, ds });
   }
 
-  // 7 gün öncesinin tarih string'i (Sorgu aralığı için)
   const oldestDateStr = pastDays[0].ds;
 
   // Son 7 gündeki logları çek
@@ -1037,32 +1037,33 @@ window.openIlaveModal = async function() {
     return toast('Okuma geçmişi alınırken hata oluştu', 'error');
   }
 
-  // Hangi günlerde okuma yapıldığını (dolu günleri) bul
   const loggedDays = new Set((logs || []).map(l => l.log_date));
-  
-  // Sadece okuma yapılmış günleri filtrele
   const filledDays = pastDays.filter(({ ds }) => loggedDays.has(ds));
 
   if (!filledDays.length) {
     return toast('Son 7 güne ait ilave yapılabilecek dolu bir gün bulunamadı.', 'error');
   }
 
-  // Tarih listesini <select> elementine doldur
+  // Tarih listesini doldur
   const dateSelect = document.getElementById('ilave-date');
+  if (!dateSelect) return toast('Tarih seçim alanı bulunamadı', 'error');
+
   dateSelect.innerHTML = filledDays.map(({ d, ds }) => {
     const dayName = DN[(d.getDay() + 6) % 7]; 
     const dateLabel = `${dayName}, ${d.getDate()} ${MN[d.getMonth()]}`;
     return `<option value="${ds}">${dateLabel}</option>`;
   }).join('');
 
-  // Eğer bugün de doluysa varsayılan olarak bugünü seç, değilse listedeki en son dolu günü seç
-  if (loggedDays.has(today)) {
-    dateSelect.value = today;
-  } else {
-    dateSelect.value = filledDays[filledDays.length - 1].ds;
-  }
+  // Android/Mobil cihazlarda DOM render senkronizasyonu için seçimi hafif geciktiriyoruz
+  setTimeout(() => {
+    if (loggedDays.has(today)) {
+      dateSelect.value = today;
+    } else {
+      dateSelect.value = filledDays[filledDays.length - 1].ds;
+    }
+  }, 50);
 
-  // Sayfa sayısı ve not alanlarını elle girilmesi için temizle
+  // Sayfa sayısı ve not alanlarını temizle
   document.getElementById('ilave-pages').value = '';
   document.getElementById('ilave-note').value = '';
   
