@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -121,8 +120,8 @@
     .tw{display:flex;align-items:center;justify-content:space-between}
     .toggle{position:relative;width:46px;height:25px;background:var(--bg3);border-radius:13px;cursor:pointer;transition:background .2s;flex-shrink:0}
     .toggle.on{background:var(--accent)}.toggle::after{content:'';position:absolute;top:3px;left:3px;width:19px;height:19px;background:#fff;border-radius:50%;transition:left .2s}.toggle.on::after{left:24px}
-    #log-modal,#add-user-modal,#add-book-modal,#manage-group-modal,#edit-group-modal,#ilave-modal,#delete-user-modal,#guide-modal,#reset-pw-modal,#pw-update-modal{display:none}
-    #log-modal.am,#add-user-modal.am,#add-book-modal.am,#manage-group-modal.am,#edit-group-modal.am,#ilave-modal.am,#delete-user-modal.am,#guide-modal.am,#reset-pw-modal.am,#pw-update-modal.am{display:block}
+    #log-modal,#add-user-modal,#add-book-modal,#manage-group-modal,#edit-group-modal,#ilave-modal,#ilave-pages-modal,#delete-user-modal,#guide-modal,#reset-pw-modal,#pw-update-modal{display:none}
+    #log-modal.am,#add-user-modal.am,#add-book-modal.am,#manage-group-modal.am,#edit-group-modal.am,#ilave-modal.am,#ilave-pages-modal.am,#delete-user-modal.am,#guide-modal.am,#reset-pw-modal.am,#pw-update-modal.am{display:block}
     .mo{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px);animation:fadeIn .2s}
     .modal{background:var(--card);border-radius:var(--r) var(--r) 0 0;padding:22px 18px calc(var(--sb) + 22px);width:100%;max-width:480px;animation:slideUp .3s ease;max-height:90dvh;overflow-y:auto}
     .mhandle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;display:block}
@@ -396,11 +395,6 @@
           </div>
         </div>
         <div class="fr"><label>Ad Soyad</label><input type="text" id="edit-fullname" placeholder="Adınız Soyadınız"/></div>
-        <div class="fr">
-          <label>E-posta <span style="font-weight:400;text-transform:none;color:var(--text2);">(değiştirmek için yeni adres girin)</span></label>
-          <input type="email" id="edit-email" placeholder="yeni@email.com"/>
-          <div style="font-size:.7rem;color:var(--text2);margin-top:4px;" id="edit-email-hint"></div>
-        </div>
         <div class="fr"><label>Yeni Şifre <span style="font-weight:400;text-transform:none;color:var(--text2);">(boş = değiştirme)</span></label><input type="password" id="edit-password" placeholder="••••••••"/></div>
         <button class="btn btn-primary btn-block" onclick="saveProfile()">Kaydet</button>
       </div>
@@ -510,23 +504,32 @@
 
 <!-- İLAVE MODAL -->
 <div id="ilave-modal">
-  <div class="mo" onclick="closeModal('ilave-modal')" ontouchstart="closeModal('ilave-modal')">
-    <div class="modal" onclick="event.stopPropagation();" ontouchstart="event.stopPropagation();" style="-webkit-overflow-scrolling: touch;">
+  <div class="mo" onclick="closeModal('ilave-modal')">
+    <div class="modal" onclick="event.stopPropagation()">
       <span class="mhandle"></span>
       <div class="mtitle">➕ İlave Okuma</div>
-      <div style="font-size:.82rem;color:var(--text2);margin-bottom:14px;">Günlük hedef dışında ek okuma yaptıysanız sayfa sayısını girin.</div>
-      
-      <div class="fr">
-        <label for="ilave-date">Tarih</label>
-        <select id="ilave-date" name="ilave-date" style="width: 100%; -webkit-appearance: none; appearance: none;"></select>
+      <div style="font-size:.8rem;color:var(--text2);margin-bottom:12px;">Okuma veya telafi girişi yapılan günler:</div>
+      <div id="ilave-days-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:4px;"></div>
+      <div id="ilave-empty" style="display:none;text-align:center;padding:24px;color:var(--text2);font-size:.85rem;">
+        📖 Son 7 günde okuma kaydı bulunamadı.
       </div>
-      
-      <div class="fr">
-        <label for="ilave-pages">İlave Sayfa Sayısı</label>
-        <input type="number" id="ilave-pages" inputmode="numeric" pattern="[0-9]*" placeholder="Örn: 10" min="1"/>
+    </div>
+  </div>
+</div>
+<!-- İLAVE SAYFA MODAL -->
+<div id="ilave-pages-modal">
+  <div class="mo" onclick="closeModal('ilave-pages-modal')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <span class="mhandle"></span>
+      <div class="mtitle">➕ İlave Sayfa Gir</div>
+      <input type="hidden" id="ilave-selected-date"/>
+      <div style="background:var(--bg3);border-radius:var(--rs);padding:12px 14px;margin-bottom:14px;">
+        <div style="font-size:.78rem;color:var(--text2);margin-bottom:2px;">Seçilen Gün</div>
+        <div style="font-weight:600;" id="ilave-selected-label">—</div>
       </div>
-      
-      <button class="btn btn-ilave btn-block" onclick="submitIlaveLog()" type="button">➕ İlave Okumayı Kaydet</button>
+      <div class="fr"><label>İlave Sayfa Sayısı</label><input type="number" id="ilave-pages" placeholder="Örn: 10" min="1"/></div>
+      <div class="fr"><label>Not (opsiyonel)</label><textarea id="ilave-note" placeholder="Not..."></textarea></div>
+      <button class="btn btn-ilave btn-block" onclick="submitIlaveLog()">➕ İlave Okumayı Kaydet</button>
     </div>
   </div>
 </div>
@@ -672,8 +675,6 @@ function updateProfileDisplay(){
   document.getElementById('settings-email').textContent=me?.email||'—';
   document.getElementById('edit-fullname').value=myProfile?.full_name||'';
   const epEl=document.getElementById('edit-password'); if(epEl) epEl.value='';
-  const eeEl=document.getElementById('edit-email'); if(eeEl){ eeEl.value=''; eeEl.placeholder=me?.email||''; }
-  const ehEl=document.getElementById('edit-email-hint'); if(ehEl) ehEl.textContent='Mevcut: '+(me?.email||'—');
 }
 
 // ── INIT ──────────────────────────────────────────────────────
@@ -686,11 +687,12 @@ async function initApp(){
   await loadMyGroup();
   await loadHome(); await loadReport();
   await loadNotifSettings(); scheduleNotif();
+  // Uygulama açılışında veriyi tazele
+  setInterval(loadHome, 5*60*1000); // 5 dakikada bir arka planda güncelle
 }
 
 window.saveProfile=async function(){
   const fullname=document.getElementById('edit-fullname').value.trim();
-  const newEmail=document.getElementById('edit-email')?.value.trim();
   const password=document.getElementById('edit-password').value;
   if(!fullname) return toast('Ad Soyad gerekli','error');
 
@@ -698,20 +700,6 @@ window.saveProfile=async function(){
   const {error:profErr}=await sb.from('profiles').update({full_name:fullname}).eq('id',me.id);
   if(profErr){toast('Hata: '+profErr.message,'error');return;}
 
-  // E-posta değişikliği
-  if(newEmail && newEmail!==me.email){
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)){toast('Geçerli bir e-posta girin','error');return;}
-    const {error:emailErr}=await sb.auth.updateUser({email:newEmail});
-    if(emailErr){
-      // "Email not confirmed" gibi hatalar bilgi amaçlı, kritik değil
-      console.warn('Email update warning:',emailErr.message);
-      toast('E-posta değiştirme maili gönderildi. Yeni adresinizi onaylayın.','success');
-    } else {
-      // profiles tablosuna da kaydet
-      await sb.from('profiles').update({email:newEmail}).eq('id',me.id);
-      toast('E-posta değiştirme maili gönderildi. Yeni adresinizi onaylayın.','success');
-    }
-  }
 
   // Şifre değişikliği
   if(password){
@@ -722,7 +710,7 @@ window.saveProfile=async function(){
 
   myProfile={...myProfile,full_name:fullname};
   updateProfileDisplay();
-  if(!newEmail||newEmail===me.email) toast('Profil güncellendi! ✓','success');
+  toast('Profil güncellendi! ✓','success');
 };
 
 window.sendPasswordReset=async function(){
@@ -1007,86 +995,80 @@ async function loadReport(){
 }
 
 // ── LOG ACTIONS ───────────────────────────────────────────────
-window.openIlaveModal = async function() {
-  if (!myGroup) return toast('Aktif grup bulunamadı', 'error');
+window.openIlaveModal=async function(){
+  if(!myGroup) return toast('Aktif grup bulunamadı','error');
+  const now=new Date(), today=todayStr();
+  const goal=myGroup.daily_page_goal;
 
-  try {
-    const now = new Date();
-    const today = todayStr();
-
-    // Son 7 günü bulma
-    const pastDays = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date();
-      d.setDate(now.getDate() - (6 - i));
-      const ds = dateStr(d);
-      pastDays.push({ d, ds });
-    }
-
-    const oldestDateStr = pastDays[0].ds;
-
-    // Veritabanı sorgusu
-    const { data: logs, error } = await sb.from('reading_logs')
-      .select('log_date, pages_read')
-      .eq('user_id', me.id)
-      .eq('group_id', myGroup.id)
-      .gte('log_date', oldestDateStr)
-      .lte('log_date', today);
-
-    if (error) {
-      console.error(error);
-      return toast('Okuma geçmişi alınırken hata oluştu', 'error');
-    }
-
-    const loggedDays = new Set((logs || []).map(l => l.log_date));
-    const filledDays = pastDays.filter(({ ds }) => loggedDays.has(ds));
-
-    if (!filledDays.length) {
-      return toast('Son 7 güne ait dolu gün bulunamadı.', 'error');
-    }
-
-    const dateSelect = document.getElementById('ilave-date');
-    if (!dateSelect) return toast('Tarih alanı bulunamadı', 'error');
-
-    // Türkçe tarih formatlama
-    dateSelect.innerHTML = filledDays.map(({ d, ds }) => {
-      const dateLabel = d.toLocaleDateString('tr-TR', { 
-        weekday: 'long', 
-        day: 'numeric', 
-        month: 'long' 
-      });
-      return `<option value="${ds}">${dateLabel}</option>`;
-    }).join('');
-
-    // Varsayılan tarih seçimi
-    if (loggedDays.has(today)) {
-      dateSelect.value = today;
-    } else {
-      dateSelect.value = filledDays[filledDays.length - 1].ds;
-    }
-
-    // Sayfa sayısı alanını temizle
-    const pagesInput = document.getElementById('ilave-pages');
-    if (pagesInput) pagesInput.value = '';
-    
-    // HATA VEREN SATIR KALDIRILDI (HTML'de ilave-note olmadığı için crash yapıyordu)
-    
-    // Modalı aç
-    openM('ilave-modal');
-
-  } catch (err) {
-    console.error("İlave Modal Hatası:", err);
-    toast('Bir hata oluştu: ' + err.message, 'error');
+  // Son 7 gün (bugün dahil)
+  const days=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);
+    days.push({d, ds:dateStr(d)});
   }
+
+  const startDs=dateStr(days[days.length-1].d);
+  const {data:logs}=await sb.from('reading_logs').select('log_date,pages_read,is_compensatory')
+    .eq('user_id',me.id).eq('group_id',myGroup.id)
+    .gte('log_date',startDs).lte('log_date',today);
+
+  const logMap={};
+  (logs||[]).forEach(l=>{ logMap[l.log_date]=l; });
+
+  // Sadece okuma veya telafi girilmiş günleri göster (hedef sayfa girilmiş)
+  const validDays=days.filter(({ds})=>logMap[ds] && logMap[ds].pages_read>=goal);
+
+  const listEl=document.getElementById('ilave-days-list');
+  const emptyEl=document.getElementById('ilave-empty');
+
+  if(!validDays.length){
+    listEl.innerHTML='';
+    emptyEl.style.display='block';
+    listEl.style.display='none';
+  } else {
+    emptyEl.style.display='none';
+    listEl.style.display='flex';
+    listEl.innerHTML=validDays.map(({d,ds})=>{
+      const log=logMap[ds];
+      const dayName=DN[(d.getDay()+6)%7];
+      const dateLabel=`${dayName}, ${d.getDate()} ${MN[d.getMonth()]}`;
+      const isComp=log.is_compensatory;
+      const isToday=ds===today;
+      const dotColor=isComp?'#e09400':'#00c462';
+      const logLabel=`${log.pages_read} s. · ${isComp?'Telafi':'Okuma'}`;
+      return `<button class="comp-day-btn" onclick="openIlavePagesModal('${ds}','${dateLabel}')" style="
+        display:flex;align-items:center;justify-content:space-between;
+        background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);
+        padding:13px 15px;cursor:pointer;width:100%;color:var(--text);
+        font-family:var(--fb);font-size:.88rem;transition:all .2s;
+      ">
+        <span style="display:flex;align-items:center;gap:10px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:${dotColor};display:inline-block;flex-shrink:0;"></span>
+          <span>${dateLabel}${isToday?' <span style="color:var(--accent);font-size:.72rem;">(bugün)</span>':''}</span>
+        </span>
+        <span style="font-size:.78rem;color:var(--text2);">${logLabel} · ➕</span>
+      </button>`;
+    }).join('');
+  }
+  openM('ilave-modal');
 };
+
+window.openIlavePagesModal=function(date, label){
+  closeModal('ilave-modal');
+  document.getElementById('ilave-selected-date').value=date;
+  document.getElementById('ilave-selected-label').textContent=label;
+  document.getElementById('ilave-pages').value='';
+  document.getElementById('ilave-note').value='';
+  openM('ilave-pages-modal');
+};
+
 window.submitIlaveLog=async function(){
-  const date=document.getElementById('ilave-date').value;
+  const date=document.getElementById('ilave-selected-date').value;
   const pages=parseInt(document.getElementById('ilave-pages').value);
   const note=document.getElementById('ilave-note').value.trim();
   if(!date) return toast('Tarih seçin','error');
   if(!pages||pages<1) return toast('Sayfa sayısı girin','error');
 
-  // Seçilen günün mevcut logu varsa üstüne ekle
   const {data:ex}=await sb.from('reading_logs').select('id,pages_read').eq('user_id',me.id).eq('group_id',myGroup.id).eq('log_date',date).maybeSingle();
   let error;
   if(ex){
@@ -1097,7 +1079,7 @@ window.submitIlaveLog=async function(){
     error=e;
   }
   if(error){toast('Kayıt hatası: '+error.message,'error');return;}
-  closeModal('ilave-modal');
+  closeModal('ilave-pages-modal');
   toast(`+${pages} sayfa ilave kaydedildi! ➕`,'success');
   await loadHome();
 };
@@ -1120,58 +1102,43 @@ window.logToday=async function(){
 
   await saveLog(today, myGroup.daily_page_goal, '', false);
 };
-window.openCompModal = async function() {
-  if (!myGroup) return toast('Aktif grup bulunamadı', 'error');
-  
-  const now = new Date();
-  const today = todayStr();
-  const goal = myGroup.daily_page_goal;
+window.openCompModal=async function(){
+  if(!myGroup) return toast('Aktif grup bulunamadı','error');
+  const now=new Date(), today=todayStr();
+  const goal=myGroup.daily_page_goal;
 
-  // Dünden başlayarak geriye dönük son 7 günü bul (Bugün dahil değil)
-  const pastDays = [];
-  for (let i = 1; i <= 6; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
-    const ds = dateStr(d);
-    pastDays.push({ d, ds });
-  }
-  
-  // Kronolojik sıra için eski tarihten yeni tarihe doğru sıralayalım (Opsiyonel)
-  pastDays.reverse();
-
-  // En eski günün tarihi (Sorgu başlangıcı için)
-  const oldestDateStr = pastDays[0].ds;
-
-  // Son 7 günün loglarını çek (Bugün hariç)
-  const { data: logs, error } = await sb.from('reading_logs')
-    .select('log_date,pages_read,is_compensatory')
-    .eq('user_id', me.id)
-    .eq('group_id', myGroup.id)
-    .gte('log_date', oldestDateStr)
-    .lt('log_date', today);
-
-  if (error) {
-    return toast('Okuma geçmişi alınırken hata oluştu', 'error');
+  // Son 7 gün (bugün dahil)
+  const pastDays=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);
+    pastDays.push({d, ds:dateStr(d)});
   }
 
-  // Hedefe ulaşılmış (dolu) günleri Set'e atalım
-  const loggedDays = new Set((logs || []).filter(l => l.pages_read >= goal).map(l => l.log_date));
+  // Bu günlerin loglarını çek
+  const startDs=dateStr(pastDays[pastDays.length-1].d);
+  const {data:logs}=await sb.from('reading_logs').select('log_date,pages_read,is_compensatory')
+    .eq('user_id',me.id).eq('group_id',myGroup.id)
+    .gte('log_date',startDs).lte('log_date',today);
 
-  // Hedefin altında kalan veya hiç okunmayan (eksik) günleri filtrele
-  const missingDays = pastDays.filter(({ ds }) => !loggedDays.has(ds));
+  const loggedDays=new Set((logs||[]).filter(l=>l.pages_read>=goal).map(l=>l.log_date));
 
-  const listEl = document.getElementById('comp-days-list');
-  const emptyEl = document.getElementById('comp-empty');
+  // Hedef sayıya ulaşılmamış günleri göster
+  const missingDays=pastDays.filter(({ds})=>!loggedDays.has(ds));
 
-  if (!missingDays.length) {
-    listEl.innerHTML = '';
-    emptyEl.style.display = 'block';
-    listEl.style.display = 'none';
+  const listEl=document.getElementById('comp-days-list');
+  const emptyEl=document.getElementById('comp-empty');
+
+  if(!missingDays.length){
+    listEl.innerHTML='';
+    emptyEl.style.display='block';
+    listEl.style.display='none';
   } else {
-    emptyEl.style.display = 'none';
-    listEl.style.display = 'flex';
-    listEl.innerHTML = missingDays.map(({ d, ds }) => {
-      const dayName = DN[(d.getDay() + 6) % 7];
-      const dateLabel = `${dayName}, ${d.getDate()} ${MN[d.getMonth()]}`;
+    emptyEl.style.display='none';
+    listEl.style.display='flex';
+    listEl.innerHTML=missingDays.map(({d,ds})=>{
+      const dayName=DN[(d.getDay()+6)%7];
+      const dateLabel=`${dayName}, ${d.getDate()} ${MN[d.getMonth()]}`;
+      const isToday=ds===today;
       return `<button class="comp-day-btn" onclick="submitCompLog('${ds}')" style="
         display:flex;align-items:center;justify-content:space-between;
         background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);
@@ -1180,14 +1147,15 @@ window.openCompModal = async function() {
       ">
         <span style="display:flex;align-items:center;gap:10px;">
           <span style="width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0;"></span>
-          <span>${dateLabel}</span>
+          <span>${dateLabel}${isToday?' <span style="color:var(--accent);font-size:.72rem;">(bugün)</span>':''}</span>
         </span>
-        <span style="font-size:.78rem;color:var(--text2);">${goal} sayfa · Kaydet ◐</span>
+        <span style="font-size:.78rem;color:var(--text2);">${goal} sayfa · ◐</span>
       </button>`;
     }).join('');
   }
   openM('log-modal');
 };
+
 window.submitCompLog=async function(date){
   if(!date) return;
   closeModal('log-modal');
@@ -1260,12 +1228,7 @@ async function loadAdminAllMembers(){
             <div style="font-size:.68rem;color:var(--text2);">${pages} sayfa · ${currentRole==='admin'?'<span style=color:var(--accent)>Yönetici</span>':'Kullanıcı'}</div>
           </div>
           <div style="display:flex;gap:4px;flex-shrink:0;">
-            <button onclick="toggleRole('${uid}','${currentRole}')" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:.65rem;cursor:pointer;" title="Rol Değiştir">
-              ${currentRole==='admin'?'👤':'⚙️'}
-            </button>
-            <button onclick="resetPassword('${uid}','${name.replace(/'/g,'')}')" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:.65rem;cursor:pointer;" title="Şifre Sıfırla">
-              🔑
-            </button>
+
           </div>
         </div>`;
       });
@@ -1524,6 +1487,12 @@ window.saveNotifSettings=async function(){
   const time=document.getElementById('notif-time').value;
   await sb.from('notification_settings').upsert({user_id:me.id,reminder_enabled:enabled,reminder_time:time+':00',updated_at:new Date().toISOString()},{onConflict:'user_id'});
   toast('Bildirim ayarları kaydedildi','success');
+  // SW'yi güncelle
+  if(enabled && myGroup && 'serviceWorker' in navigator){
+    const reg=await navigator.serviceWorker.getRegistration();
+    const [h,m]=time.split(':').map(Number);
+    if(reg?.active) reg.active.postMessage({type:'SCHEDULE_NOTIF',hour:h,minute:m,userId:me.id,groupId:myGroup.id,goalPages:myGroup.daily_page_goal});
+  }
 };
 window.toggleNotif=async function(){ document.getElementById('notif-toggle').classList.toggle('on'); await saveNotifSettings(); };
 window.testNotif=async function(){
@@ -1565,34 +1534,57 @@ async function showNotif(title, body, tag='notif'){
 let lastNotifDate='';
 function scheduleNotif(){
   clearInterval(notifTimer);
-  notifTimer=setInterval(checkNotif, 30000); // 30 saniyede bir
+  // Her dakika kontrol - uygulama açıkken
+  notifTimer=setInterval(checkNotif, 60000);
   checkNotif();
 }
 async function checkNotif(){
   if(!('Notification' in window)||Notification.permission!=='granted'||!myGroup||!me) return;
   const {data:s}=await sb.from('notification_settings').select('*').eq('user_id',me.id).maybeSingle();
   if(!s?.reminder_enabled) return;
-  const now=new Date();
+
   const [h,m]=(s.reminder_time||'20:00').split(':').map(Number);
-  const today=todayStr();
-  // Aynı gün zaten bildirim gösterildiyse tekrar gösterme
+  const now=new Date(), today=todayStr();
   const notifKey=today+'_'+h+'_'+m;
   if(lastNotifDate===notifKey) return;
-  // Belirlenen saatte mi? (dakika penceresi: tam dakika ±1)
+
+  // SW'ye bildirim yapılandırmasını gönder (uygulama kapalıyken çalışsın)
+  if('serviceWorker' in navigator){
+    const reg=await navigator.serviceWorker.getRegistration();
+    if(reg?.active){
+      reg.active.postMessage({
+        type:'SCHEDULE_NOTIF',
+        hour:h, minute:m,
+        userId:me.id,
+        groupId:myGroup.id,
+        goalPages:myGroup.daily_page_goal
+      });
+    }
+  }
+
+  // Uygulama açıkken: belirlenen saatte kontrol
   const diffMin=now.getHours()*60+now.getMinutes() - (h*60+m);
   if(diffMin<0||diffMin>1) return;
-  // Bugün okuma girilmiş mi?
+
+  // Bugün okuma var mı?
   const {data:log}=await sb.from('reading_logs').select('id')
     .eq('user_id',me.id).eq('group_id',myGroup.id).eq('log_date',today).maybeSingle();
+
+  lastNotifDate=notifKey;
   if(!log){
-    lastNotifDate=notifKey;
-    showNotif(
-      '📖 Risale Okuma Takip',
-      `Bugün ${myGroup.daily_page_goal} sayfalık okumanı kaydetmeyi unutma!`,
-      'daily-reminder'
-    );
-  } else {
-    lastNotifDate=notifKey;
+    // Bugün kaç kişi okudu?
+    let readerCount=0;
+    try{
+      const {data:allGM}=await sb.from('group_members').select('user_id');
+      const allIds=(allGM||[]).map(m=>m.user_id);
+      if(allIds.length){
+        const {data:todayLogs}=await sb.from('reading_logs').select('user_id')
+          .eq('log_date',today).in('user_id',allIds);
+        readerCount=(todayLogs||[]).length;
+      }
+    }catch(e){}
+    const readerMsg=readerCount>0?` Bugün ${readerCount} kişi okumasını yaptı.`:'';
+    showNotif('📖 Risale Okuma Takip',`Günlük ${myGroup.daily_page_goal} sayfalık okumanı kaydetmeyi unutma!${readerMsg}`,'daily-reminder');
   }
 }
 
