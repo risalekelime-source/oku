@@ -687,6 +687,8 @@ async function initApp(){
   await loadMyGroup();
   await loadHome(); await loadReport();
   await loadNotifSettings(); scheduleNotif();
+  // Uygulama açılışında: saat geçtiyse ve okuma yapılmadıysa bildirim
+  setTimeout(()=>tryNotifCheck(true), 3000);
   // Uygulama açılışında veriyi tazele
   setInterval(loadHome, 5*60*1000); // 5 dakikada bir arka planda güncelle
 }
@@ -1487,14 +1489,15 @@ window.saveNotifSettings=async function(){
   const time=document.getElementById('notif-time').value;
   await sb.from('notification_settings').upsert({user_id:me.id,reminder_enabled:enabled,reminder_time:time+':00',updated_at:new Date().toISOString()},{onConflict:'user_id'});
   toast('Bildirim ayarları kaydedildi','success');
-  // SW'yi güncelle
-  if(enabled && myGroup && 'serviceWorker' in navigator){
-    const reg=await navigator.serviceWorker.getRegistration();
-    const [h,m]=time.split(':').map(Number);
-    if(reg?.active) reg.active.postMessage({type:'SCHEDULE_NOTIF',hour:h,minute:m,userId:me.id,groupId:myGroup.id,goalPages:myGroup.daily_page_goal});
-  }
+
 };
-window.toggleNotif=async function(){ document.getElementById('notif-toggle').classList.toggle('on'); await saveNotifSettings(); };
+window.toggleNotif=async function(){
+  const tog=document.getElementById('notif-toggle');
+  tog.classList.toggle('on');
+  await saveNotifSettings();
+  if(!tog.classList.contains('on')) await unsubscribePush();
+  else if(Notification.permission==='granted') await subscribePush();
+};
 window.testNotif=async function(){
   if(!('Notification' in window)&&!('serviceWorker' in navigator)){
     toast('Tarayıcınız bildirimleri desteklemiyor','error'); return;
@@ -1507,8 +1510,12 @@ window.testNotif=async function(){
 window.requestNotifPermission=async function(){
   if(!('Notification' in window)){toast('Tarayıcınız bildirimleri desteklemiyor','error');return;}
   const p=await Notification.requestPermission();
-  if(p==='granted'){toast('Bildirim izni verildi! 🔔','success');scheduleNotif();}
-  else toast('Bildirim izni reddedildi. Tarayıcı ayarlarından izin verin.','error');
+  if(p==='granted'){
+    toast('Bildirim izni verildi! 🔔 Push bildirimleri kaydediliyor...','success');
+    const ok = await subscribePush();
+    if(ok) toast('Push bildirimleri aktif! ✓','success');
+    scheduleNotif();
+  } else toast('Bildirim izni reddedildi. Tarayıcı ayarlarından izin verin.','error');
 };
 // Bildirim göster: önce SW, sonra fallback
 async function showNotif(title, body, tag='notif'){
@@ -1531,61 +1538,112 @@ async function showNotif(title, body, tag='notif'){
 }
 
 // Bildirim sistemi: her 30 saniyede kontrol, dakika penceresi 0-59 saniye
-let lastNotifDate='';
+
+// ── WEB PUSH SUBSCRIPTION ────────────────────────────────────
+const VAPID_PUBLIC_KEY = 'BLCesI5GturP2C_taqmbxS_Gun3ykMMnUYKSXqU_IwutA_rmOt-ZFyBOFDbQvohNU9RwSTavZ0Sy-cbswreOzvI';
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = atob(base64);
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
+async function subscribePush() {
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    toast('Tarayıcınız push bildirimi desteklemiyor','error');
+    return false;
+  }
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
+    }
+    // Subscription'ı veritabanına kaydet
+    const subJson = JSON.stringify(sub.toJSON());
+    await sb.from('notification_settings').upsert({
+      user_id: me.id,
+      push_subscription: subJson,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+    return true;
+  } catch(e) {
+    console.error('Push subscribe error:', e);
+    return false;
+  }
+}
+
+async function unsubscribePush() {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      await sub.unsubscribe();
+      await sb.from('notification_settings').update({
+        push_subscription: null
+      }).eq('user_id', me.id);
+    }
+  } catch(e) { console.error('Unsubscribe error:', e); }
+}
+
 function scheduleNotif(){
   clearInterval(notifTimer);
-  // Her dakika kontrol - uygulama açıkken
-  notifTimer=setInterval(checkNotif, 60000);
-  checkNotif();
+  notifTimer=setInterval(tryNotifCheck, 60000);
+  tryNotifCheck();
+  // Push subscription'ı güncelle (izin varsa)
+  if('Notification' in window && Notification.permission==='granted' && 'PushManager' in window){
+    subscribePush().catch(e=>console.log('Push sub error:',e));
+  }
 }
-async function checkNotif(){
+
+// Bildirim gönderme: hem saat bazlı hem açılış bazlı
+async function tryNotifCheck(forceIfMissed=false){
   if(!('Notification' in window)||Notification.permission!=='granted'||!myGroup||!me) return;
   const {data:s}=await sb.from('notification_settings').select('*').eq('user_id',me.id).maybeSingle();
   if(!s?.reminder_enabled) return;
 
-  const [h,m]=(s.reminder_time||'20:00').split(':').map(Number);
+  const [h,mn]=(s.reminder_time||'20:00').split(':').map(Number);
   const now=new Date(), today=todayStr();
-  const notifKey=today+'_'+h+'_'+m;
-  if(lastNotifDate===notifKey) return;
+  const notifKey='notif_'+today;
 
-  // SW'ye bildirim yapılandırmasını gönder (uygulama kapalıyken çalışsın)
-  if('serviceWorker' in navigator){
-    const reg=await navigator.serviceWorker.getRegistration();
-    if(reg?.active){
-      reg.active.postMessage({
-        type:'SCHEDULE_NOTIF',
-        hour:h, minute:m,
-        userId:me.id,
-        groupId:myGroup.id,
-        goalPages:myGroup.daily_page_goal
-      });
-    }
-  }
+  // Aynı gün zaten bildirim gösterildiyse atla
+  if(localStorage.getItem(notifKey)==='1') return;
 
-  // Uygulama açıkken: belirlenen saatte kontrol
-  const diffMin=now.getHours()*60+now.getMinutes() - (h*60+m);
-  if(diffMin<0||diffMin>1) return;
-
-  // Bugün okuma var mı?
+  // Bugün okuma var mı kontrol et
   const {data:log}=await sb.from('reading_logs').select('id')
     .eq('user_id',me.id).eq('group_id',myGroup.id).eq('log_date',today).maybeSingle();
+  if(log) return; // Okuma yapılmış, bildirime gerek yok
 
-  lastNotifDate=notifKey;
-  if(!log){
-    // Bugün kaç kişi okudu?
-    let readerCount=0;
-    try{
-      const {data:allGM}=await sb.from('group_members').select('user_id');
-      const allIds=(allGM||[]).map(m=>m.user_id);
-      if(allIds.length){
-        const {data:todayLogs}=await sb.from('reading_logs').select('user_id')
-          .eq('log_date',today).in('user_id',allIds);
-        readerCount=(todayLogs||[]).length;
-      }
-    }catch(e){}
-    const readerMsg=readerCount>0?` Bugün ${readerCount} kişi okumasını yaptı.`:'';
-    showNotif('📖 Risale Okuma Takip',`Günlük ${myGroup.daily_page_goal} sayfalık okumanı kaydetmeyi unutma!${readerMsg}`,'daily-reminder');
-  }
+  const nowMin=now.getHours()*60+now.getMinutes();
+  const targetMin=h*60+mn;
+
+  // Tam saatte mi? (±1 dakika) VEYA saat geçtiyse ve "açılışta kontrol" modundaysa
+  const isExactTime=(nowMin>=targetMin && nowMin<=targetMin+1);
+  const isPastTime=(nowMin>targetMin+1 && forceIfMissed);
+
+  if(!isExactTime && !isPastTime) return;
+
+  // Kaç kişi okudu?
+  let readerCount=0;
+  try{
+    const {data:allGM}=await sb.from('group_members').select('user_id');
+    const allIds=(allGM||[]).map(m=>m.user_id);
+    if(allIds.length){
+      const {data:todayLogs}=await sb.from('reading_logs').select('user_id')
+        .eq('log_date',today).in('user_id',allIds);
+      readerCount=(todayLogs||[]).length;
+    }
+  }catch(e){}
+
+  const readerMsg=readerCount>0?` Bugün ${readerCount} kişi okumasını yaptı.`:'';
+  const body=`Günlük ${myGroup.daily_page_goal} sayfalık okumanı kaydetmeyi unutma!${readerMsg}`;
+
+  localStorage.setItem(notifKey,'1');
+  await showNotif('📖 Risale Okuma Takip', body, 'daily-reminder');
 }
 
 // ── NAV ───────────────────────────────────────────────────────
