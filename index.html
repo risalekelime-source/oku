@@ -518,9 +518,12 @@
     <div class="modal" onclick="event.stopPropagation()">
       <span class="mhandle"></span>
       <div class="mtitle">🗑️ Kullanıcı Sil</div>
-      <div style="font-size:.82rem;color:var(--text2);margin-bottom:14px;">Silmek istediğiniz kullanıcıyı seçin. Bu işlem geri alınamaz.</div>
-      <div class="fr"><label>Kullanıcı</label><select id="delete-user-select"></select></div>
-      <button class="btn btn-danger btn-block" onclick="deleteUser()">🗑️ Kullanıcıyı Sil</button>
+      <div style="font-size:.82rem;color:var(--text2);margin-bottom:14px;">Silmek istediğiniz kullanıcıları seçin. Bu işlem geri alınamaz.</div>
+      <div class="fr">
+        <label>Kullanıcılar</label>
+        <div class="user-check-list" id="delete-user-check-list"></div>
+      </div>
+      <button class="btn btn-danger btn-block" onclick="deleteUser()">🗑️ Seçili Kullanıcıları Sil</button>
     </div>
   </div>
 </div>
@@ -1343,31 +1346,35 @@ window.resetPassword=async function(uid, name){
 
 window.openDeleteUserModal=async function(){
   const {data:profiles}=await sb.from('profiles').select('id,full_name,username').order('full_name');
-  const sel=document.getElementById('delete-user-select');
+  const list=document.getElementById('delete-user-check-list');
   // Kendi hesabını gösterme
-  sel.innerHTML=(profiles||[]).filter(p=>p.id!==me.id).map(p=>`<option value="${p.id}">${p.full_name||p.username}</option>`).join('');
+  list.innerHTML=(profiles||[]).filter(p=>p.id!==me.id).map(p=>`<div class="ucl-item"><input type="checkbox" id="duc-${p.id}" value="${p.id}"/><label for="duc-${p.id}">${p.full_name||p.username}</label></div>`).join('');
   openM('delete-user-modal');
 };
 window.deleteUser=async function(){
-  const uid=document.getElementById('delete-user-select').value;
-  const name=document.getElementById('delete-user-select').selectedOptions[0]?.text||'';
-  if(!uid) return;
-  if(!confirm(`"${name}" kullanıcısını ve tüm okuma kayıtlarını silmek istiyor musunuz?`)) return;
+  const boxes=document.querySelectorAll('#delete-user-check-list input[type=checkbox]');
+  const selIds=[...boxes].filter(c=>c.checked).map(c=>c.value);
+  if(!selIds.length) return toast('En az bir kullanıcı seçin','error');
+  if(!confirm(`${selIds.length} kullanıcıyı ve tüm okuma kayıtlarını silmek istiyor musunuz?`)) return;
 
-  // Tüm ilişkili verileri sil
-  const dels=await Promise.all([
-    sb.from('reading_logs').delete().eq('user_id',uid),
-    sb.from('group_members').delete().eq('user_id',uid),
-    sb.from('notification_settings').delete().eq('user_id',uid),
-  ]);
-  const delErr=dels.find(r=>r.error);
-  if(delErr){toast('Veri silme hatası: '+delErr.error.message,'error');return;}
+  const btn=document.querySelector('#delete-user-modal .btn-danger');
+  btn.disabled=true; btn.textContent='Siliniyor...';
 
-  const {error:profErr}=await sb.from('profiles').delete().eq('id',uid);
-  if(profErr){toast('Profil silme hatası: '+profErr.message,'error');return;}
+  let successCount = 0;
+  for(const uid of selIds){
+    try {
+      // Tüm ilişkili verileri sil
+      await sb.from('reading_logs').delete().eq('user_id',uid);
+      await sb.from('group_members').delete().eq('user_id',uid);
+      await sb.from('notification_settings').delete().eq('user_id',uid);
+      const {error:profErr}=await sb.from('profiles').delete().eq('id',uid);
+      if(!profErr) successCount++;
+    } catch(e) { console.error('Delete error for '+uid, e); }
+  }
 
+  btn.disabled=false; btn.textContent='🗑️ Seçili Kullanıcıları Sil';
   closeModal('delete-user-modal');
-  toast(`"${name}" ve tüm kayıtları silindi. Supabase Auth kaydı için Dashboard kullanın.`,'success');
+  toast(`${successCount} kullanıcı ve tüm kayıtları silindi. Auth kayıtları için Dashboard kullanın.`,'success');
 
   // Kullanıcı listesini güncelle
   if(myProfile?.role==='admin') await loadAdminAllMembers();
