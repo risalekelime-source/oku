@@ -308,9 +308,19 @@
         <button class="btn btn-comp btn-block" onclick="openCompModal()" style="font-size:.82rem;padding:14px 6px;">◐ Telafi</button>
       </div>
       <!-- Bu Hafta tablosu -->
-      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div style="font-family:var(--fd);font-size:1.1rem;font-weight:700;">Son 7 Gün</div>
-        <div style="font-size:.9rem;font-weight:600;color:var(--text2);" id="week-range"></div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:.82rem;font-weight:600;color:var(--text2);" id="week-range"></div>
+          <div style="display:flex;gap:4px;">
+            <button class="btn btn-secondary btn-sm" style="padding:4px 8px;" onclick="changeHomeWeek(-1)">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <button class="btn btn-secondary btn-sm" style="padding:4px 8px;" onclick="changeHomeWeek(1)">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          </div>
+        </div>
       </div>
       <div class="card" style="padding:12px 8px;overflow-x:auto;">
         <table class="week-grid" id="week-table"><thead><tr id="week-head"></tr></thead><tbody id="week-body"></tbody></table>
@@ -589,6 +599,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const sb = createClient('https://rrupsidrdgwgagetcojx.supabase.co','sb_publishable_lQXYDZqUPATZNwM8Cb17kg_F-T1XsOI');
 
 let me = null, myProfile = null, myGroup = null, allProfiles = [], allGroups = [], notifTimer = null;
+let homeWeekOffset = 0;
 
 const DN = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
 const MN = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
@@ -728,8 +739,15 @@ async function loadMyGroup(){
 }
 
 // ── HOME ──────────────────────────────────────────────────────
+window.changeHomeWeek=function(diff){
+  homeWeekOffset += diff;
+  loadHome();
+};
+
 async function loadHome(){
   const now=new Date(), today=todayStr();
+  const baseDate = new Date();
+  baseDate.setDate(baseDate.getDate() + (homeWeekOffset * 7));
 
 
   if(!myGroup){
@@ -738,8 +756,8 @@ async function loadHome(){
     return;
   }
   const goal=myGroup.daily_page_goal;
-  // Son 7 gün (bugün dahil)
-  const we=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  // Son 7 gün (bugün dahil veya seçili hafta)
+  const we=new Date(baseDate.getFullYear(),baseDate.getMonth(),baseDate.getDate());
   const ws=new Date(we.getFullYear(),we.getMonth(),we.getDate()-6);
   const wsStr=dateStr(ws), weStr=dateStr(we);
   document.getElementById('week-range').textContent=`${ws.getDate()} ${MNF[ws.getMonth()]} – ${we.getDate()} ${MNF[we.getMonth()]} ${we.getFullYear()}`;
