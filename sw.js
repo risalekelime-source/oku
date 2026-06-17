@@ -1,4 +1,4 @@
-const CACHE = 'risale-v6';
+const CACHE = 'risale-v7';
 const ASSETS = ['/oku/', '/oku/index.html', '/oku/manifest.json', '/oku/icon-192.png', '/oku/icon-512.png'];
 
 self.addEventListener('install', e => {
