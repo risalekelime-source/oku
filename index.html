@@ -330,7 +330,20 @@
 
     <!-- REPORT -->
     <div class="page" id="page-report">
-      <div class="sh"><div class="st">Aylık Rapor</div><div class="ss" id="report-week-label"></div></div>
+      <div class="sh">
+        <div>
+          <div class="st">Aylık Rapor</div>
+          <div class="ss" id="report-week-label"></div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-secondary btn-sm" style="padding:6px 10px;" onclick="changeReportOffset(-1)">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <button class="btn btn-secondary btn-sm" style="padding:6px 10px;" onclick="changeReportOffset(1)">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+      </div>
       <div class="card" style="margin-bottom:13px;"><div style="font-weight:600;margin-bottom:11px;font-size:.88rem;">📊 Son 30 Gün</div><div id="my-weekly-report"></div></div>
       <div class="sh" style="margin-bottom:10px;"><div class="st" style="font-size:1rem;">Son 7 Gün Sıralaması</div></div>
       <div class="card" id="group-weekly-report"><div class="empty"><div class="eico">📈</div><p>Yükleniyor...</p></div></div>
@@ -600,6 +613,7 @@ const sb = createClient('https://rrupsidrdgwgagetcojx.supabase.co','sb_publishab
 
 let me = null, myProfile = null, myGroup = null, allProfiles = [], allGroups = [], notifTimer = null;
 let homeWeekOffset = 0;
+let reportOffset = 0;
 
 const DN = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
 const MN = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
@@ -881,11 +895,17 @@ async function loadMembers(){
 }
 
 // ── REPORT ────────────────────────────────────────────────────
+window.changeReportOffset=function(diff){
+  reportOffset += diff;
+  loadReport();
+};
+
 async function loadReport(){
   const now=new Date(), today=todayStr();
 
-  // Son 30 günü hesapla
+  // Son 30 günü hesapla (offset ile)
   const mEnd=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  mEnd.setDate(mEnd.getDate() + (reportOffset * 30));
   const mStart=new Date(mEnd); mStart.setDate(mStart.getDate()-29);
   const mStartStr=dateStr(mStart), mEndStr=dateStr(mEnd);
 
