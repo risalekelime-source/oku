@@ -1584,54 +1584,49 @@ function scheduleNotif(){
   checkNotif();
 }
 async function checkNotif(){
-  if(!('Notification' in window)||Notification.permission!=='granted'||!myGroup||!me) return;
-  const {data:s}=await sb.from('notification_settings').select('*').eq('user_id',me.id).maybeSingle();
-  if(!s?.reminder_enabled) return;
+  // Temel güvenlik kontrolleri (Kullanıcı veya grup yoksa çalışmaz)
+  if(!myGroup || !me) {
+    return "Hata: Kullanıcı veya grup nesnesi henüz yüklenmemiş.";
+  }
 
-  const [h,m]=(s.reminder_time||'20:00').split(':').map(Number);
-  const now=new Date(), today=todayStr();
-  const notifKey=today+'_'+h+'_'+m;
-  if(lastNotifDate===notifKey) return;
+  // Tarayıcı/WebView bildirim izni kontrolü
+  if(!('Notification' in window) && !('serviceWorker' in navigator)){
+    return "Hata: Tarayıcı bildirimleri desteklemiyor.";
+  }
+  if(Notification.permission !== 'granted'){
+    return "Hata: Bildirim izni verilmemiş.";
+  }
 
-  // SW'ye bildirim yapılandırmasını gönder (uygulama kapalıyken çalışsın)
-  if('serviceWorker' in navigator){
-    const reg=await navigator.serviceWorker.getRegistration();
-    if(reg?.active){
-      reg.active.postMessage({
-        type:'SCHEDULE_NOTIF',
-        hour:h, minute:m,
-        userId:me.id,
-        groupId:myGroup.id,
-        goalPages:myGroup.daily_page_goal
-      });
+  const today = todayStr();
+  let readerCount = 0;
+
+  // Bugün kaç kişi okudu? Supabase'den çekiyoruz
+  try {
+    const {data:allGM} = await sb.from('group_members').select('user_id');
+    const allIds = (allGM || []).map(m => m.user_id);
+    if(allIds.length){
+      const {data:todayLogs} = await sb.from('reading_logs').select('user_id')
+        .eq('log_date', today).in('user_id', allIds);
+      readerCount = (todayLogs || []).length;
     }
+  } catch(e) {
+    console.log('Supabase okuma logu çekme hatası:', e.message);
   }
 
-  // Uygulama açıkken: belirlenen saatte kontrol
-  const diffMin=now.getHours()*60+now.getMinutes() - (h*60+m);
-  if(diffMin<0||diffMin>1) return;
+  const readerMsg = readerCount > 0 ? ` Bugün ${readerCount} kişi okumasını yaptı.` : '';
+  
+  // Zaman ve tarih kontrolü olmaksızın DOĞRUDAN bildirimi gösteriyoruz
+  const ok = await showNotif(
+    '📖 Risale Okuma Takip', 
+    `Günlük ${myGroup.daily_page_goal} sayfalık okumanı kaydetmeyi unutma!${readerMsg}`, 
+    'daily-reminder'
+  );
 
-  // Bugün okuma var mı?
-  const {data:log}=await sb.from('reading_logs').select('id')
-    .eq('user_id',me.id).eq('group_id',myGroup.id).eq('log_date',today).maybeSingle();
-
-  lastNotifDate=notifKey;
-  if(!log){
-    // Bugün kaç kişi okudu?
-    let readerCount=0;
-    try{
-      const {data:allGM}=await sb.from('group_members').select('user_id');
-      const allIds=(allGM||[]).map(m=>m.user_id);
-      if(allIds.length){
-        const {data:todayLogs}=await sb.from('reading_logs').select('user_id')
-          .eq('log_date',today).in('user_id',allIds);
-        readerCount=(todayLogs||[]).length;
-      }
-    }catch(e){}
-    const readerMsg=readerCount>0?` Bugün ${readerCount} kişi okumasını yaptı.`:'';
-    showNotif('📖 Risale Okuma Takip',`Günlük ${myGroup.daily_page_goal} sayfalık okumanı kaydetmeyi unutma!${readerMsg}`,'daily-reminder');
-  }
+  return ok ? "Bildirim başarıyla gönderildi" : "Bildirim gösterilemedi (showNotif başarısız)";
 }
+
+// Android'in küresel scope'tan (window) rahatça erişebilmesi için:
+window.checkNotif = checkNotif;
 
 // ── NAV ───────────────────────────────────────────────────────
 window.switchPage=function(name,btn){
