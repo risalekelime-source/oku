@@ -1627,6 +1627,7 @@ async function checkNotif(){
 
 // Android'in küresel scope'tan (window) rahatça erişebilmesi için:
 window.checkNotif = checkNotif;
+console.log("checkNotif fonksiyonu window nesnesine başarıyla bağlandı.");
 
 // ── NAV ───────────────────────────────────────────────────────
 window.switchPage=function(name,btn){
