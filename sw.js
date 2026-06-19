@@ -1,4 +1,4 @@
-const CACHE = 'risale-v8';
+const CACHE = 'risale-v9';
 const ASSETS = ['/oku/', '/oku/index.html', '/oku/manifest.json', '/oku/icon-192.png', '/oku/icon-512.png'];
 const SUPABASE_URL = 'https://rrupsidrdgwgagetcojx.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_lQXYDZqUPATZNwM8Cb17kg_F-T1XsOI';
