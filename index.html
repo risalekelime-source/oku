@@ -74,7 +74,7 @@
     .week-grid th{padding:7px 3px;text-align:center;color:var(--text2);font-weight:700;font-size:.65rem;text-transform:uppercase;letter-spacing:.5px}
     .week-grid th.today-col{color:var(--accent);position:relative;}
     .week-grid td{padding:4px 3px;text-align:center;vertical-align:middle}
-    .name-cell{text-align:left!important;padding:4px 6px 4px 2px!important;font-size:.78rem;font-weight:500;white-space:nowrap;min-width:100px;overflow:hidden;text-overflow:ellipsis;max-width:130px;}
+    .name-cell{text-align:left!important;padding:4px 6px 4px 2px!important;font-size:.78rem;font-weight:500;white-space:normal;min-width:110px}
     .dot{width:26px;height:26px;border-radius:7px;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:800;}
     .dot-green{background:#00c462;color:#fff;border:1px solid rgba(255,255,255,.25);}
     .dot-yellow{background:#e09400;color:#fff;border:1px solid rgba(255,255,255,.25);}
@@ -84,7 +84,7 @@
     .dot-future{background:rgba(255,255,255,.04);color:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.08);}
     .me-row .name-cell{color:var(--accent);font-weight:700}
     .today-cell .dot{outline:2px solid var(--accent);outline-offset:1px;}
-    /* .name-cell overrides removed for better fit */
+    .name-cell{min-width:120px;max-width:none!important;white-space:normal!important}
     .row-avatar{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;color:#fff;flex-shrink:0;vertical-align:middle;margin-right:6px;flex-shrink:0;}
     .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px}
     .stat-card{background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:3px}
@@ -308,21 +308,11 @@
         <button class="btn btn-comp btn-block" onclick="openCompModal()" style="font-size:.82rem;padding:14px 6px;">◐ Telafi</button>
       </div>
       <!-- Bu Hafta tablosu -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;">
         <div style="font-family:var(--fd);font-size:1.1rem;font-weight:700;">Son 7 Gün</div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <div style="font-size:.82rem;font-weight:600;color:var(--text2);" id="week-range"></div>
-          <div style="display:flex;gap:4px;">
-            <button class="btn btn-secondary btn-sm" style="padding:4px 8px;" onclick="changeHomeWeek(-1)">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            </button>
-            <button class="btn btn-secondary btn-sm" style="padding:4px 8px;" onclick="changeHomeWeek(1)">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            </button>
-          </div>
-        </div>
+        <div style="font-size:.9rem;font-weight:600;color:var(--text2);" id="week-range"></div>
       </div>
-      <div class="card" style="padding:12px 4px;overflow-x:auto;width:100%;">
+      <div class="card" style="padding:12px 8px;overflow-x:auto;">
         <table class="week-grid" id="week-table"><thead><tr id="week-head"></tr></thead><tbody id="week-body"></tbody></table>
       </div>
     </div>
@@ -330,20 +320,7 @@
 
     <!-- REPORT -->
     <div class="page" id="page-report">
-      <div class="sh">
-        <div>
-          <div class="st">Aylık Rapor</div>
-          <div class="ss" id="report-week-label"></div>
-        </div>
-        <div style="display:flex;gap:6px;">
-          <button class="btn btn-secondary btn-sm" style="padding:6px 10px;" onclick="changeReportOffset(-1)">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          </button>
-          <button class="btn btn-secondary btn-sm" style="padding:6px 10px;" onclick="changeReportOffset(1)">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          </button>
-        </div>
-      </div>
+      <div class="sh"><div class="st">Aylık Rapor</div><div class="ss" id="report-week-label"></div></div>
       <div class="card" style="margin-bottom:13px;"><div style="font-weight:600;margin-bottom:11px;font-size:.88rem;">📊 Son 30 Gün</div><div id="my-weekly-report"></div></div>
       <div class="sh" style="margin-bottom:10px;"><div class="st" style="font-size:1rem;">Son 7 Gün Sıralaması</div></div>
       <div class="card" id="group-weekly-report"><div class="empty"><div class="eico">📈</div><p>Yükleniyor...</p></div></div>
@@ -397,16 +374,7 @@
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:11px;">
-        <div style="font-weight:600;margin-bottom:13px;font-size:.88rem;">🔔 Bildirim</div>
-        <div class="tw" style="margin-bottom:13px;">
-          <div><div style="font-size:.88rem;">Günlük Hatırlatıcı</div><div style="font-size:.73rem;color:var(--text2);">Okuma girişi hatırlatıcı</div></div>
-          <div class="toggle" id="notif-toggle" onclick="toggleNotif()"></div>
-        </div>
-        <div class="fr"><label>Saat</label><input type="time" id="notif-time" value="20:00" onchange="saveNotifSettings()"/></div>
-        <button class="btn btn-secondary btn-block" style="margin-bottom:7px;" onclick="requestNotifPermission()">🔔 Bildirim İzni Ver</button>
-        <button class="btn btn-secondary btn-block" onclick="testNotif()" style="font-size:.8rem;">🧪 Test Bildirimi Gönder</button>
-      </div>
+
       <div class="card" style="margin-bottom:11px;">
         <div style="font-weight:600;margin-bottom:16px;font-size:.88rem;">👤 Profil</div>
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
@@ -518,12 +486,9 @@
     <div class="modal" onclick="event.stopPropagation()">
       <span class="mhandle"></span>
       <div class="mtitle">🗑️ Kullanıcı Sil</div>
-      <div style="font-size:.82rem;color:var(--text2);margin-bottom:14px;">Silmek istediğiniz kullanıcıları seçin. Bu işlem geri alınamaz.</div>
-      <div class="fr">
-        <label>Kullanıcılar</label>
-        <div class="user-check-list" id="delete-user-check-list"></div>
-      </div>
-      <button class="btn btn-danger btn-block" onclick="deleteUser()">🗑️ Seçili Kullanıcıları Sil</button>
+      <div style="font-size:.82rem;color:var(--text2);margin-bottom:14px;">Silmek istediğiniz kullanıcıyı seçin. Bu işlem geri alınamaz.</div>
+      <div class="fr"><label>Kullanıcı</label><select id="delete-user-select"></select></div>
+      <button class="btn btn-danger btn-block" onclick="deleteUser()">🗑️ Kullanıcıyı Sil</button>
     </div>
   </div>
 </div>
@@ -614,9 +579,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const sb = createClient('https://rrupsidrdgwgagetcojx.supabase.co','sb_publishable_lQXYDZqUPATZNwM8Cb17kg_F-T1XsOI');
 
-let me = null, myProfile = null, myGroup = null, allProfiles = [], allGroups = [], notifTimer = null;
-let homeWeekOffset = 0;
-let reportOffset = 0;
+let me = null, myProfile = null, myGroup = null, allProfiles = [], allGroups = [];
 
 const DN = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
 const MN = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
@@ -714,7 +677,6 @@ async function initApp(){
   if(myProfile?.role==='admin'){ const nav=document.getElementById('nav-admin'); if(nav) nav.style.display='flex'; await loadAdminGroups(); await loadAdminAllMembers(); }
   await loadMyGroup();
   await loadHome(); await loadReport();
-  await loadNotifSettings(); scheduleNotif();
   // Uygulama açılışında veriyi tazele
   setInterval(loadHome, 5*60*1000); // 5 dakikada bir arka planda güncelle
 }
@@ -741,30 +703,37 @@ window.saveProfile=async function(){
   toast('Profil güncellendi! ✓','success');
 };
 
-window.sendPasswordReset=async function(){
-  const {error}=await sb.auth.resetPasswordForEmail(me.email,{
-    redirectTo: window.location.href
-  });
-  if(error){toast('Hata: '+error.message,'error');return;}
-  toast('Şifre sıfırlama maili gönderildi: '+me.email,'success');
-};
+
 
 async function loadMyGroup(){
   const {data}=await sb.from('group_members').select('group_id,reading_groups(*,books(*))').eq('user_id',me.id).limit(1).maybeSingle();
-  if(data?.reading_groups){ myGroup=data.reading_groups; document.getElementById('header-group-name').textContent=myGroup.name; document.getElementById('header-group-label').textContent=myGroup.name; }
-  else document.getElementById('header-group-name').textContent='Grup yok';
+  if(data?.reading_groups){
+    myGroup=data.reading_groups;
+    document.getElementById('header-group-name').textContent=myGroup.name;
+    document.getElementById('header-group-label').textContent=myGroup.name;
+    // group_id'yi global'e yaz - Android okuyabilsin
+    window.__sb_group_id=data.group_id;
+  } else {
+    document.getElementById('header-group-name').textContent='Grup yok';
+  }
+
+  // Android WebView'a veri gönder
+  if(typeof window.AndroidBridge !== 'undefined' && me){
+    try{
+      window.AndroidBridge.sendData(JSON.stringify({
+        userId: me.id,
+        groupId: data?.group_id || '',
+        userName: myProfile?.full_name || myProfile?.username || '',
+        groupName: myGroup?.name || '',
+        goalPages: myGroup?.daily_page_goal || 20
+      }));
+    }catch(e){ console.log('AndroidBridge error:', e); }
+  }
 }
 
 // ── HOME ──────────────────────────────────────────────────────
-window.changeHomeWeek=function(diff){
-  homeWeekOffset += diff;
-  loadHome();
-};
-
 async function loadHome(){
   const now=new Date(), today=todayStr();
-  const baseDate = new Date();
-  baseDate.setDate(baseDate.getDate() + (homeWeekOffset * 7));
 
 
   if(!myGroup){
@@ -773,8 +742,8 @@ async function loadHome(){
     return;
   }
   const goal=myGroup.daily_page_goal;
-  // Son 7 gün (bugün dahil veya seçili hafta)
-  const we=new Date(baseDate.getFullYear(),baseDate.getMonth(),baseDate.getDate());
+  // Son 7 gün (bugün dahil)
+  const we=new Date(now.getFullYear(),now.getMonth(),now.getDate());
   const ws=new Date(we.getFullYear(),we.getMonth(),we.getDate()-6);
   const wsStr=dateStr(ws), weStr=dateStr(we);
   document.getElementById('week-range').textContent=`${ws.getDate()} ${MNF[ws.getMonth()]} – ${we.getDate()} ${MNF[we.getMonth()]} ${we.getFullYear()}`;
@@ -898,17 +867,11 @@ async function loadMembers(){
 }
 
 // ── REPORT ────────────────────────────────────────────────────
-window.changeReportOffset=function(diff){
-  reportOffset += diff;
-  loadReport();
-};
-
 async function loadReport(){
   const now=new Date(), today=todayStr();
 
-  // Son 30 günü hesapla (offset ile)
+  // Son 30 günü hesapla
   const mEnd=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  mEnd.setDate(mEnd.getDate() + (reportOffset * 30));
   const mStart=new Date(mEnd); mStart.setDate(mStart.getDate()-29);
   const mStartStr=dateStr(mStart), mEndStr=dateStr(mEnd);
 
@@ -1346,35 +1309,31 @@ window.resetPassword=async function(uid, name){
 
 window.openDeleteUserModal=async function(){
   const {data:profiles}=await sb.from('profiles').select('id,full_name,username').order('full_name');
-  const list=document.getElementById('delete-user-check-list');
+  const sel=document.getElementById('delete-user-select');
   // Kendi hesabını gösterme
-  list.innerHTML=(profiles||[]).filter(p=>p.id!==me.id).map(p=>`<div class="ucl-item"><input type="checkbox" id="duc-${p.id}" value="${p.id}"/><label for="duc-${p.id}">${p.full_name||p.username}</label></div>`).join('');
+  sel.innerHTML=(profiles||[]).filter(p=>p.id!==me.id).map(p=>`<option value="${p.id}">${p.full_name||p.username}</option>`).join('');
   openM('delete-user-modal');
 };
 window.deleteUser=async function(){
-  const boxes=document.querySelectorAll('#delete-user-check-list input[type=checkbox]');
-  const selIds=[...boxes].filter(c=>c.checked).map(c=>c.value);
-  if(!selIds.length) return toast('En az bir kullanıcı seçin','error');
-  if(!confirm(`${selIds.length} kullanıcıyı ve tüm okuma kayıtlarını silmek istiyor musunuz?`)) return;
+  const uid=document.getElementById('delete-user-select').value;
+  const name=document.getElementById('delete-user-select').selectedOptions[0]?.text||'';
+  if(!uid) return;
+  if(!confirm(`"${name}" kullanıcısını ve tüm okuma kayıtlarını silmek istiyor musunuz?`)) return;
 
-  const btn=document.querySelector('#delete-user-modal .btn-danger');
-  btn.disabled=true; btn.textContent='Siliniyor...';
+  // Tüm ilişkili verileri sil
+  const dels=await Promise.all([
+    sb.from('reading_logs').delete().eq('user_id',uid),
+    sb.from('group_members').delete().eq('user_id',uid),
+    sb.from('notification_settings').delete().eq('user_id',uid),
+  ]);
+  const delErr=dels.find(r=>r.error);
+  if(delErr){toast('Veri silme hatası: '+delErr.error.message,'error');return;}
 
-  let successCount = 0;
-  for(const uid of selIds){
-    try {
-      // Tüm ilişkili verileri sil
-      await sb.from('reading_logs').delete().eq('user_id',uid);
-      await sb.from('group_members').delete().eq('user_id',uid);
-      await sb.from('notification_settings').delete().eq('user_id',uid);
-      const {error:profErr}=await sb.from('profiles').delete().eq('id',uid);
-      if(!profErr) successCount++;
-    } catch(e) { console.error('Delete error for '+uid, e); }
-  }
+  const {error:profErr}=await sb.from('profiles').delete().eq('id',uid);
+  if(profErr){toast('Profil silme hatası: '+profErr.message,'error');return;}
 
-  btn.disabled=false; btn.textContent='🗑️ Seçili Kullanıcıları Sil';
   closeModal('delete-user-modal');
-  toast(`${successCount} kullanıcı ve tüm kayıtları silindi. Auth kayıtları için Dashboard kullanın.`,'success');
+  toast(`"${name}" ve tüm kayıtları silindi. Supabase Auth kaydı için Dashboard kullanın.`,'success');
 
   // Kullanıcı listesini güncelle
   if(myProfile?.role==='admin') await loadAdminAllMembers();
@@ -1519,129 +1478,8 @@ window.saveGroupMembers=async function(){
   await loadMyGroup(); await loadHome();
 };
 
-// ── NOTIFICATIONS ─────────────────────────────────────────────
-async function loadNotifSettings(){
-  const {data}=await sb.from('notification_settings').select('*').eq('user_id',me.id).maybeSingle();
-  if(data){
-    document.getElementById('notif-toggle').classList.toggle('on',data.reminder_enabled);
-    document.getElementById('notif-time').value=data.reminder_time?.slice(0,5)||'20:00';
-  }
-}
-window.saveNotifSettings=async function(){
-  const enabled=document.getElementById('notif-toggle').classList.contains('on');
-  const time=document.getElementById('notif-time').value;
-  await sb.from('notification_settings').upsert({user_id:me.id,reminder_enabled:enabled,reminder_time:time+':00',updated_at:new Date().toISOString()},{onConflict:'user_id'});
-  toast('Bildirim ayarları kaydedildi','success');
-  // SW'yi güncelle
-  if(enabled && myGroup && 'serviceWorker' in navigator){
-    const reg=await navigator.serviceWorker.getRegistration();
-    const [h,m]=time.split(':').map(Number);
-    if(reg?.active) reg.active.postMessage({type:'SCHEDULE_NOTIF',hour:h,minute:m,userId:me.id,groupId:myGroup.id,goalPages:myGroup.daily_page_goal});
-  }
-};
-window.toggleNotif=async function(){ document.getElementById('notif-toggle').classList.toggle('on'); await saveNotifSettings(); };
-window.testNotif=async function(){
-  if(!('Notification' in window)&&!('serviceWorker' in navigator)){
-    toast('Tarayıcınız bildirimleri desteklemiyor','error'); return;
-  }
-  if(Notification.permission!=='granted'){toast('Önce bildirim izni verin','error');return;}
-  const ok=await showNotif('📖 Risale Okuma Takip','Test bildirimi başarılı! Günlük hatırlatıcı çalışıyor.','test-notif');
-  if(ok) toast('Test bildirimi gönderildi! ✓','success');
-  else toast('Bildirim gönderilemedi. İzinleri kontrol edin.','error');
-};
-window.requestNotifPermission=async function(){
-  if(!('Notification' in window)){toast('Tarayıcınız bildirimleri desteklemiyor','error');return;}
-  const p=await Notification.requestPermission();
-  if(p==='granted'){toast('Bildirim izni verildi! 🔔','success');scheduleNotif();}
-  else toast('Bildirim izni reddedildi. Tarayıcı ayarlarından izin verin.','error');
-};
-// Bildirim göster: önce SW, sonra fallback
-async function showNotif(title, body, tag='notif'){
-  const opts={body, icon:'/oku/icon-192.png', badge:'/oku/icon-192.png', tag};
-  try{
-    if('serviceWorker' in navigator){
-      const reg=await navigator.serviceWorker.getRegistration();
-      if(reg){
-        await reg.showNotification(title, opts);
-        return true;
-      }
-    }
-    // Fallback
-    new Notification(title, opts);
-    return true;
-  }catch(e){
-    console.log('Notif error:',e.message);
-    return false;
-  }
-}
 
-// Bildirim sistemi: her 30 saniyede kontrol, dakika penceresi 0-59 saniye
-let lastNotifDate='';
-function scheduleNotif(){
-  clearInterval(notifTimer);
-  // Her dakika kontrol - uygulama açıkken
-  notifTimer=setInterval(checkNotif, 60000);
-  checkNotif();
-}
-async function checkNotif(){
-  // Temel güvenlik kontrolleri (Kullanıcı veya grup yoksa çalışmaz)
-  if(!myGroup || !me) {
-    return "Hata: Kullanıcı veya grup nesnesi henüz yüklenmemiş.";
-  }
-
-  // Tarayıcı/WebView bildirim izni kontrolü
-  if(!('Notification' in window) && !('serviceWorker' in navigator)){
-    return "Hata: Tarayıcı bildirimleri desteklemiyor.";
-  }
-  if(Notification.permission !== 'granted'){
-    return "Hata: Bildirim izni verilmemiş.";
-  }
-
-  const today = todayStr();
-  let readerCount = 0;
-
-  // Bugün kaç kişi okudu? Supabase'den çekiyoruz
-  try {
-    const {data:allGM} = await sb.from('group_members').select('user_id');
-    const allIds = (allGM || []).map(m => m.user_id);
-    if(allIds.length){
-      const {data:todayLogs} = await sb.from('reading_logs').select('user_id')
-        .eq('log_date', today).in('user_id', allIds);
-      readerCount = (todayLogs || []).length;
-    }
-  } catch(e) {
-    console.log('Supabase okuma logu çekme hatası:', e.message);
-  }
-
-  const readerMsg = readerCount > 0 ? ` Bugün ${readerCount} kişi okumasını yaptı.` : '';
-  
-  // Zaman ve tarih kontrolü olmaksızın DOĞRUDAN bildirimi gösteriyoruz
-  const ok = await showNotif(
-    '📖 Risale Okuma Takip', 
-    `Günlük ${myGroup.daily_page_goal} sayfalık okumanı kaydetmeyi unutma!${readerMsg}`, 
-    'daily-reminder'
-  );
-
-  return ok ? "Bildirim başarıyla gönderildi" : "Bildirim gösterilemedi (showNotif başarısız)";
-}
-
-// Android'in küresel scope'tan (window) rahatça erişebilmesi için:
-window.checkNotif = checkNotif;
-console.log("checkNotif fonksiyonu window nesnesine başarıyla bağlandı.");
-
-// ── NAV ───────────────────────────────────────────────────────
-window.switchPage=function(name,btn){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  btn.classList.add('active');
-  if(name==='home') loadHome();
-
-  if(name==='report') loadReport();
-};
-
-// ── RECOVERY URL HANDLER ─────────────────────────────────
-// Supabase şifre sıfırlama linkinden gelince hash'i yakala
+// ── RECOVERY URL HANDLER ────────────────────────────────
 async function handleAuthCallback(){
   const hash=window.location.hash;
   const search=window.location.search;
