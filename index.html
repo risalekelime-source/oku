@@ -706,15 +706,28 @@ window.saveProfile=async function(){
 
 
 async function loadMyGroup(){
-  const {data}=await sb.from('group_members').select('group_id,reading_groups(*,books(*))').eq('user_id',me.id).limit(1).maybeSingle();
+  const { data, error } = await sb
+    .from('group_members')
+    .select('group_id, reading_groups(*, books(*))')
+    .eq('user_id', me.id)
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Grup çekilirken hata oluştu:', error);
+  }
+
+  // group_id'yi en başta güvenli bir şekilde alalım (data varsa data.group_id, yoksa boş string)
+  const currentGroupId = data?.group_id || '';
+  window.__sb_group_id = currentGroupId;
+
   if(data?.reading_groups){
-    myGroup=data.reading_groups;
-    document.getElementById('header-group-name').textContent=myGroup.name;
-    document.getElementById('header-group-label').textContent=myGroup.name;
-    // group_id'yi global'e yaz - Android okuyabilsin
-    window.__sb_group_id=data.group_id;
+    myGroup = data.reading_groups;
+    document.getElementById('header-group-name').textContent = myGroup.name;
+    document.getElementById('header-group-label').textContent = myGroup.name;
   } else {
-    document.getElementById('header-group-name').textContent='Grup yok';
+    myGroup = null; // Eski veriyi temizlemek için
+    document.getElementById('header-group-name').textContent = 'Grup yok';
   }
 
   // Android WebView'a veri gönder
@@ -722,12 +735,14 @@ async function loadMyGroup(){
     try{
       window.AndroidBridge.sendData(JSON.stringify({
         userId: me.id,
-        groupId: data?.group_id || '',
+        groupId: currentGroupId, // Yukarıda netleştirdiğimiz değişkeni gönderiyoruz
         userName: myProfile?.full_name || myProfile?.username || '',
         groupName: myGroup?.name || '',
         goalPages: myGroup?.daily_page_goal || 20
       }));
-    }catch(e){ console.log('AndroidBridge error:', e); }
+    } catch(e) { 
+      console.error('AndroidBridge error:', e); 
+    }
   }
 }
 
