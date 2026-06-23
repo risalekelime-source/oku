@@ -762,14 +762,10 @@ async function loadMyGroup(){
   }
  
   // Android WebView'a veri gönder
-  if(typeof window.AndroidBridge !== 'undefined' && me){
+if(typeof window.AndroidBridge !== 'undefined' && me){
     try{
       window.AndroidBridge.sendData(JSON.stringify({
-        userId: me.id,
-        groupId: data?.group_id || '',
-        userName: myProfile?.full_name || myProfile?.username || '',
-        groupName: myGroup?.name || '',
-        goalPages: myGroup?.daily_page_goal || 20
+        userId: me.id
       }));
     }catch(e){ console.log('AndroidBridge error:', e); }
   }
