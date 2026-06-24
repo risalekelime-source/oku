@@ -396,6 +396,17 @@
           </div>
         </div>
       </div>
+
+      <div class="card" style="margin-bottom:11px;">
+        <div style="font-weight:600;margin-bottom:13px;font-size:.88rem;">🔔 Bildirim</div>
+        <div class="tw" style="margin-bottom:13px;">
+          <div><div style="font-size:.88rem;">Günlük Hatırlatıcı</div><div style="font-size:.73rem;color:var(--text2);">Okuma girişi hatırlatıcı</div></div>
+          <div class="toggle" id="notif-toggle" onclick="toggleNotif()"></div>
+        </div>
+        <div class="fr"><label>Saat</label><input type="time" id="notif-time" value="20:00" onchange="saveNotifSettings()"/></div>
+        <button class="btn btn-secondary btn-block" style="margin-bottom:7px;" onclick="requestNotifPermission()">🔔 Bildirim İzni Ver</button>
+        <button class="btn btn-secondary btn-block" onclick="testNotif()" style="font-size:.8rem;">🧪 Test Bildirimi Gönder</button>
+      </div>
       <div class="card" style="margin-bottom:11px;">
         <div style="font-weight:600;margin-bottom:16px;font-size:.88rem;">👤 Profil</div>
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
@@ -738,55 +749,16 @@ window.sendPasswordReset=async function(){
   toast('Şifre sıfırlama maili gönderildi: '+me.email,'success');
 };
 
-
-  async function loadMyGroup(){
+async function loadMyGroup(){
   const {data}=await sb.from('group_members').select('group_id,reading_groups(*,books(*))').eq('user_id',me.id).limit(1).maybeSingle();
-  if(data?.reading_groups){
-    myGroup=data.reading_groups;
-    document.getElementById('header-group-name').textContent=myGroup.name;
-    document.getElementById('header-group-label').textContent=myGroup.name;
-  } else {
-    document.getElementById('header-group-name').textContent='Grup yok';
-  }
-
-// Android WebView'a userId, groupId ve goalPages gönderen güncel fonksiyon
-async function loadUserData() {
-    try {
-        // 1. Önce oturum açmış kullanıcıyı çekiyoruz
-        const { data: { user } } = await sb.auth.getUser(); 
-        
-        if (!user) return;
-
-        // 2. Kullanıcının grubunu çekiyoruz (user.user_metadata içinden grup id'sini alarak)
-        const groupIdFromMeta = user.user_metadata?.group_id;
-        if (!groupIdFromMeta) return;
-
-        const { data: groupData } = await sb
-            .from('groups')
-            .select('*')
-            .eq('id', groupIdFromMeta)
-            .maybeSingle();
-
-        // 3. Verilerin ikisi de hazırsa Android'e tek seferde paketi fırlatıyoruz
-        if (user && groupData) {
-            if (typeof window.AndroidBridge !== 'undefined') {
-                window.AndroidBridge.sendData(JSON.stringify({
-                    userId: user.id,
-                    groupId: groupData.id,
-                    goalPages: parseInt(groupData.daily_page_goal) || 20
-                }));
-                console.log('Android hafızası (User, Group, Goal) başarıyla eşitlendi.');
-            }
-        }
-    } catch (e) {
-        console.log('loadUserData yükleme veya köprü hatası:', e);
-    }
-} // <-- buradaki süslü parantezin eksiksiz kapandığından emin olduk
+  if(data?.reading_groups){ myGroup=data.reading_groups; document.getElementById('header-group-name').textContent=myGroup.name; document.getElementById('header-group-label').textContent=myGroup.name; }
+  else document.getElementById('header-group-name').textContent='Grup yok';
+}
 
 // ── HOME ──────────────────────────────────────────────────────
 window.changeHomeWeek=function(diff){
-    homeWeekOffset += diff;
-    loadHome();
+  homeWeekOffset += diff;
+  loadHome();
 };
 
 async function loadHome(){
