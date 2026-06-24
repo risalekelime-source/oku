@@ -788,9 +788,23 @@ window.sendPasswordReset=async function(){
 };
 
 async function loadMyGroup(){
-  const {data}=await sb.from('group_members').select('group_id,reading_groups(*,books(*))').eq('user_id',me.id).limit(1).maybeSingle();
-  if(data?.reading_groups){ myGroup=data.reading_groups; document.getElementById('header-group-name').textContent=myGroup.name; document.getElementById('header-group-label').textContent=myGroup.name; }
-  else document.getElementById('header-group-name').textContent='Grup yok';
+  try {
+    const {data}=await sb.from('group_members').select('group_id,reading_groups(*,books(*))').eq('user_id',me.id).limit(1).maybeSingle();
+    
+    if(data?.reading_groups){
+      myGroup = data.reading_groups;
+      document.getElementById('header-group-name').textContent = myGroup.name;
+      document.getElementById('header-group-label').textContent = myGroup.name;
+      
+      // 🔥 KRİTİK DÜZELTME: Grup verisi başarıyla geldiği an Android'i uyandırıyoruz!
+      loadUserData(myGroup);
+
+    } else {
+      document.getElementById('header-group-name').textContent = 'Grup yok';
+    }
+  } catch (err) {
+    console.log("Grup yükleme hatası:", err);
+  }
 }
 
 // ── HOME ──────────────────────────────────────────────────────
