@@ -628,39 +628,42 @@ function todayStr(){
   const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
   return `${y}-${m}-${dd}`;
 }
-  // ── ANDROID KÖPRÜ FONKSİYONU (TAM BURAYA EKLEYİN) ───────────────────
 async function loadUserData() {
     try {
+        console.log("loadUserData tetiklendi. AndroidBridge var mı?:", typeof window.AndroidBridge !== 'undefined');
+        
         if (typeof sb === 'undefined' || !sb) return;
         
-        // 1. Oturum açmış kullanıcıyı al
-        const { data: { user } } = await sb.auth.getUser(); 
-        if (!user) return;
+        // Aktif oturumu direkt alalım (me değişkeni doluysa oradan, yoksa auth'tan)
+        const currentUser = me || (await sb.auth.getUser()).data?.user;
+        if (!currentUser) {
+            console.log("Köprü Hatası: Aktif kullanıcı (me/user) bulunamadı.");
+            return;
+        }
 
-        // 2. Kullanıcının grubunu çek
-        const groupIdFromMeta = user.user_metadata?.group_id;
-        if (!groupIdFromMeta) return;
+        // Grup bilgisini kontrol et (initApp içinde loadMyGroup bittiği için myGroup zaten doludur)
+        if (!myGroup) {
+            console.log("Köprü Hatası: myGroup nesnesi henüz yüklenmemiş.");
+            return;
+        }
 
-        const { data: groupData } = await sb
-            .from('groups')
-            .select('*')
-            .eq('id', groupIdFromMeta)
-            .maybeSingle();
-
-        // 3. Veriler hazırsa Android'e fırlat
-        if (user && groupData) {
-            if (typeof window.AndroidBridge !== 'undefined') {
-                window.AndroidBridge.sendData(JSON.stringify({
-                    userId: user.id,
-                    groupId: groupData.id,
-                    goalPages: parseInt(groupData.daily_page_goal) || 20
-                }));
-                console.log('Android köprüsü dosya başından başarıyla tetiklendi.');
-            }
+        // Android'e paketi gönderiyoruz
+        if (typeof window.AndroidBridge !== 'undefined') {
+            const payload = {
+                userId: currentUser.id,
+                groupId: myGroup.id,
+                goalPages: parseInt(myGroup.daily_page_goal) || 20
+            };
+            
+            console.log("AndroidBridge'e gönderilen veri:", payload);
+            window.AndroidBridge.sendData(JSON.stringify(payload));
+        } else {
+            console.log("Hata: window.AndroidBridge nesnesi bulunamadı! WebView arayüzü bağlanamamış.");
         }
     } catch (e) {
-        console.log('loadUserData hatası:', e);
+        console.log('loadUserData köprü çalışırken kilitlendi:', e);
     }
+}
 }
 function dateStr(d){
   const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
