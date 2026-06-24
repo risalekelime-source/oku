@@ -752,7 +752,6 @@ async function initApp(){
   await loadMyGroup();
   await loadHome(); await loadReport();
   await loadNotifSettings(); scheduleNotif();
-  await loadUserData();
   // Uygulama açılışında veriyi tazele
   setInterval(loadHome, 5*60*1000); // 5 dakikada bir arka planda güncelle
 }
