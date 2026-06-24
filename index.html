@@ -750,19 +750,8 @@ window.sendPasswordReset=async function(){
 };
 
 async function loadMyGroup(){
-  const {data}=await sb.from('group_members').select('group_id,reading_groups(*,books(*))').eq('user_id',me.id).limit(1).maybeSingle();
-  if(data?.reading_groups){
-    myGroup=data.reading_groups;
-    document.getElementById('header-group-name').textContent=myGroup.name;
-    document.getElementById('header-group-label').textContent=myGroup.name;
-    // group_id'yi global'e yaz - Android okuyabilsin
-    window.__sb_group_id=data.group_id;
-  } else {
-    document.getElementById('header-group-name').textContent='Grup yok';
-  }
- 
-  // Android WebView'a veri gönder
-if(typeof window.AndroidBridge !== 'undefined' && me){
+  // Android WebView'a sadece userId gönder
+  if(typeof window.AndroidBridge !== 'undefined' && me){
     try{
       window.AndroidBridge.sendData(JSON.stringify({
         userId: me.id
