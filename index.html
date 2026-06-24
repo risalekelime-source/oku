@@ -750,15 +750,33 @@ window.sendPasswordReset=async function(){
   }
  
   // Android WebView'a sadece userId gönderiliyor
-  if(typeof window.AndroidBridge !== 'undefined' && me){
-    try{
-      window.AndroidBridge.sendData(JSON.stringify({
-        userId: me.id,
-        groupId: myGroup.id,
-        goalPages: myGroup.daily_page_goal
-      }));
-    }catch(e){ console.log('AndroidBridge error:', e); }
-  }
+ async function loadUserData() {
+    // 1. Önce kullanıcı çekiliyor (Burada me hazır oluyor)
+    const { data: me } = await supabase.auth.getUser();
+
+    // 2. Sonra kullanıcının grubu çekiliyor
+    const { data: groupData } = await supabase
+        .from('groups')
+        .select('*')
+        .eq('id', me.user_metadata.group_id)
+        .single();
+
+    // [KRİTİK NOKTA]: Verilerin ikisinin de kesinlikle DOLU olduğundan emin oluyoruz
+    if (me && groupData) {
+        // Ancak bu aşamada Android'e haber veriyoruz
+        if (typeof window.AndroidBridge !== 'undefined') {
+            try {
+                window.AndroidBridge.sendData(JSON.stringify({
+                    userId: me.id,
+                    groupId: groupData.id,
+                    goalPages: groupData.daily_page_goal // Sayfa sayısı artık garanti dolu!
+                }));
+                console.log('Android hafızası başarıyla eşitlendi.');
+            } catch (e) {
+                console.log('Köprü hatası:', e);
+            }
+        }
+    }
 }
   
 
