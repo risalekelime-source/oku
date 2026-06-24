@@ -749,8 +749,18 @@ window.sendPasswordReset=async function(){
   toast('Şifre sıfırlama maili gönderildi: '+me.email,'success');
 };
 
-async function loadMyGroup(){
-  // Android WebView'a sadece userId gönder
+
+  async function loadMyGroup(){
+  const {data}=await sb.from('group_members').select('group_id,reading_groups(*,books(*))').eq('user_id',me.id).limit(1).maybeSingle();
+  if(data?.reading_groups){
+    myGroup=data.reading_groups;
+    document.getElementById('header-group-name').textContent=myGroup.name;
+    document.getElementById('header-group-label').textContent=myGroup.name;
+  } else {
+    document.getElementById('header-group-name').textContent='Grup yok';
+  }
+ 
+  // Android WebView'a sadece userId gönderiliyor
   if(typeof window.AndroidBridge !== 'undefined' && me){
     try{
       window.AndroidBridge.sendData(JSON.stringify({
@@ -759,6 +769,7 @@ async function loadMyGroup(){
     }catch(e){ console.log('AndroidBridge error:', e); }
   }
 }
+  
 
 // ── HOME ──────────────────────────────────────────────────────
 window.changeHomeWeek=function(diff){
