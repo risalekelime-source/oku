@@ -753,7 +753,8 @@ window.sendPasswordReset=async function(){
   if(typeof window.AndroidBridge !== 'undefined' && me){
     try{
       window.AndroidBridge.sendData(JSON.stringify({
-        userId: me.id
+        userId: me.id,
+        groupId: myGroup.id
       }));
     }catch(e){ console.log('AndroidBridge error:', e); }
   }
