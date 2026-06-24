@@ -614,6 +614,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const sb = createClient('https://rrupsidrdgwgagetcojx.supabase.co','sb_publishable_lQXYDZqUPATZNwM8Cb17kg_F-T1XsOI');
 
+
 let me = null, myProfile = null, myGroup = null, allProfiles = [], allGroups = [], notifTimer = null;
 let homeWeekOffset = 0;
 let reportOffset = 0;
@@ -626,6 +627,40 @@ function todayStr(){
   const d=new Date();
   const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
   return `${y}-${m}-${dd}`;
+}
+  // ── ANDROID KÖPRÜ FONKSİYONU (TAM BURAYA EKLEYİN) ───────────────────
+async function loadUserData() {
+    try {
+        if (typeof sb === 'undefined' || !sb) return;
+        
+        // 1. Oturum açmış kullanıcıyı al
+        const { data: { user } } = await sb.auth.getUser(); 
+        if (!user) return;
+
+        // 2. Kullanıcının grubunu çek
+        const groupIdFromMeta = user.user_metadata?.group_id;
+        if (!groupIdFromMeta) return;
+
+        const { data: groupData } = await sb
+            .from('groups')
+            .select('*')
+            .eq('id', groupIdFromMeta)
+            .maybeSingle();
+
+        // 3. Veriler hazırsa Android'e fırlat
+        if (user && groupData) {
+            if (typeof window.AndroidBridge !== 'undefined') {
+                window.AndroidBridge.sendData(JSON.stringify({
+                    userId: user.id,
+                    groupId: groupData.id,
+                    goalPages: parseInt(groupData.daily_page_goal) || 20
+                }));
+                console.log('Android köprüsü dosya başından başarıyla tetiklendi.');
+            }
+        }
+    } catch (e) {
+        console.log('loadUserData hatası:', e);
+    }
 }
 function dateStr(d){
   const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0');
@@ -715,6 +750,7 @@ async function initApp(){
   await loadMyGroup();
   await loadHome(); await loadReport();
   await loadNotifSettings(); scheduleNotif();
+  await loadUserData();
   // Uygulama açılışında veriyi tazele
   setInterval(loadHome, 5*60*1000); // 5 dakikada bir arka planda güncelle
 }
