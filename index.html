@@ -640,13 +640,15 @@ async function loadUserData(currentGroup) {
         console.log("Gelen Grup Nesnesi:", JSON.stringify(targetGroup));
 
         if (targetGroup) {
-            // Eğer alan adlarınız 'id' yerine 'group_id' veya 'daily_page_goal' yerine farklı bir şeyse kontrol ediyoruz
             const gId = targetGroup.id || targetGroup.group_id || "BULUNAMADI";
             const gGoal = targetGroup.daily_page_goal || targetGroup.page_goal || 20;
 
             if (typeof window.AndroidBridge !== 'undefined') {
+                // 🔥 GÜNCELLENDİ: Android katmanına email ve şifreyi de paketleyip gönderiyoruz
                 window.AndroidBridge.sendData(JSON.stringify({
                     userId: currentUser.id,
+                    userEmail: currentUser.email, // 👈 Supabase kullanıcısının e-postası
+                    userPassword: typeof userPassword, // 👈 Web girişindeki şifre değişkeniniz
                     groupId: String(gId),
                     goalPages: parseInt(gGoal) || 20
                 }));
