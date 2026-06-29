@@ -260,9 +260,6 @@
         <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">📅 Aylık Rapor</div>
         <p style="margin-bottom:14px;color:var(--text2);">Son 30 günün takvim görünümü. Yeşil = zamanında, Mavi = ilave, Sarı = telafi, Kırmızı = eksik.</p>
 
-        <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">🔔 Bildirimler</div>
-        <p style="margin-bottom:14px;color:var(--text2);">Ayarlar → Bildirim bölümünden hatırlatma saatini ayarlayın. Önce <strong>Bildirim İzni Ver</strong> butonuna basın. Uygulama açıkken çalışır.</p>
-
         <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">📱 Ana Ekrana Ekleme</div>
         <div style="background:var(--bg3);border-radius:var(--rs);padding:12px;margin-bottom:14px;">
           <div style="margin-bottom:6px;"><strong>iPhone:</strong> <span style="color:var(--text2);">Safari → Paylaş simgesi → Ana Ekrana Ekle</span></div>
@@ -395,17 +392,6 @@
             <div style="font-size:.62rem;text-align:center;margin-top:4px;color:var(--text2);">Fildişi</div>
           </div>
         </div>
-      </div>
-
-      <div class="card" style="margin-bottom:11px;">
-        <div style="font-weight:600;margin-bottom:13px;font-size:.88rem;">🔔 Bildirim</div>
-        <div class="tw" style="margin-bottom:13px;">
-          <div><div style="font-size:.88rem;">Günlük Hatırlatıcı</div><div style="font-size:.73rem;color:var(--text2);">Okuma girişi hatırlatıcı</div></div>
-          <div class="toggle" id="notif-toggle" onclick="toggleNotif()"></div>
-        </div>
-        <div class="fr"><label>Saat</label><input type="time" id="notif-time" value="20:00" onchange="saveNotifSettings()"/></div>
-        <button class="btn btn-secondary btn-block" style="margin-bottom:7px;" onclick="requestNotifPermission()">🔔 Bildirim İzni Ver</button>
-        <button class="btn btn-secondary btn-block" onclick="testNotif()" style="font-size:.8rem;">🧪 Test Bildirimi Gönder</button>
       </div>
       <div class="card" style="margin-bottom:11px;">
         <div style="font-weight:600;margin-bottom:16px;font-size:.88rem;">👤 Profil</div>
@@ -1565,116 +1551,6 @@ window.saveGroupMembers=async function(){
   closeModal('manage-group-modal'); toast(`${toAdd.length} eklendi, ${toRem.length} çıkarıldı`,'success');
   await loadMyGroup(); await loadHome();
 };
-
-// ── NOTIFICATIONS ─────────────────────────────────────────────
-async function loadNotifSettings(){
-  const {data}=await sb.from('notification_settings').select('*').eq('user_id',me.id).maybeSingle();
-  if(data){
-    document.getElementById('notif-toggle').classList.toggle('on',data.reminder_enabled);
-    document.getElementById('notif-time').value=data.reminder_time?.slice(0,5)||'20:00';
-  }
-}
-window.saveNotifSettings=async function(){
-  const enabled=document.getElementById('notif-toggle').classList.contains('on');
-  const time=document.getElementById('notif-time').value;
-  await sb.from('notification_settings').upsert({user_id:me.id,reminder_enabled:enabled,reminder_time:time+':00',updated_at:new Date().toISOString()},{onConflict:'user_id'});
-  toast('Bildirim ayarları kaydedildi','success');
-  // SW'yi güncelle
-  if(enabled && myGroup && 'serviceWorker' in navigator){
-    const reg=await navigator.serviceWorker.getRegistration();
-    const [h,m]=time.split(':').map(Number);
-    if(reg?.active) reg.active.postMessage({type:'SCHEDULE_NOTIF',hour:h,minute:m,userId:me.id,groupId:myGroup.id,goalPages:myGroup.daily_page_goal});
-  }
-};
-window.toggleNotif=async function(){ document.getElementById('notif-toggle').classList.toggle('on'); await saveNotifSettings(); };
-window.testNotif=async function(){
-  if(!('Notification' in window)&&!('serviceWorker' in navigator)){
-    toast('Tarayıcınız bildirimleri desteklemiyor','error'); return;
-  }
-  if(Notification.permission!=='granted'){toast('Önce bildirim izni verin','error');return;}
-  const ok=await showNotif('📖 Risale Okuma Takip','Test bildirimi başarılı! Günlük hatırlatıcı çalışıyor.','test-notif');
-  if(ok) toast('Test bildirimi gönderildi! ✓','success');
-  else toast('Bildirim gönderilemedi. İzinleri kontrol edin.','error');
-};
-window.requestNotifPermission=async function(){
-  if(!('Notification' in window)){toast('Tarayıcınız bildirimleri desteklemiyor','error');return;}
-  const p=await Notification.requestPermission();
-  if(p==='granted'){toast('Bildirim izni verildi! 🔔','success');scheduleNotif();}
-  else toast('Bildirim izni reddedildi. Tarayıcı ayarlarından izin verin.','error');
-};
-// Bildirim göster: önce SW, sonra fallback
-async function showNotif(title, body, tag='notif'){
-  const opts={body, icon:'/oku/icon-192.png', badge:'/oku/icon-192.png', tag};
-  try{
-    if('serviceWorker' in navigator){
-      const reg=await navigator.serviceWorker.getRegistration();
-      if(reg){
-        await reg.showNotification(title, opts);
-        return true;
-      }
-    }
-    // Fallback
-    new Notification(title, opts);
-    return true;
-  }catch(e){
-    console.log('Notif error:',e.message);
-    return false;
-  }
-}
-
-// Bildirim sistemi: her 30 saniyede kontrol, dakika penceresi 0-59 saniye
-let lastNotifDate='';
-function scheduleNotif(){
-  clearInterval(notifTimer);
-  // Her dakika kontrol - uygulama açıkken
-  notifTimer=setInterval(checkNotif, 60000);
-  checkNotif();
-}
-async function checkNotif(){
-  // Temel güvenlik kontrolleri (Kullanıcı veya grup yoksa çalışmaz)
-  if(!myGroup || !me) {
-    return "Hata: Kullanıcı veya grup nesnesi henüz yüklenmemiş.";
-  }
-
-  // Tarayıcı/WebView bildirim izni kontrolü
-  if(!('Notification' in window) && !('serviceWorker' in navigator)){
-    return "Hata: Tarayıcı bildirimleri desteklemiyor.";
-  }
-  if(Notification.permission !== 'granted'){
-    return "Hata: Bildirim izni verilmemiş.";
-  }
-
-  const today = todayStr();
-  let readerCount = 0;
-
-  // Bugün kaç kişi okudu? Supabase'den çekiyoruz
-  try {
-    const {data:allGM} = await sb.from('group_members').select('user_id');
-    const allIds = (allGM || []).map(m => m.user_id);
-    if(allIds.length){
-      const {data:todayLogs} = await sb.from('reading_logs').select('user_id')
-        .eq('log_date', today).in('user_id', allIds);
-      readerCount = (todayLogs || []).length;
-    }
-  } catch(e) {
-    console.log('Supabase okuma logu çekme hatası:', e.message);
-  }
-
-  const readerMsg = readerCount > 0 ? ` Bugün ${readerCount} kişi okumasını yaptı.` : '';
-  
-  // Zaman ve tarih kontrolü olmaksızın DOĞRUDAN bildirimi gösteriyoruz
-  const ok = await showNotif(
-    '📖 Risale Okuma Takip', 
-    `Günlük ${myGroup.daily_page_goal} sayfalık okumanı kaydetmeyi unutma!${readerMsg}`, 
-    'daily-reminder'
-  );
-
-  return ok ? "Bildirim başarıyla gönderildi" : "Bildirim gösterilemedi (showNotif başarısız)";
-}
-
-// Android'in küresel scope'tan (window) rahatça erişebilmesi için:
-window.checkNotif = checkNotif;
-console.log("checkNotif fonksiyonu window nesnesine başarıyla bağlandı.");
 
 // ── NAV ───────────────────────────────────────────────────────
 window.switchPage=function(name,btn){
