@@ -885,12 +885,20 @@ async function loadHome(){
   });
   document.getElementById('week-body').innerHTML=bHtml;
 
-  // My stats
+ // My stats
   const {data:myLogs}=await sb.from('reading_logs').select('*').eq('user_id',me.id).eq('group_id',myGroup.id).order('log_date',{ascending:false});
   const myMap={}; (myLogs||[]).forEach(l=>myMap[l.log_date]=l);
-  const start=new Date(myGroup.start_date);
-  const days=Math.max(0,Math.floor((now-start)/86400000));
-  const totalGoal=(days+1)*goal;
+  
+  // İstatistik başlangıç tarihini belirle: Grubun başlangıcı mı yoksa kullanıcının eklenme tarihi mi?
+  // Hangisi daha sonraysa o tarihten itibaren hesapla.
+  const groupStart = new Date(myGroup.start_date);
+  const userJoin = new Date(myProfile.created_at);
+  const effectiveStart = userJoin > groupStart ? userJoin : groupStart;
+  effectiveStart.setHours(0,0,0,0);
+  
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Math.max(0, Math.floor((todayStart - effectiveStart) / 86400000));
+  const totalGoal = (days + 1) * goal;
   const totalRead=(myLogs||[]).reduce((s,l)=>s+l.pages_read,0);
   const wkPages=(myLogs||[]).filter(l=>l.log_date>=wsStr&&l.log_date<=weStr).reduce((s,l)=>s+l.pages_read,0);
   const diff=totalRead-totalGoal;
@@ -902,6 +910,7 @@ async function loadHome(){
 
 
 }
+
 
 // ── MEMBERS ───────────────────────────────────────────────────
 async function loadMembers(){
