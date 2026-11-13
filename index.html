@@ -182,7 +182,10 @@
         <p style="margin-bottom:14px;color:var(--text2);">Risale-i Nur okuma gruplarının günlük okuma takibini kolayca yapabilmesi için tasarlanmıştır.</p>
 
         <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">📚 Neşriyat Seçimi</div>
-        <p style="margin-bottom:14px;color:var(--text2);">Ayarlar'dan okuduğunuz neşriyatı (Sözler, Envar, RNK) seçin. Varsayılan neşriyat RNK'dır. Okuma butonunun altında bugün okunacak sayfalar, kitap adının yanında neşriyat parantez içinde yazılarak gösterilir.</p>
+        <p style="margin-bottom:14px;color:var(--text2);">Ayarlar'dan okuduğunuz neşriyatı ve boyunu (Sözler, Envar, RNK · Büyük veya Orta Boy) seçin. Varsayılan RNK Büyük Boy'dur. Okuma butonunun altında bugün okunacak sayfalar, kitap adının yanında neşriyat parantez içinde yazılarak gösterilir.</p>
+
+        <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">📅 Okuma Başlangıç Tarihi</div>
+        <p style="margin-bottom:14px;color:var(--text2);">Ayarlar → Okuma Başlangıç Tarihi bölümünden külliyatı okumaya başladığınız günü seçin. Günlük sayfa aralığı bu tarihe göre hesaplanır. "Grup Tarihine Dön" ile grubun başlangıç tarihine geri dönersiniz. Tarih yalnızca bu cihazda saklanır.</p>
 
         <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">🔀 Kitap Sırasını Değiştirme</div>
         <p style="margin-bottom:14px;color:var(--text2);">Ayarlar → Kitap Sırası bölümünde her kitabın yanındaki ▲ ▼ oklarıyla kitabı yukarı veya aşağı taşıyın. Okuma sayfa aralığı yeni sıraya göre hesaplanır. "Varsayılana Dön" ile ilk sıraya dönebilirsiniz. Sıra yalnızca bu cihazda saklanır.</p>
@@ -347,10 +350,23 @@
           <label>Okuduğum Külliyat Neşriyatı</label>
           <select id="neshriyat-select" onchange="setNeshriyat(this.value)">
             <option value="0">Sözler Neşriyat (Büyük Boy)</option>
-            <option value="1">Envar Neşriyat (Büyük Boy)</option>
-            <option value="2">RNK Neşriyat (Büyük Boy)</option>
+            <option value="1">Sözler Neşriyat (Orta Boy)</option>
+            <option value="2">Envar Neşriyat (Büyük Boy)</option>
+            <option value="3">Envar Neşriyat (Orta Boy)</option>
+            <option value="4">RNK Neşriyat (Büyük Boy)</option>
+            <option value="5">RNK Neşriyat (Orta Boy)</option>
           </select>
         </div>
+      </div>
+
+      <div class="card" style="margin-bottom:11px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div style="font-weight:600;font-size:.88rem;">📅 Okuma Başlangıç Tarihi</div>
+          <button class="btn btn-secondary btn-sm" onclick="resetReadStart()">Grup Tarihine Dön</button>
+        </div>
+        <div style="font-size:.74rem;color:var(--text2);margin-bottom:10px;line-height:1.5;">Külliyatı okumaya başladığınız tarihi seçin. Günlük sayfa aralığı bu tarihten itibaren hesaplanır. Boş bırakırsanız grubun başlangıç tarihi kullanılır.</div>
+        <div class="fr" style="margin-bottom:6px;"><input type="date" id="read-start-date" onchange="setReadStart(this.value)"/></div>
+        <div id="read-start-info" style="font-size:.72rem;color:var(--text2);"></div>
       </div>
 
       <div class="card" style="margin-bottom:11px;">
@@ -556,30 +572,35 @@ const DN = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
 const MN = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
 const MNF = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
 
-// ── KÜLLİYAT SAYFA TABLOSU [Sözler, Envar, RNK] ──
+// ── KÜLLİYAT SAYFA TABLOSU ──
+// Sıra: [Sözler Büyük, Sözler Orta, Envar Büyük, Envar Orta, RNK Büyük, RNK Orta]
 const KULLIYAT=[
-  ['Sözler',[790,815,824]],
-  ['Mektubat',[560,580,576]],
-  ["Lem'alar",[465,485,480]],
-  ['Şualar',[695,720,712]],
-  ['Asa-yı Musa',[285,300,296]],
-  ['Barla Lahikası',[380,395,392]],
-  ['Kastamonu Lahikası',[360,375,368]],
-  ['Emirdağ Lahikası',[960,995,984]],
-  ['Mesnevi-i Nuriye',[275,290,288]],
-  ["İşârâtü'l-İ'câz",[280,295,288]],
-  ['Sikke-i Tasdik-i Gaybî',[265,280,272]],
-  ['Tarihçe-i Hayat',[685,710,704]],
-  ['Muhakemat',[185,195,192]],
-  ['İman ve Küfür Muvazeneleri',[240,255,248]]
+  ['Sözler',[790,1020,815,1060,824,1050]],
+  ['Tarihçe-i Hayat',[685,890,710,930,704,915]],
+  ['Mektûbat',[560,730,580,760,576,745]],
+  ['Barla Lâhikası',[380,490,395,515,392,510]],
+  ['Asâ-yı Mûsâ',[285,370,300,390,296,385]],
+  ['Kastamonu Lâhikası',[360,465,375,490,368,480]],
+  ["Lem'alar",[465,610,485,635,480,620]],
+  ['Emirdağı Lâhikası',[960,1240,995,1300,984,1280]],
+  ["İşârâtül İ'câz",[280,365,295,385,288,375]],
+  ['Şuâlar',[695,900,720,940,712,925]],
+  ['Mesnevî-i Nuriye',[275,360,290,380,288,375]],
+  ['Sikke-i Tasdik-i Gaybi',[265,345,280,365,272,355]],
+  ['Muhâkemat',[185,240,195,255,192,250]],
+  ['Îmân ve Küfür Muvazeneleri',[240,315,255,335,248,325]]
 ];
-const PUB_NAMES=['Sözler','Envar','RNK'];
+const PUB_NAMES=['Sözler Büyük','Sözler Orta','Envar Büyük','Envar Orta','RNK Büyük','RNK Orta'];
 function getNeshriyat(){
-  const v=localStorage.getItem('risale-neshriyat');
-  return v===null?2:(parseInt(v)||0);
+  let v=localStorage.getItem('risale-neshriyat2');
+  if(v!==null){ v=parseInt(v); return (v>=0&&v<6)?v:4; }
+  // Eski kayıt (0=Sözler,1=Envar,2=RNK, büyük boy) yeni indekse çevrilir
+  const old=localStorage.getItem('risale-neshriyat');
+  if(old!==null){ const m={0:0,1:2,2:4}; return m[parseInt(old)]??4; }
+  return 4; // varsayılan: RNK Büyük Boy
 }
 window.setNeshriyat=function(v){
-  localStorage.setItem('risale-neshriyat',String(v));
+  localStorage.setItem('risale-neshriyat2',String(v));
   updateReadButton();
   toast('Neşriyat kaydedildi ✓','success');
 };
@@ -587,7 +608,7 @@ window.setNeshriyat=function(v){
 function getOrder(){
   const def=KULLIYAT.map((_,i)=>i);
   try{
-    const o=JSON.parse(localStorage.getItem('risale-order')||'null');
+    const o=JSON.parse(localStorage.getItem('risale-order2')||'null');
     if(Array.isArray(o)&&o.length===def.length&&def.every(i=>o.includes(i))) return o;
   }catch(e){}
   return def;
@@ -607,11 +628,11 @@ window.moveBook=function(pos,dir){
   const o=getOrder(), t=pos+dir;
   if(t<0||t>=o.length) return;
   [o[pos],o[t]]=[o[t],o[pos]];
-  localStorage.setItem('risale-order',JSON.stringify(o));
+  localStorage.setItem('risale-order2',JSON.stringify(o));
   renderOrderList(); updateReadButton();
 };
 window.resetOrder=function(){
-  localStorage.removeItem('risale-order');
+  localStorage.removeItem('risale-order2');
   renderOrderList(); updateReadButton();
   toast('Sıra varsayılana döndü ✓','success');
 };
@@ -630,19 +651,43 @@ function pageRangeText(startPos,count,pub){
   }
   return out.length?out.join(' · '):'Külliyat tamamlandı 🎉';
 }
+function groupStartStr(){ return myGroup?String(myGroup.start_date).slice(0,10):''; }
+function getReadStart(){
+  const v=localStorage.getItem('risale-readstart');
+  return (v&&/^\d{4}-\d{2}-\d{2}$/.test(v))?v:groupStartStr();
+}
+function syncReadStartUI(){
+  const inp=document.getElementById('read-start-date');
+  if(inp) inp.value=getReadStart();
+  const info=document.getElementById('read-start-info');
+  if(info) info.textContent=localStorage.getItem('risale-readstart')?'Kişisel tarih kullanılıyor.':'Grubun başlangıç tarihi kullanılıyor.';
+}
+window.setReadStart=function(v){
+  if(!v){ localStorage.removeItem('risale-readstart'); }
+  else localStorage.setItem('risale-readstart',v);
+  syncReadStartUI(); updateReadButton();
+  toast('Başlangıç tarihi kaydedildi ✓','success');
+};
+window.resetReadStart=function(){
+  localStorage.removeItem('risale-readstart');
+  syncReadStartUI(); updateReadButton();
+  toast('Grup tarihine dönüldü ✓','success');
+};
 function updateReadButton(){
   const el=document.getElementById('btn-read-pages');
   if(!el) return;
+  syncReadStartUI();
   if(!myGroup){ el.textContent=''; return; }
   const sel=document.getElementById('neshriyat-select');
   const pub=getNeshriyat();
   if(sel) sel.value=String(pub);
-  const [y,m,d]=String(myGroup.start_date).split('-').map(Number);
+  const [y,m,d]=getReadStart().split('-').map(Number);
   const gs=new Date(y,m-1,d), n=new Date();
   const today0=new Date(n.getFullYear(),n.getMonth(),n.getDate());
-  const dayIdx=Math.max(0,Math.round((today0-gs)/86400000));
+  const diffDays=Math.round((today0-gs)/86400000);
+  if(diffDays<0){ el.textContent=`Okuma ${d} ${MNF[m-1]} ${y} tarihinde başlıyor`; return; }
   const goal=myGroup.daily_page_goal;
-  el.textContent=`Bugün: ${pageRangeText(dayIdx*goal,goal,pub)}`;
+  el.textContent=`Bugün: ${pageRangeText(diffDays*goal,goal,pub)}`;
 }
 
 function todayStr(){
