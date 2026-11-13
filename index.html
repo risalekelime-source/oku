@@ -374,6 +374,7 @@
           <div style="font-weight:600;font-size:.88rem;">🔀 Kitap Sırası</div>
           <button class="btn btn-secondary btn-sm" onclick="resetOrder()">Varsayılana Dön</button>
         </div>
+        <div id="order-pub-label" style="font-size:.74rem;font-weight:600;color:var(--accent);margin-bottom:4px;"></div>
         <div style="font-size:.74rem;color:var(--text2);margin-bottom:10px;line-height:1.5;">Okuma sırasını ▲ ▼ oklarıyla değiştirin. Günlük sayfa aralığı bu sıraya göre hesaplanır.</div>
         <div id="order-list" style="display:flex;flex-direction:column;gap:6px;"></div>
       </div>
@@ -576,17 +577,17 @@ const MNF = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağusto
 // Sıra: [Sözler Büyük, Sözler Orta, Envar Büyük, Envar Orta, RNK Büyük, RNK Orta]
 const KULLIYAT=[
   ['Sözler',[790,1020,815,1060,850,1050]],
-  ['Tarihçe-i Hayat',[685,890,710,930,562,915]],
-  ['Mektûbat',[560,730,580,760,488,745]],
-  ['Barla Lâhikası',[380,490,395,515,760,510]],
+  ['Tarihçe-i Hayat',[685,890,710,930,725,915]],
+  ['Mektûbat',[560,730,580,760,562,745]],
+  ['Barla Lâhikası',[380,490,395,515,382,510]],
   ['Asâ-yı Mûsâ',[285,370,300,390,270,385]],
-  ['Kastamonu Lâhikası',[360,465,375,490,382,480]],
-  ["Lem'alar",[465,610,485,635,268,620]],
+  ['Kastamonu Lâhikası',[360,465,375,490,268,480]],
+  ["Lem'alar",[465,610,485,635,488,620]],
   ['Emirdağı Lâhikası',[960,1240,995,1300,557,1280]],
-  ["İşârâtül İ'câz",[280,365,295,385,258,375]],
-  ['Şuâlar',[695,900,720,940,253,925]],
-  ['Mesnevî-i Nuriye',[275,360,290,380,278,375]],
-  ['Sikke-i Tasdik-i Gaybi',[265,345,280,365,725,355]],
+  ["İşârâtül İ'câz",[280,365,295,385,253,375]],
+  ['Şuâlar',[695,900,720,940,760,925]],
+  ['Mesnevî-i Nuriye',[275,360,290,380,258,375]],
+  ['Sikke-i Tasdik-i Gaybi',[265,345,280,365,278,355]],
   ['Muhâkemat',[185,240,195,255,131,250]],
   ['Îmân ve Küfür Muvazeneleri',[240,315,255,335,207,325]]
 ];
@@ -602,7 +603,7 @@ function getNeshriyat(){
 }
 window.setNeshriyat=function(v){
   localStorage.setItem('risale-neshriyat2',String(v));
-  updateReadButton();
+  updateReadButton(); renderOrderList();
   toast('Neşriyat kaydedildi ✓','success');
 };
 // Kitap sırası: KULLIYAT indekslerinin dizisi
@@ -617,10 +618,12 @@ function getOrder(){
 function renderOrderList(){
   const el=document.getElementById('order-list');
   if(!el) return;
-  const order=getOrder();
+  const order=getOrder(), pub=getNeshriyat();
+  const lb=document.getElementById('order-pub-label'); if(lb) lb.textContent='Sayfa sayıları: '+PUB_NAMES[pub];
   el.innerHTML=order.map((bi,pos)=>`<div style="display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;">
     <span style="width:22px;font-size:.72rem;font-weight:700;color:var(--accent);">${pos+1}</span>
     <span style="flex:1;font-size:.84rem;min-width:0;">${KULLIYAT[bi][0]}</span>
+    <span style="font-size:.72rem;color:var(--text2);white-space:nowrap;margin-right:4px;">${KULLIYAT[bi][1][pub]} s.</span>
     <button class="btn btn-secondary btn-sm" style="padding:5px 10px;" ${pos===0?'disabled':''} onclick="moveBook(${pos},-1)">▲</button>
     <button class="btn btn-secondary btn-sm" style="padding:5px 10px;" ${pos===order.length-1?'disabled':''} onclick="moveBook(${pos},1)">▼</button>
   </div>`).join('');
