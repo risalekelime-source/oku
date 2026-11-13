@@ -575,22 +575,21 @@ const MNF = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağusto
 // ── KÜLLİYAT SAYFA TABLOSU ──
 // Sıra: [Sözler Büyük, Sözler Orta, Envar Büyük, Envar Orta, RNK Büyük, RNK Orta]
 const KULLIYAT=[
-  ['Sözler',[790,1020,815,1060,850,1050]],
-  ['Tarihçe-i Hayat',[685,890,710,930,562,915]],
-  ['Mektûbat',[560,730,580,760,488,745]],
-  ['Barla Lâhikası',[380,490,395,515,760,510]],
-  ['Asâ-yı Mûsâ',[285,370,300,390,270,385]],
-  ['Kastamonu Lâhikası',[360,465,375,490,382,480]],
-  ["Lem'alar",[465,610,485,635,268,620]],
-  ['Emirdağı Lâhikası',[960,1240,995,1300,557,1280]],
-  ["İşârâtül İ'câz",[280,365,295,385,258,375]],
-  ['Şuâlar',[695,900,720,940,253,925]],
-  ['Mesnevî-i Nuriye',[275,360,290,380,278,375]],
-  ['Sikke-i Tasdik-i Gaybi',[265,345,280,365,725,355]],
-  ['Muhâkemat',[185,240,195,255,131,250]],
-  ['Îmân ve Küfür Muvazeneleri',[240,315,255,335,207,325]]
+  ['Sözler',[790,1020,815,1060,824,1050]],
+  ['Tarihçe-i Hayat',[685,890,710,930,704,915]],
+  ['Mektûbat',[560,730,580,760,576,745]],
+  ['Barla Lâhikası',[380,490,395,515,392,510]],
+  ['Asâ-yı Mûsâ',[285,370,300,390,296,385]],
+  ['Kastamonu Lâhikası',[360,465,375,490,368,480]],
+  ["Lem'alar",[465,610,485,635,480,620]],
+  ['Emirdağı Lâhikası',[960,1240,995,1300,984,1280]],
+  ["İşârâtül İ'câz",[280,365,295,385,288,375]],
+  ['Şuâlar',[695,900,720,940,712,925]],
+  ['Mesnevî-i Nuriye',[275,360,290,380,288,375]],
+  ['Sikke-i Tasdik-i Gaybi',[265,345,280,365,272,355]],
+  ['Muhâkemat',[185,240,195,255,192,250]],
+  ['Îmân ve Küfür Muvazeneleri',[240,315,255,335,248,325]]
 ];
-const PUB_NAMES=['Sözler Büyük','Sözler Orta','Envar Büyük','Envar Orta','RNK Büyük','RNK Orta'];
 const SKIP_PAGES=3; // her kitapta atlanan ilk sayfa sayısı
 const PUB_NAMES=['Sözler Büyük','Sözler Orta','Envar Büyük','Envar Orta','RNK Büyük','RNK Orta'];
 function getNeshriyat(){
@@ -598,7 +597,7 @@ function getNeshriyat(){
   if(v!==null){ v=parseInt(v); return (v>=0&&v<6)?v:4; }
   // Eski kayıt (0=Sözler,1=Envar,2=RNK, büyük boy) yeni indekse çevrilir
   const old=localStorage.getItem('risale-neshriyat');
-  if(old!==null){ const m={0:0,1:2,2:4}; return m[parseInt(old)]??4; }
+  if(old!==null){ const m={0:0,1:2,2:4}; const k=parseInt(old); return m[k]!==undefined?m[k]:4; }
   return 4; // varsayılan: RNK Büyük Boy
 }
 window.setNeshriyat=function(v){
