@@ -185,7 +185,7 @@
         <p style="margin-bottom:14px;color:var(--text2);">Ayarlar'dan okuduğunuz neşriyatı ve boyunu (Sözler, Envar, RNK · Büyük veya Orta Boy) seçin. Varsayılan RNK Büyük Boy'dur. Okuma butonunun altında bugün okunacak sayfalar, kitap adının yanında neşriyat parantez içinde yazılarak gösterilir.</p>
 
         <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">📅 Okuma Başlangıç Tarihi</div>
-        <p style="margin-bottom:14px;color:var(--text2);">Ayarlar → Okuma Başlangıç Tarihi bölümünden külliyatı okumaya başladığınız günü seçin. Günlük sayfa aralığı bu tarihe göre hesaplanır. "Grup Tarihine Dön" ile grubun başlangıç tarihine geri dönersiniz. Tarih yalnızca bu cihazda saklanır.</p>
+        <p style="margin-bottom:14px;color:var(--text2);">Ayarlar → Okuma Başlangıç Tarihi bölümünden külliyatı okumaya başladığınız günü seçin. Günlük sayfa aralığı bu tarihe göre hesaplanır. "Kayıt Tarihine Dön" ile hesabınızın oluşturulma tarihine geri dönersiniz. Tarih yalnızca bu cihazda saklanır.</p>
 
         <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:.9rem;">🔀 Kitap Sırasını Değiştirme</div>
         <p style="margin-bottom:14px;color:var(--text2);">Ayarlar → Kitap Sırası bölümünde her kitabın yanındaki ▲ ▼ oklarıyla kitabı yukarı veya aşağı taşıyın. Okuma sayfa aralığı yeni sıraya göre hesaplanır. Her kitabın ilk 3 sayfası atlanır, okuma 4. sayfadan başlar. "Varsayılana Dön" ile ilk sıraya dönebilirsiniz. Sıra yalnızca bu cihazda saklanır.</p>
@@ -362,9 +362,9 @@
       <div class="card" style="margin-bottom:11px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
           <div style="font-weight:600;font-size:.88rem;">📅 Okuma Başlangıç Tarihi</div>
-          <button class="btn btn-secondary btn-sm" onclick="resetReadStart()">Grup Tarihine Dön</button>
+          <button class="btn btn-secondary btn-sm" onclick="resetReadStart()">Kayıt Tarihine Dön</button>
         </div>
-        <div style="font-size:.74rem;color:var(--text2);margin-bottom:10px;line-height:1.5;">Külliyatı okumaya başladığınız tarihi seçin. Günlük sayfa aralığı bu tarihten itibaren hesaplanır. Boş bırakırsanız grubun başlangıç tarihi kullanılır.</div>
+        <div style="font-size:.74rem;color:var(--text2);margin-bottom:10px;line-height:1.5;">Külliyatı okumaya başladığınız tarihi seçin. Günlük sayfa aralığı bu tarihten itibaren hesaplanır. Seçmezseniz hesabınızın oluşturulma (kayıt) tarihi kullanılır.</div>
         <div class="fr" style="margin-bottom:6px;"><input type="date" id="read-start-date" onchange="setReadStart(this.value)"/></div>
         <div id="read-start-info" style="font-size:.72rem;color:var(--text2);"></div>
       </div>
@@ -655,7 +655,11 @@ function pageRangeText(startPos,count,pub){
   }
   return out.length?out.join(' · '):'Külliyat tamamlandı 🎉';
 }
-function groupStartStr(){ return myGroup?String(myGroup.start_date).slice(0,10):''; }
+function groupStartStr(){
+  // Varsayılan: kullanıcının hesap oluşturulma tarihi (yoksa grubun başlangıç tarihi)
+  if(myProfile?.created_at){ const d=new Date(myProfile.created_at); if(!isNaN(d)) return dateStr(d); }
+  return myGroup?String(myGroup.start_date).slice(0,10):'';
+}
 function getReadStart(){
   const v=localStorage.getItem('risale-readstart');
   return (v&&/^\d{4}-\d{2}-\d{2}$/.test(v))?v:groupStartStr();
@@ -664,7 +668,7 @@ function syncReadStartUI(){
   const inp=document.getElementById('read-start-date');
   if(inp) inp.value=getReadStart();
   const info=document.getElementById('read-start-info');
-  if(info) info.textContent=localStorage.getItem('risale-readstart')?'Kişisel tarih kullanılıyor.':'Grubun başlangıç tarihi kullanılıyor.';
+  if(info) info.textContent=localStorage.getItem('risale-readstart')?'Kişisel tarih kullanılıyor.':'Hesap oluşturulma tarihiniz kullanılıyor.';
 }
 window.setReadStart=function(v){
   if(!v){ localStorage.removeItem('risale-readstart'); }
@@ -675,7 +679,7 @@ window.setReadStart=function(v){
 window.resetReadStart=function(){
   localStorage.removeItem('risale-readstart');
   syncReadStartUI(); updateReadButton();
-  toast('Grup tarihine dönüldü ✓','success');
+  toast('Kayıt tarihine dönüldü ✓','success');
 };
 function updateReadButton(){
   const el=document.getElementById('btn-read-pages');
