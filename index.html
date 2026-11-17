@@ -261,20 +261,23 @@
     </div>
   </div>
       <!-- Butonlar -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
-    <button class="btn btn-read btn-block" id="btn-read" onclick="logToday()" style="grid-column:1/-1;flex-direction:column;gap:2px;padding:10px 8px;">
+  <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:8px;">
+    <button class="btn btn-read btn-block" id="btn-read" onclick="logToday()" style="display:flex;flex-direction:column;gap:2px;padding:10px 8px;">
       <span style="font-size:1rem;font-weight:800;">📖 Okuma</span>
       <span id="btn-read-pages" style="font-size:0.8rem;font-weight:700;line-height:1.2;text-align:center;"></span>
     </button>
-    <button class="btn btn-ilave btn-block" onclick="openIlaveModal()" style="font-size:0.88rem;font-weight:800;padding:10px 6px;">➕ İlave</button>
-    <button class="btn btn-comp btn-block" onclick="openCompModal()" style="font-size:0.88rem;font-weight:800;padding:10px 6px;">◐ Telafi</button>
   </div>
 
-  <!-- Kılavuz (1/4) ve Diğer Butonlar/Alan (3/4) Yerleşimi -->
-  <div style="display:grid;grid-template-columns:1fr 3fr;gap:8px;align-items:center;">
-    <button class="guide-btn" onclick="openGuide()" style="font-size:0.8rem;font-weight:800;padding:10px 4px;text-align:center;width:100%;">📖 Kılavuz</button>
-    <!-- Sağ taraftaki 3/4'lük alan (Buraya başka butonlar ekleyebilir veya boş bırakabilirsiniz) -->
-    <div></div>
+  <!-- İlave, Telafi (3/4) ve Kılavuz (1/4) Yan Yana -->
+  <div style="display:grid;grid-template-columns:3fr 1fr;gap:8px;margin-bottom:8px;">
+    <!-- Sol Taraf: İlave ve Telafi (Kendi içinde 2'ye bölünür) -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <button class="btn btn-ilave btn-block" onclick="openIlaveModal()" style="font-size:0.88rem;font-weight:800;padding:10px 6px;">➕ İlave</button>
+      <button class="btn btn-comp btn-block" onclick="openCompModal()" style="font-size:0.88rem;font-weight:800;padding:10px 6px;">◐ Telafi</button>
+    </div>
+    
+    <!-- Sağ Taraf: Kullanma Kılavuzu (1/4 Oranında) -->
+    <button class="guide-btn" onclick="openGuide()" style="font-size:0.78rem;font-weight:800;padding:10px 4px;text-align:center;width:100%;">📖 Kılavuz</button>
   </div>
 </div>
       <!-- Son 7 gün -->
