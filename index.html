@@ -248,38 +248,39 @@
         <div class="stat-card" style="align-items:center;text-align:center;"><div class="sl">Durum</div><div class="sv" id="stat-delay">—</div><div class="ssub" id="stat-delay-label">sayfa</div></div>
       </div>
       <!-- Butonlar -->
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-  <!-- Ana Buton: Okuma -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+  <!-- Ana Buton: Okuma (Dikey olarak kısaltıldı, yazı büyütüldü ve koyulaştırıldı) -->
   <button 
     class="btn btn-read btn-block" 
     id="btn-read" 
     onclick="logToday()" 
-    style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 16px 12px; line-height: 1.4;">
-    <span style="font-size: 1.05rem; font-weight: 700; letter-spacing: 0.2px;">📖 Okuma</span>
-    <span id="btn-read-pages" style="font-size: 0.82rem; font-weight: 500; opacity: 0.92; text-align: center;"></span>
+    style="grid-column: 1 / -1; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px;">
+    <span style="font-size: 1.05rem; font-weight: 700; color: #111;">📖 Okuma</span>
+    <span id="btn-read-pages" style="font-size: 0.9rem; font-weight: 600; color: #222;"></span>
   </button>
 
-  <!-- Yardımcı Butonlar -->
+  <!-- Yardımcı Butonlar: Dikey alan tasarrufu için yatay yapı -->
   <button 
     class="btn btn-ilave btn-block" 
     onclick="openIlaveModal()" 
-    style="font-size: 0.9rem; font-weight: 600; padding: 14px 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+    style="font-size: 0.9rem; font-weight: 700; color: #111; padding: 10px 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
     <span>➕</span> İlave
   </button>
 
   <button 
     class="btn btn-comp btn-block" 
     onclick="openCompModal()" 
-    style="font-size: 0.9rem; font-weight: 600; padding: 14px 10px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+    style="font-size: 0.9rem; font-weight: 700; color: #111; padding: 10px 8px; display: flex; align-items: center; justify-content: center; gap: 4px;">
     <span>◐</span> Telafi
   </button>
 </div>
 
 <!-- Kılavuz Butonu -->
 <button 
+  structure-btn" 
   class="guide-btn" 
   onclick="openGuide()" 
-  style="width: 100%; padding: 12px; font-size: 0.9rem; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 12px;">
+  style="width: 100%; padding: 10px; font-size: 0.9rem; font-weight: 600; color: #111; display: flex; align-items: center; justify-content: center; gap: 6px;">
   <span>📖</span> Kullanma Kılavuzu
 </button>
       <!-- Son 7 gün -->
