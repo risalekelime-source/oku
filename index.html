@@ -242,11 +242,31 @@
   <main class="content">
     <!-- HOME -->
     <div class="page active" id="page-home">
-      <div class="stat-grid" style="margin-bottom:10px;">
-        <div class="stat-card" style="align-items:center;text-align:center;"><div class="sl">Son 7 Gün</div><div class="sv" id="stat-week">—</div><div class="ssub">sayfa</div></div>
-        <div class="stat-card" style="align-items:center;text-align:center;"><div class="sl">Toplam</div><div class="sv" id="stat-total">—</div><div class="ssub">sayfa</div></div>
-        <div class="stat-card" style="align-items:center;text-align:center;"><div class="sl">Durum</div><div class="sv" id="stat-delay">—</div><div class="ssub" id="stat-delay-label">sayfa</div></div>
-      </div>
+  <div class="stat-grid" style="margin-bottom: 8px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+    
+    <!-- Son 7 Gün -->
+    <div class="stat-card" style="align-items: center; text-align: center; padding: 6px 4px;">
+      <div class="sl" style="font-size: 0.72rem; font-weight: 600; color: #444; line-height: 1.1; margin-bottom: 2px;">Son 7 Gün</div>
+      <div class="sv" id="stat-week" style="font-size: 1.1rem; font-weight: 700; color: #111; line-height: 1.2;">—</div>
+      <div class="ssub" style="font-size: 0.65rem; color: #555; line-height: 1;">sayfa</div>
+    </div>
+
+    <!-- Toplam -->
+    <div class="stat-card" style="align-items: center; text-align: center; padding: 6px 4px;">
+      <div class="sl" style="font-size: 0.72rem; font-weight: 600; color: #444; line-height: 1.1; margin-bottom: 2px;">Toplam</div>
+      <div class="sv" id="stat-total" style="font-size: 1.1rem; font-weight: 700; color: #111; line-height: 1.2;">—</div>
+      <div class="ssub" style="font-size: 0.65rem; color: #555; line-height: 1;">sayfa</div>
+    </div>
+
+    <!-- Durum -->
+    <div class="stat-card" style="align-items: center; text-align: center; padding: 6px 4px;">
+      <div class="sl" style="font-size: 0.72rem; font-weight: 600; color: #444; line-height: 1.1; margin-bottom: 2px;">Durum</div>
+      <div class="sv" id="stat-delay" style="font-size: 1.1rem; font-weight: 700; color: #111; line-height: 1.2;">—</div>
+      <div class="ssub" id="stat-delay-label" style="font-size: 0.65rem; color: #555; line-height: 1;">sayfa</div>
+    </div>
+
+  </div>
+</div>
       <!-- Butonlar -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
   <!-- Ana Buton: Okuma (Dikey olarak kısaltıldı, yazı büyütüldü ve koyulaştırıldı) -->
