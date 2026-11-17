@@ -242,67 +242,39 @@
   <main class="content">
     <!-- HOME -->
  <div class="page active" id="page-home">
-  <div class="stat-grid" style="margin-bottom: 8px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
-    
-    <!-- Son 7 Gün -->
-    <div class="stat-card" style="align-items: center; text-align: center; padding: 6px 4px;">
-      <div class="sl" style="font-size: 0.72rem; font-weight: 600; color: #333; line-height: 1.1; margin-bottom: 2px;">Son 7 Gün</div>
-      <div class="sv" id="stat-week" style="font-size: 1.1rem; font-weight: 700; color: #111; line-height: 1.2;">—</div>
-      <div class="ssub" style="font-size: 0.65rem; font-weight: 600; color: #444; line-height: 1;">sayfa</div>
+  <!-- İstatistik Kartları -->
+  <div class="stat-grid" style="margin-bottom: 8px;">
+    <div class="stat-card" style="align-items:center;text-align:center;padding:6px 4px;">
+      <div class="sl" style="font-weight:700;font-size:0.75rem;line-height:1.2;">Son 7 Gün</div>
+      <div class="sv" id="stat-week" style="font-weight:800;font-size:1.15rem;line-height:1.2;">—</div>
+      <div class="ssub" style="font-weight:600;font-size:0.7rem;">sayfa</div>
     </div>
-
-    <!-- Toplam -->
-    <div class="stat-card" style="align-items: center; text-align: center; padding: 6px 4px;">
-      <div class="sl" style="font-size: 0.72rem; font-weight: 600; color: #333; line-height: 1.1; margin-bottom: 2px;">Toplam</div>
-      <div class="sv" id="stat-total" style="font-size: 1.1rem; font-weight: 700; color: #111; line-height: 1.2;">—</div>
-      <div class="ssub" style="font-size: 0.65rem; font-weight: 600; color: #444; line-height: 1;">sayfa</div>
+    <div class="stat-card" style="align-items:center;text-align:center;padding:6px 4px;">
+      <div class="sl" style="font-weight:700;font-size:0.75rem;line-height:1.2;">Toplam</div>
+      <div class="sv" id="stat-total" style="font-weight:800;font-size:1.15rem;line-height:1.2;">—</div>
+      <div class="ssub" style="font-weight:600;font-size:0.7rem;">sayfa</div>
     </div>
-
-    <!-- Durum -->
-    <div class="stat-card" style="align-items: center; text-align: center; padding: 6px 4px;">
-      <div class="sl" style="font-size: 0.72rem; font-weight: 600; color: #333; line-height: 1.1; margin-bottom: 2px;">Durum</div>
-      <div class="sv" id="stat-delay" style="font-size: 1.1rem; font-weight: 700; color: #111; line-height: 1.2;">—</div>
-      <div class="ssub" id="stat-delay-label" style="font-size: 0.65rem; font-weight: 600; color: #444; line-height: 1;">sayfa</div>
+    <div class="stat-card" style="align-items:center;text-align:center;padding:6px 4px;">
+      <div class="sl" style="font-weight:700;font-size:0.75rem;line-height:1.2;">Durum</div>
+      <div class="sv" id="stat-delay" style="font-weight:800;font-size:1.15rem;line-height:1.2;">—</div>
+      <div class="ssub" id="stat-delay-label" style="font-weight:600;font-size:0.7rem;">sayfa</div>
     </div>
-
   </div>
-</div>
       <!-- Butonlar -->
    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
   <!-- Okuma Butonu: 2 Satır, Dikey Tasarruflu ve Koyu Yazı -->
-  <button 
-    class="btn btn-read btn-block" 
-    id="btn-read" 
-    onclick="logToday()" 
-    style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 10px 8px;">
-    <span style="font-size: 1.05rem; font-weight: 700; color: #111; line-height: 1.2;">📖 Okuma</span>
-    <span id="btn-read-pages" style="font-size: 0.82rem; font-weight: 600; color: #222; line-height: 1.2; text-align: center;"></span>
-  </button>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+    <button class="btn btn-read btn-block" id="btn-read" onclick="logToday()" style="grid-column:1/-1;flex-direction:column;gap:2px;padding:10px 8px;">
+      <span style="font-size:1rem;font-weight:800;">📖 Okuma</span>
+      <span id="btn-read-pages" style="font-size:0.8rem;font-weight:700;line-height:1.2;text-align:center;"></span>
+    </button>
+    <button class="btn btn-ilave btn-block" onclick="openIlaveModal()" style="font-size:0.88rem;font-weight:800;padding:10px 6px;">➕ İlave</button>
+    <button class="btn btn-comp btn-block" onclick="openCompModal()" style="font-size:0.88rem;font-weight:800;padding:10px 6px;">◐ Telafi</button>
+  </div>
 
-  <!-- İlave Butonu -->
-  <button 
-    class="btn btn-ilave btn-block" 
-    onclick="openIlaveModal()" 
-    style="font-size: 0.85rem; font-weight: 700; color: #111; padding: 10px 6px; display: flex; align-items: center; justify-content: center; gap: 4px;">
-    <span>➕</span> İlave
-  </button>
-
-  <!-- Telafi Butonu -->
-  <button 
-    class="btn btn-comp btn-block" 
-    onclick="openCompModal()" 
-    style="font-size: 0.85rem; font-weight: 700; color: #111; padding: 10px 6px; display: flex; align-items: center; justify-content: center; gap: 4px;">
-    <span>◐</span> Telafi
-  </button>
+  <!-- Kılavuz -->
+  <button class="guide-btn" onclick="openGuide()" style="font-size:0.88rem;font-weight:800;padding:10px;">📖 Kullanma Kılavuzu</button>
 </div>
-
-<!-- Kılavuz Butonu -->
-<button 
-  class="guide-btn" 
-  onclick="openGuide()" 
-  style="width: 100%; padding: 10px; font-size: 0.85rem; font-weight: 700; color: #111; display: flex; align-items: center; justify-content: center; gap: 6px;">
-  <span>📖</span> Kullanma Kılavuzu
-</button>
       <!-- Son 7 gün -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <div style="font-family:var(--fd);font-size:1.1rem;font-weight:700;">Son 7 Gün</div>
