@@ -264,26 +264,29 @@
 
  <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:8px;">
     
-    <!-- 1. Satır: Okuma Butonu (Tam Genişlik) -->
-    <button class="btn btn-read btn-block" id="btn-read" onclick="logToday()" style="display:flex;flex-direction:column;gap:2px;padding:10px 8px;">
-      <span style="font-size:1rem;font-weight:800;">📖 Okuma</span>
-      <span id="btn-read-pages" style="font-size:0.8rem;font-weight:700;line-height:1.2;text-align:center;"></span>
-    </button>
-  </div>
+ <div style="display:grid;grid-template-columns:3fr 1fr;gap:8px;margin-bottom:8px;align-items:stretch;">
+    
+    <!-- Sol Taraf (İçerisinde Alt Alta Okuma ve İlave/Telafi barındırır) -->
+    <div style="display:grid;grid-template-rows:auto auto;gap:8px;">
+      <!-- 1. Satır: Okuma Butonu -->
+      <button class="btn btn-read btn-block" id="btn-read" onclick="logToday()" style="display:flex;flex-direction:column;gap:2px;padding:10px 8px;width:100%;">
+        <span style="font-size:1rem;font-weight:800;">📖 Okuma</span>
+        <span id="btn-read-pages" style="font-size:0.8rem;font-weight:700;line-height:1.2;text-align:center;"></span>
+      </button>
 
-  <!-- 2. Satır: İlave, Telafi (Sol 3 Parça) ve Kılavuz (Sağ 1 Parça - Toplam 4 Sütun Oranı) -->
-  <div style="display:grid;grid-template-columns:2fr 2fr 1fr;gap:8px;margin-bottom:8px;align-items:stretch;">
-    <!-- İlave Butonu -->
-    <button class="btn btn-ilave btn-block" onclick="openIlaveModal()" style="font-size:0.88rem;font-weight:800;padding:10px 4px;text-align:center;display:flex;align-items:center;justify-content:center;">➕ İlave</button>
-    
-    <!-- Telafi Butonu -->
-    <button class="btn btn-comp btn-block" onclick="openCompModal()" style="font-size:0.88rem;font-weight:800;padding:10px 4px;text-align:center;display:flex;align-items:center;justify-content:center;">◐ Telafi</button>
-    
-    <!-- Kullanma Kılavuzu (1/4 Oranlı Sağ Taraf) -->
-    <button class="guide-btn" onclick="openGuide()" style="font-size:0.75rem;font-weight:800;padding:6px 2px;text-align:center;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1;">
+      <!-- 2. Satır: İlave ve Telafi Yan Yana -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button class="btn btn-ilave btn-block" onclick="openIlaveModal()" style="font-size:0.88rem;font-weight:800;padding:10px 4px;text-align:center;display:flex;align-items:center;justify-content:center;">➕ İlave</button>
+        <button class="btn btn-comp btn-block" onclick="openCompModal()" style="font-size:0.88rem;font-weight:800;padding:10px 4px;text-align:center;display:flex;align-items:center;justify-content:center;">◐ Telafi</button>
+      </div>
+    </div>
+
+    <!-- Sağ Taraf: Boydan Boya (Dikey) Kullanma Kılavuzu Butonu -->
+    <button class="guide-btn" onclick="openGuide()" style="font-size:0.78rem;font-weight:800;padding:4px 2px;text-align:center;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.2;">
       <span>Kullanma</span>
       <span>Kılavuzu</span>
     </button>
+
   </div>
 </div>
       <!-- Son 7 gün -->
